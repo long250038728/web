@@ -1,0 +1,1 @@
+go get -u gopkg.in/yaml.v3
