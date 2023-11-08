@@ -13,19 +13,20 @@ type BonusModel struct {
 }
 
 var BonusHeader = []excel.Header{
-	{Key: "bonus", Name: "需要积分增加的名单", Type: "float"},
-	{Key: "telephone", Name: "手机号码", Type: "string"},
+	{Key: "bonus", Name: "需要增加积分", Type: "float"},
+	{Key: "telephone", Name: "客户手机号", Type: "string"},
 }
 
 func TestBonusReadExcel(t *testing.T) {
 	var data []*BonusModel
-	r := NewRead("/Users/linlong/Desktop/work.xlsx")
+	r := NewRead("/Users/linlong/Desktop/111.xlsx")
 	defer r.Close()
 	err := r.Read("Sheet1", BonusHeader, &data)
 	fmt.Println(err)
 
 	for _, d := range data {
 		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
+		//fmt.Printf("'%s',\n", d.Telephone)
 		fmt.Printf("['%s','%s'],\n", d.Telephone, d.BonusStr)
 	}
 }

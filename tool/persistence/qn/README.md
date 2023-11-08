@@ -1,0 +1,1 @@
+go get github.com/qiniu/go-sdk/v7
