@@ -5,36 +5,33 @@ import (
 	"reflect"
 )
 
-func Map(s1, s2 interface{}) error {
-	v1 := reflect.ValueOf(s1)
-	if reflect.ValueOf(s1).Kind() == reflect.Pointer {
-		v1 = reflect.ValueOf(s1).Elem()
+func Map(source, target interface{}) error {
+	//获取target，如果不是指针类型的话，报错
+	if reflect.ValueOf(target).Kind() != reflect.Pointer {
+		return errors.New("target must Pointer")
+	}
+	targetElem := reflect.ValueOf(target).Elem()
+
+	//获取source，如果是指针类型的话，获取对应的elem对象
+	sourceElem := reflect.ValueOf(source)
+	if reflect.ValueOf(source).Kind() == reflect.Pointer {
+		sourceElem = reflect.ValueOf(source).Elem()
 	}
 
-	if reflect.ValueOf(s2).Kind() != reflect.Pointer {
-		return errors.New("s2 must Pointer")
-	}
+	// 遍历source的字段
+	for i := 0; i < sourceElem.NumField(); i++ {
+		//获取source target中的匹配字段
+		sourceField := sourceElem.Field(i)
+		targetField := targetElem.FieldByName(sourceElem.Type().Field(i).Name)
 
-	v2 := reflect.ValueOf(s2).Elem()
-
-	// 遍历s1的字段
-	for i := 0; i < v1.NumField(); i++ {
-		// 获取v1的字段名
-		fieldName := v1.Type().Field(i).Name
-		// 获取v1的字段值
-		fieldValue := v1.Field(i)
-
-		// 获取v2的对应字段
-		v2fieldValue := v2.FieldByName(fieldName)
-
-		//判断v1 与 v2 的kind 是否相同
-		if fieldValue.Kind() != v2fieldValue.Kind() {
+		//判断获取source target中的匹配字段 的kind 是否相同
+		if sourceField.Kind() != targetField.Kind() {
 			continue
 		}
 
-		// 如果字段存在且可设置，则将s1的字段值赋值给s2的对应字段
-		if v2fieldValue.IsValid() && v2fieldValue.CanSet() {
-			v2fieldValue.Set(fieldValue)
+		// 如果target字段存在且可设置，则将source的字段值赋值给target的对应字段
+		if targetField.IsValid() && targetField.CanSet() {
+			targetField.Set(sourceField)
 		}
 	}
 	return nil
