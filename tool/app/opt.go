@@ -4,7 +4,7 @@ import (
 	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/tracing"
+	"github.com/long250038728/web/tool/tracing/opentracing"
 )
 
 type Option func(app *App)
@@ -29,6 +29,6 @@ func Register(register register.Register) Option {
 
 func Tracing(serverName, address string) Option {
 	return func(app *App) {
-		tracing.OpentracingGlobalTracer(address, serverName)
+		opentracing.OpentracingGlobalTracer(address, serverName)
 	}
 }

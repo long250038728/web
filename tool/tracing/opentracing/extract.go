@@ -1,7 +1,8 @@
-package tracing
+package opentracing
 
 import (
 	"context"
+	"github.com/long250038728/web/tool/tracing"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"github.com/uber/jaeger-client-go"
@@ -25,7 +26,7 @@ func OpentracingGlobalTracer(address, serviceName string) {
 
 		//自定义key
 		jaeger.TracerOptions.CustomHeaderKeys(&jaeger.HeadersConfig{
-			TraceContextHeaderName: Id,
+			TraceContextHeaderName: tracing.Id,
 		}),
 	)
 
@@ -50,7 +51,7 @@ func OpentracingGlobalTracer(address, serviceName string) {
 // extract   从carrier数据中提取SpanContext
 func extract(operationName string, context context.Context, tracingId []string) (opentracing.Span, context.Context) {
 	var opts []opentracing.StartSpanOption
-	if parentContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier{Id: tracingId}); err == nil {
+	if parentContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier{tracing.Id: tracingId}); err == nil {
 		opts = append(opts, ext.RPCServerOption(parentContext))
 	}
 	span := opentracing.StartSpan(operationName, opts...)

@@ -1,12 +1,9 @@
 package prometheus
 
 import (
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"math/rand"
 	"net/http"
-	"time"
 )
 
 // Summary
@@ -30,14 +27,18 @@ func NewSummary() *Summary {
 		Subsystem:  "summary_ves_ss",
 		Name:       "summary_ves_n",
 		Help:       "this is my summary_ves",
-		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, //绝对值偏差
 	}
 	summaryVec := prometheus.NewSummaryVec(opts2, []string{"method"})
 
+	//summary_ns_summary_ss_summary_n{quantile="0.5"} 0.05
+	//summary_ns_summary_ss_summary_n{quantile="0.9"} 0.05
+	//summary_ns_summary_ss_summary_n{quantile="0.99"} 0.05
+	//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.5"} 0.05
+	//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.9"} 0.05
+	//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.99"} 0.05
 	prometheus.MustRegister(summary, summaryVec)
 
-	//count:       count_ns_count_ss_count_n 3
-	//count_ves:   count_ves_ns_count_ves_ss_count_ves_n{one="one",two="two"} 50
 	return &Summary{summary: summary, summaryVec: summaryVec}
 }
 
@@ -47,21 +48,40 @@ func (g *Summary) do() {
 	}()
 
 	go func() {
-		for {
-			start := time.Now()
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.01)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.02)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.03)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.04)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.05)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.06)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.07)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.08)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.09)
 
-			// 模拟请求处理时间为随机值
-			time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.11)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.12)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.13)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.14)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.15)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.16)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.17)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.18)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(0.19)
 
-			t := time.Since(start).Seconds()
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(1.11)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(2.12)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(3.13)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(4.14)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(5.15)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(6.16)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(7.17)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(8.18)
+		g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(9.19)
 
-			fmt.Println(t)
-
-			// 根据请求的方法，记录请求处理时间
-			g.summaryVec.With(prometheus.Labels{"method": "GET"}).Observe(t)
-
-			time.Sleep(time.Second * 10)
-		}
+		//{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
+		//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.5"} 0.15   中位数0.15
+		//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.9"} 7.17   九分位数 7.17
+		//summary_ves_ns_summary_ves_ss_summary_ves_n{method="GET",quantile="0.99"} 9.19  九九分位  9.19
 	}()
 }
 

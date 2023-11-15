@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/tracing"
+	"github.com/long250038728/web/tool/tracing/opentracing"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ type Server struct {
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	handler := gin.Default()
-	handler.Use(tracing.HandlerFunc())
+	handler.Use(opentracing.HandlerFunc())
 	svc := &Server{
 		server:  &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
 		handler: handler,

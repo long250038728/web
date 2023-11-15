@@ -1,9 +1,10 @@
-package tracing
+package opentracing
 
 import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/tracing"
 	"github.com/opentracing/opentracing-go/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -17,11 +18,11 @@ func HandlerFunc() gin.HandlerFunc {
 			c.Next()
 			return
 		}
-		span, ctx := extract("HTTP: "+c.Request.URL.Path, c.Request.Context(), c.Request.Header[Id])
+		span, ctx := extract("HTTP: "+c.Request.URL.Path, c.Request.Context(), c.Request.Header[tracing.Id])
 		c.Request = c.Request.WithContext(ctx)
 
 		// 输出响应头, 方便前端调试
-		c.Header(strings.ToUpper(Id), fmt.Sprintf("%+v", span))
+		c.Header(strings.ToUpper(tracing.Id), fmt.Sprintf("%+v", span))
 		c.Next()
 		span.Finish()
 	}
@@ -31,7 +32,7 @@ func HandlerFunc() gin.HandlerFunc {
 func Interceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		md, _ := metadata.FromIncomingContext(ctx)
-		span, ctx := extract("GRPC: "+info.FullMethod, ctx, md[Id])
+		span, ctx := extract("GRPC: "+info.FullMethod, ctx, md[tracing.Id])
 		span.LogFields(log.Object("request", req))
 		resp, err = handler(ctx, req)
 		span.LogFields(log.Object("response", resp))
@@ -47,5 +48,5 @@ func Interceptor() grpc.UnaryServerInterceptor {
 func Ctx(ctx context.Context) context.Context {
 	//处理链路，加到md中
 	carrier, _ := inject(ctx)
-	return metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{Id: carrier[Id]}))
+	return metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{tracing.Id: carrier[tracing.Id]}))
 }

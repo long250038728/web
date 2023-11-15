@@ -38,7 +38,7 @@ func (w *Write) Create(sheet string, headers []excel.Header, data []interface{})
 	}
 
 	//内容
-	for index, row := range data {
+	for rowNum, row := range data {
 		//转换为json
 		jsonBytes, _ := json.Marshal(row)
 		var jsonData map[string]interface{}
@@ -47,9 +47,13 @@ func (w *Write) Create(sheet string, headers []excel.Header, data []interface{})
 		//值
 		cell := make([]interface{}, 0, len(headers)+1)
 		for _, h := range headers {
-			cell = append(cell, jsonData[h.Key])
+			if cellData, ok := jsonData[h.Key]; ok {
+				cell = append(cell, cellData)
+			} else {
+				cell = append(cell, "")
+			}
 		}
-		if err := w.file.SetSheetRow(sheet, fmt.Sprintf("A%d", index+2), &cell); err != nil {
+		if err := w.file.SetSheetRow(sheet, fmt.Sprintf("A%d", rowNum+2), &cell); err != nil {
 			return err
 		}
 	}
