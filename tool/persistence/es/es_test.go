@@ -296,27 +296,25 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 		return
 	}
 
-	q := elastic.NewBoolQuery()
-	q.Must(
+	terms := []elastic.Query{
 		elastic.NewTermQuery("platform", 1),
-	)
+	}
+	q := elastic.NewBoolQuery().Filter(terms...)
 
-	goodsTypeAgr := elastic.NewTermsAggregation().
-		Field("goods_type_id").
+	goodsTypeAgr := elastic.NewTermsAggregation().Field("goods_type_id").
 		SubAggregation("label_price", elastic.NewSumAggregation().Field("label_price"))
 
-	classifyAgr := elastic.NewTermsAggregation().
-		Field("classify_id").
+	classifyAgr := elastic.NewTermsAggregation().Field("classify_id").
 		SubAggregation("label_price", elastic.NewSumAggregation().Field("label_price"))
 
 	//NewTermsAggregation Field分组： mysql中group by的意思
-	agr := elastic.NewTermsAggregation().
-		Field("merchant_id").
+	agr := elastic.NewTermsAggregation().Field("merchant_id").
 		SubAggregation("goods_type_id", goodsTypeAgr).
 		SubAggregation("classify_id", classifyAgr)
 
 	data, err := persistence.Client.Search("sale_order_record_report").
-		Size(0).              //Aggregation无需返回hits数据
+		Size(0). //Aggregation无需返回hits数据
+		Query(q).
 		TrackTotalHits(true). //获取total数量（默认为false，如果数量超过10000则显示10000）
 		Aggregation("merchant_id", agr).
 		Do(context.Background())

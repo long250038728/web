@@ -18,15 +18,13 @@ var config = orm.Config{
 }
 
 func TestSqlJob_run(t *testing.T) {
-	sql := "select * from zby_customer order by id desc limit 1;"
-
 	db, err := orm.NewGorm(config)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 
-	err = NewSqlJob(db).run(context.Background(), "2023-11-10 10:00:00", sql)
-	t.Error(err)
+	sql := "select * from zby_customer order by id desc limit 1;"
+	t.Error(NewSqlJob(db).run(context.Background(), "2023-11-10 10:00:00", sql))
 	t.Log(sql)
 }

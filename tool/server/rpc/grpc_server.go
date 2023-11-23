@@ -2,10 +2,8 @@ package rpc
 
 import (
 	"fmt"
-	"github.com/long250038728/web/tool/metrics/prometheus"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/tracing/opentracing"
 	"google.golang.org/grpc"
 	"net"
 	"net/http"
@@ -27,7 +25,7 @@ type Server struct {
 // NewGrpc  构造函数
 func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	opts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(opentracing.Interceptor(), prometheus.Interceptor()),
+		//grpc.ChainUnaryInterceptor(opentracing.Interceptor(), prometheus.Interceptor()),
 	}
 
 	svc := &Server{

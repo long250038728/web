@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
+	"io"
+	"os"
 )
 
 type Config struct {
@@ -43,4 +45,23 @@ func (qn *Qn) UpLoad(context context.Context, bucket, address string, fileName s
 	response := &storage.PutRet{}
 
 	return uploader.PutFile(context, response, qn.Token(bucket), fileName, address, putExtra)
+}
+
+func (qn *Qn) Download(context context.Context, bucket, address string, fileName string) error {
+	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
+
+	resp, err := bucketManager.Get(bucket, fileName, &storage.GetObjectInput{})
+	if err != nil || resp == nil {
+		return err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(address, body, os.ModePerm)
+}
+
+func (qn *Qn) Delete(context context.Context, bucket, fileName string) error {
+	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
+	return bucketManager.Delete(bucket, fileName)
 }

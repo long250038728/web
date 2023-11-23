@@ -15,6 +15,30 @@ func TestQn_Token(t *testing.T) {
 
 func TestQn_Upload(t *testing.T) {
 	qn := NewQn(config)
-	err := qn.UpLoad(context.Background(), "zhubaoe-hn", "/Users/linlong/Desktop/111.png", "goods/345.png")
-	t.Log(err)
+	err := qn.UpLoad(context.Background(), "zhubaoe-hn", "/Users/linlong/Desktop/111.png", "goods/346.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok")
+}
+
+func TestQn_Download(t *testing.T) {
+	qn := NewQn(config)
+	err := qn.Download(context.Background(), "zhubaoe-hn", "/Users/linlong/Desktop/123.png", "goods/346.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok")
+}
+
+func TestQn_Delete(t *testing.T) {
+	qn := NewQn(config)
+	err := qn.Delete(context.Background(), "zhubaoe-hn", "goods/346.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok")
 }

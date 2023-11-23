@@ -92,5 +92,8 @@ func (r *Read) marshal(headers []excel.Header, rows [][]string, data interface{}
 
 // Close excel关闭文件
 func (r *Read) Close() {
+	if r.file == nil {
+		return
+	}
 	_ = r.file.Close()
 }
