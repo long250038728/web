@@ -25,6 +25,6 @@ func TestSqlJob_run(t *testing.T) {
 	}
 
 	sql := "select * from zby_customer order by id desc limit 1;"
-	t.Error(NewSqlJob(db).run(context.Background(), "2023-11-10 10:00:00", sql))
+	t.Error(NewSqlJob(db).run(context.Background(), "2023-11-28 16:05:00", sql))
 	t.Log(sql)
 }

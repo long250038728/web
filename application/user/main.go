@@ -9,9 +9,9 @@ import (
 	"github.com/long250038728/web/application/user/router"
 	"github.com/long250038728/web/application/user/service"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 )
 
@@ -26,8 +26,14 @@ func Run() error {
 		return err
 	}
 
-	//创建consul客户端
-	register, err := consul.NewConsulRegister(config.RegisterAddr)
+	////创建consul客户端
+	//register, err := consul.NewConsulRegister(config.RegisterAddr)
+	//if err != nil {
+	//	return err
+	//}
+
+	//创建链路
+	exporter, err := opentelemetry.NewJaegerExporter(config.TracingUrl)
 	if err != nil {
 		return err
 	}
@@ -38,7 +44,7 @@ func Run() error {
 	)
 
 	//启动服务
-	application := app.NewApp(
+	application, err := app.NewApp(
 		// 服务
 		app.Servers(
 			http.NewHttp(config.ServerName, config.IP, config.HttpPort, func(engine *gin.Engine) {
@@ -50,11 +56,16 @@ func Run() error {
 		),
 
 		//服务注册 && 发现
-		app.Register(register),
+		//app.Register(register),
 
 		//链路
-		app.Tracing(config.ServerName, config.TracingUrl),
+		app.Tracing(exporter, config.ServerName),
 	)
 	defer application.Stop()
+	if err != nil {
+		return err
+	}
+
+	//程序运行
 	return application.Start()
 }

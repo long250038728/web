@@ -1,33 +1,33 @@
 package app
 
 import (
-	"github.com/long250038728/web/tool/auth"
+	"context"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-type Option func(app *App)
+type Option func(app *App) error
 
 func Servers(servers ...server.Server) Option {
-	return func(app *App) {
+	return func(app *App) error {
 		app.servers = servers
-	}
-}
-
-func Auth(auth auth.Auth) Option {
-	return func(app *App) {
-		app.auth = auth
+		return nil
 	}
 }
 
 func Register(register register.Register) Option {
-	return func(app *App) {
+	return func(app *App) error {
 		app.register = register
+		return nil
 	}
 }
 
-func Tracing(serverName, address string) Option {
-	return func(app *App) {
-		//opentracing.OpentracingGlobalTracer(address, serverName)
+func Tracing(exporter trace.SpanExporter, serviceName string) Option {
+	return func(app *App) error {
+		t, err := opentelemetry.NewTrace(context.Background(), exporter, serviceName)
+		app.trace = t
+		return err
 	}
 }

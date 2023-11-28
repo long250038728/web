@@ -28,7 +28,7 @@ func TestAllIndex(t *testing.T) {
 	if err != nil {
 		return
 	}
-	names, err := persistence.Client.IndexNames()
+	names, err := persistence.IndexNames()
 	if err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func TestIndexInfo(t *testing.T) {
 	if err != nil {
 		return
 	}
-	i, err := persistence.Client.IndexGet("sale_order_record_report").Do(context.Background()) //获取index信息
+	i, err := persistence.IndexGet("sale_order_record_report").Do(context.Background()) //获取index信息
 	t.Log(err)
 	t.Log(i)
 }
@@ -58,7 +58,7 @@ func TestIndexCreateIndex(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	do, err := persistence.Client.CreateIndex(indexName).Do(ctx)
+	do, err := persistence.CreateIndex(indexName).Do(ctx)
 	if err != nil {
 		t.Log(err)
 		return
@@ -95,7 +95,7 @@ func TestIndexCreateIndex(t *testing.T) {
 			},
 		},
 	}
-	doNew, err := persistence.Client.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
+	doNew, err := persistence.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
 	if err != nil {
 		return
 	}
@@ -113,7 +113,7 @@ func TestIndexDelIndex(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	do, err := persistence.Client.DeleteIndex(indexName).Do(ctx)
+	do, err := persistence.DeleteIndex(indexName).Do(ctx)
 	if err != nil {
 		t.Log(err)
 		return
@@ -146,12 +146,12 @@ func TestIndexInsert(t *testing.T) {
 		"num":    1,
 	}
 
-	_, err = persistence.Client.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
+	_, err = persistence.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
 	if err != nil {
 		return
 	}
 
-	_, err = persistence.Client.Index().Index(indexName).BodyJson(doc2).Do(context.Background())
+	_, err = persistence.Index().Index(indexName).BodyJson(doc2).Do(context.Background())
 	if err != nil {
 		return
 	}
@@ -180,7 +180,7 @@ func TestIndexBulkInsert(t *testing.T) {
 		"num":    1,
 	}
 
-	bulk := persistence.Client.Bulk()
+	bulk := persistence.Bulk()
 	bulk.Add(
 		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc1),
 		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc2),
@@ -202,7 +202,7 @@ func TestUpdateDoc(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	do, err := persistence.Client.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Doc(map[string]interface{}{"gender": "update"}).Do(ctx)
+	do, err := persistence.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Doc(map[string]interface{}{"gender": "update"}).Do(ctx)
 	if err != nil {
 		t.Log(err)
 		return
@@ -233,7 +233,7 @@ func TestIndexSearch(t *testing.T) {
 	j, _ := json.Marshal(source)
 	t.Log(string(j))
 
-	data, err := persistence.Client.Search("sale_order_record_report").
+	data, err := persistence.Search("sale_order_record_report").
 		Query(query).
 		Sort("update_date", true).
 		From(40).
@@ -276,7 +276,7 @@ func TestIndexSearchAge(t *testing.T) {
 			SubAggregation("min", elastic.NewMinAggregation().Field("label_price")),
 	)
 
-	data, err := persistence.Client.Search("sale_order_record_report").
+	data, err := persistence.Search("sale_order_record_report").
 		Size(0).              //Aggregation无需返回hits数据
 		TrackTotalHits(true). //获取total数量（默认为false，如果数量超过10000则显示10000）
 		Aggregation("sum_label_price", elastic.NewSumAggregation().Field("label_price")).
@@ -312,7 +312,7 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 		SubAggregation("goods_type_id", goodsTypeAgr).
 		SubAggregation("classify_id", classifyAgr)
 
-	data, err := persistence.Client.Search("sale_order_record_report").
+	data, err := persistence.Search("sale_order_record_report").
 		Size(0). //Aggregation无需返回hits数据
 		Query(q).
 		TrackTotalHits(true). //获取total数量（默认为false，如果数量超过10000则显示10000）

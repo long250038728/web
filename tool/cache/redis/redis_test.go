@@ -37,6 +37,10 @@ func TestNewRedisCache(t *testing.T) {
 	t.Log(valueNx)
 	t.Log(err)
 
+	v, err := cache.Get(ctx, key)
+	t.Log(v)
+	t.Log(err)
+
 	del, err := cache.Del(ctx, key)
 	t.Log(del)
 	t.Log(err)

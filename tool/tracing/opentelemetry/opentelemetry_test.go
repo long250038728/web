@@ -24,6 +24,7 @@ func TestTracing(t *testing.T) {
 		t.Error(err)
 	}()
 
+	ctx = context.Background()
 	span := NewSpan(ctx, "this is first")
 	defer span.Close()
 

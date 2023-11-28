@@ -4,11 +4,7 @@ import "github.com/olivere/elastic/v7"
 
 //github.com/olivere/elastic/v7
 
-type Persistence struct {
-	Client *elastic.Client
-}
-
-func NewEs(addr string, user, password string) (*Persistence, error) {
+func NewEs(addr string, user, password string) (*elastic.Client, error) {
 	var options []elastic.ClientOptionFunc
 	options = append(options, elastic.SetURL(addr))
 	options = append(options, elastic.SetBasicAuth(user, password))
@@ -18,8 +14,5 @@ func NewEs(addr string, user, password string) (*Persistence, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return &Persistence{
-		Client: client,
-	}, nil
+	return client, nil
 }

@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"context"
+	"errors"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/segmentio/kafka-go"
 )

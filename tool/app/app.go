@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
@@ -21,15 +21,17 @@ type App struct {
 
 	servers  []server.Server
 	register register.Register
-	auth     auth.Auth
+	trace    *opentelemetry.Trace
 }
 
-func NewApp(opts ...Option) Application {
+func NewApp(opts ...Option) (Application, error) {
 	app := &App{}
 	for _, opt := range opts {
-		opt(app)
+		if err := opt(app); err != nil {
+			return nil, err
+		}
 	}
-	return app
+	return app, nil
 }
 
 func (app *App) Start() error {
@@ -75,13 +77,13 @@ func (app *App) Start() error {
 				case <-app.ctx.Done():
 					return nil
 				default:
-					return app.register.Register(context.Background(), svc.ServiceInstance())
+					return app.register.Register(app.ctx, svc.ServiceInstance())
 				}
 			})
 
 			group.Go(func() error {
-				<-app.ctx.Done() //此时阻塞，等待 ctx.Done触发 ，去取消注册
-				time.Sleep(time.Second * 2)
+				<-app.ctx.Done()        //此时阻塞，等待 ctx.Done触发 ，去取消注册
+				time.Sleep(time.Second) //这个时候就不能用app.ctx 应该这个ctx已经cancel
 				return app.register.DeRegister(context.Background(), svc.ServiceInstance())
 			})
 		}
@@ -93,4 +95,8 @@ func (app *App) Start() error {
 
 func (app *App) Stop() {
 	app.cancel()
+
+	if app.trace != nil {
+		_ = app.trace.Close(context.Background())
+	}
 }
