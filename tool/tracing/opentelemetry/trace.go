@@ -13,9 +13,9 @@ type Trace struct {
 	provider *trace.TracerProvider
 }
 
-func NewTrace(context context.Context, exporter trace.SpanExporter, serviceName string) (*Trace, error) {
+func NewTrace(ctx context.Context, exporter trace.SpanExporter, serviceName string) (*Trace, error) {
 	// 链路属性（服务名）
-	r, err := resource.New(context, resource.WithAttributes(semconv.ServiceName(serviceName)))
+	r, err := resource.New(ctx, resource.WithAttributes(semconv.ServiceName(serviceName)))
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +39,6 @@ func NewTrace(context context.Context, exporter trace.SpanExporter, serviceName 
 	}, nil
 }
 
-func (t *Trace) Close(context context.Context) error {
-	return t.provider.Shutdown(context)
+func (t *Trace) Close(ctx context.Context) error {
+	return t.provider.Shutdown(ctx)
 }

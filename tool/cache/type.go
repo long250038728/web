@@ -6,15 +6,15 @@ import (
 )
 
 type Cache interface {
-	IsExists(context context.Context, key string) (bool, error)
-	TTL(context context.Context, key string) (time.Duration, error)
-	Get(context context.Context, key string) (string, error)
+	IsExists(ctx context.Context, key string) (bool, error)
+	TTL(ctx context.Context, key string) (time.Duration, error)
+	Get(ctx context.Context, key string) (string, error)
 
-	Set(context context.Context, key string, value string) (bool, error)
-	SetEX(context context.Context, key string, value string, expiration time.Duration) (bool, error)
-	SetNX(context context.Context, key string, value string, expiration time.Duration) (bool, error)
+	Set(ctx context.Context, key string, value string) (bool, error)
+	SetEX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
+	SetNX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
 
-	Incr(context context.Context, key string) (int64, error)
-	
-	Del(context context.Context, key ...string) (bool, error)
+	Incr(ctx context.Context, key string) (int64, error)
+
+	Del(ctx context.Context, key ...string) (bool, error)
 }

@@ -7,10 +7,13 @@ import (
 	"time"
 )
 
-var addr = "159.75.1.200:9093"
 var topic = "bonus_message_queue_kafka"
 
-var client = NewKafkaMq(addr)
+var config = &Config{
+	Address: []string{"159.75.1.200:9093"},
+}
+
+var client = NewKafkaMq(config)
 var ctx = context.Background()
 
 var consumerGroup = "hume_2"

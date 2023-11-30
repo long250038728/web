@@ -16,10 +16,10 @@ func NewRedisLocker(client cache.Cache) locker.Locker {
 	}
 }
 
-func (l *Locker) Lock(context context.Context, key string) (bool, error) {
-	return l.client.SetNX(context, key, key, 0)
+func (l *Locker) Lock(ctx context.Context, key string) (bool, error) {
+	return l.client.SetNX(ctx, key, key, 0)
 }
 
-func (l *Locker) UnLock(context context.Context, key string) (bool, error) {
-	return l.client.Del(context, key)
+func (l *Locker) UnLock(ctx context.Context, key string) (bool, error) {
+	return l.client.Del(ctx, key)
 }

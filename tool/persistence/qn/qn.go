@@ -30,7 +30,7 @@ func (qn *Qn) Token(bucket string) string {
 	return putPolicy.UploadToken(qn.mac)
 }
 
-func (qn *Qn) UpLoad(context context.Context, bucket, address string, fileName string) error {
+func (qn *Qn) UpLoad(ctx context.Context, bucket, address string, fileName string) error {
 	//配置
 	uploader := storage.NewFormUploader(&storage.Config{})
 
@@ -44,10 +44,10 @@ func (qn *Qn) UpLoad(context context.Context, bucket, address string, fileName s
 	//响应
 	response := &storage.PutRet{}
 
-	return uploader.PutFile(context, response, qn.Token(bucket), fileName, address, putExtra)
+	return uploader.PutFile(ctx, response, qn.Token(bucket), fileName, address, putExtra)
 }
 
-func (qn *Qn) Download(context context.Context, bucket, address string, fileName string) error {
+func (qn *Qn) Download(ctx context.Context, bucket, address string, fileName string) error {
 	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
 
 	resp, err := bucketManager.Get(bucket, fileName, &storage.GetObjectInput{})
@@ -61,7 +61,7 @@ func (qn *Qn) Download(context context.Context, bucket, address string, fileName
 	return os.WriteFile(address, body, os.ModePerm)
 }
 
-func (qn *Qn) Delete(context context.Context, bucket, fileName string) error {
+func (qn *Qn) Delete(ctx context.Context, bucket, fileName string) error {
 	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
 	return bucketManager.Delete(bucket, fileName)
 }

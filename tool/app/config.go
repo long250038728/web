@@ -2,6 +2,10 @@ package app
 
 import (
 	"errors"
+	"github.com/long250038728/web/tool/cache/redis"
+	"github.com/long250038728/web/tool/mq/kafka"
+	"github.com/long250038728/web/tool/persistence/es"
+	"github.com/long250038728/web/tool/persistence/orm"
 	"net"
 	"os"
 )
@@ -16,24 +20,55 @@ const (
 )
 
 type Config struct {
-	ServerName   string
-	IP           string
-	HttpPort     int
-	GrpcPort     int
+	ServerName string
+	IP         string
+
+	HttpPort int
+	GrpcPort int
+
+	Db    *orm.Config
+	Es    *es.Config
+	Redis *redis.Config
+	Kafka *kafka.Config
+
+	Type ipType
+
 	RegisterAddr string
-	Type         ipType
-	TracingUrl   string
+	TracingAddr  string
 }
 
 // NewConfig 获取app配置
 func NewConfig() (config *Config, err error) {
 	config = &Config{
-		ServerName:   "AUser",
-		GrpcPort:     8092,
-		HttpPort:     8090,
-		Type:         TypeLocalIP,
-		RegisterAddr: "192.168.0.89:8500",
-		TracingUrl:   "http://link.zhubaoe.cn:14268/api/traces",
+		ServerName: "AUser",
+		GrpcPort:   8092,
+		HttpPort:   8090,
+		Type:       TypeLocalIP,
+		Db: &orm.Config{
+			Addr: "gz-cdb-6ggn2bux.sql.tencentcdb.com",
+			Port: 63438,
+
+			Database:    "zhubaoe",
+			TablePrefix: "zby_",
+
+			User:     "root",
+			Password: "Zby_123456",
+		},
+		Redis: &redis.Config{
+			Addr:     "43.139.51.99:32088",
+			Password: "zby123456",
+			Db:       0,
+		},
+		Es: &es.Config{
+			Addr:     "http://159.75.1.200:9220",
+			User:     "elastic",
+			Password: "zhubaoe2023Es",
+		},
+		Kafka: &kafka.Config{
+			Address: []string{"159.75.1.200:9093"},
+		},
+		//RegisterAddr: "192.168.0.89:8500",
+		TracingAddr: "http://link.zhubaoe.cn:14268/api/traces",
 	}
 	config.IP, err = config.ip()
 	return

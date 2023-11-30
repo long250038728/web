@@ -37,12 +37,16 @@ func (m *Middleware) Bind(data interface{}) *Middleware {
 		m.err = err
 		return m
 	}
-	//转换数据
-	err = json.Unmarshal(b, data)
-	if err != nil {
-		m.err = err
-		return m
+
+	//如果有数据才读
+	if len(b) > 0 {
+		err = json.Unmarshal(b, data)
+		if err != nil {
+			m.err = err
+			return m
+		}
 	}
+
 	return m
 }
 

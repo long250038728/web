@@ -21,15 +21,15 @@ func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) 
 	}
 }
 
-func (l *Limiter) Allow(context context.Context, key string) (bool, error) {
+func (l *Limiter) Allow(ctx context.Context, key string) (bool, error) {
 	//如果不存在就插入一个数据
-	_, err := l.client.SetNX(context, key, "0", l.expiration)
+	_, err := l.client.SetNX(ctx, key, "0", l.expiration)
 	if err != nil {
 		return false, err
 	}
 
 	//++1
-	num, err := l.client.Incr(context, key)
+	num, err := l.client.Incr(ctx, key)
 	if err != nil {
 		return false, err
 	}

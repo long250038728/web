@@ -9,25 +9,16 @@ import (
 	"testing"
 )
 
-var indexName = "hello_word"
-var addr = "http://159.75.1.200:9220"
-var user = "elastic"
-var password = "zhubaoe2023Es"
-
-func TestNewEsPersistence(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-	t.Log(persistence)
-	t.Log(err)
+var config = &Config{
+	Addr:     "http://159.75.1.200:9220",
+	User:     "elastic",
+	Password: "zhubaoe2023Es",
 }
 
+var indexName = "hello_word"
+var persistence, _ = NewEs(config)
+
 func TestAllIndex(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
 	names, err := persistence.IndexNames()
 	if err != nil {
 		return
@@ -42,21 +33,12 @@ func TestAllIndex(t *testing.T) {
 }
 
 func TestIndexInfo(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
 	i, err := persistence.IndexGet("sale_order_record_report").Do(context.Background()) //获取index信息
 	t.Log(err)
 	t.Log(i)
 }
 
 func TestIndexCreateIndex(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	ctx := context.Background()
 	do, err := persistence.CreateIndex(indexName).Do(ctx)
 	if err != nil {
@@ -107,11 +89,6 @@ func TestIndexCreateIndex(t *testing.T) {
 }
 
 func TestIndexDelIndex(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	ctx := context.Background()
 	do, err := persistence.DeleteIndex(indexName).Do(ctx)
 	if err != nil {
@@ -126,11 +103,6 @@ func TestIndexDelIndex(t *testing.T) {
 }
 
 func TestIndexInsert(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	// 插入文档
 	doc1 := map[string]interface{}{
 		"name":   "Document 1",
@@ -146,7 +118,7 @@ func TestIndexInsert(t *testing.T) {
 		"num":    1,
 	}
 
-	_, err = persistence.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
+	_, err := persistence.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
 	if err != nil {
 		return
 	}
@@ -160,11 +132,6 @@ func TestIndexInsert(t *testing.T) {
 }
 
 func TestIndexBulkInsert(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	// 插入文档
 	doc1 := map[string]interface{}{
 		"name":   "Document 19",
@@ -196,11 +163,6 @@ func TestIndexBulkInsert(t *testing.T) {
 }
 
 func TestUpdateDoc(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	ctx := context.Background()
 	do, err := persistence.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Doc(map[string]interface{}{"gender": "update"}).Do(ctx)
 	if err != nil {
@@ -212,11 +174,6 @@ func TestUpdateDoc(t *testing.T) {
 }
 
 func TestIndexSearch(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	////filter 不计算相关性
 	////must no_must should   计算相关性
 	query := elastic.NewBoolQuery()
@@ -249,14 +206,10 @@ func TestIndexSearch(t *testing.T) {
 	for _, s := range data.Hits.Hits {
 		fmt.Println(string(s.Source))
 	}
+	t.Log(err)
 }
 
 func TestIndexSearchAge(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	q := elastic.NewBoolQuery()
 	q.Must(
 		elastic.NewTermQuery("merchant_id", 168),
@@ -287,15 +240,10 @@ func TestIndexSearchAge(t *testing.T) {
 
 	aggregation := string(data.Aggregations["sub_label_price2"])
 	fmt.Println(aggregation)
-
+	t.Log(err)
 }
 
 func TestIndexSearchMerchantGoodsType(t *testing.T) {
-	persistence, err := NewEs(addr, user, password)
-	if err != nil {
-		return
-	}
-
 	terms := []elastic.Query{
 		elastic.NewTermQuery("platform", 1),
 	}
@@ -321,5 +269,5 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 
 	aggregation := string(data.Aggregations["merchant_id"])
 	fmt.Println(aggregation)
-
+	t.Log(err)
 }

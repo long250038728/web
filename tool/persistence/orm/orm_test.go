@@ -15,7 +15,7 @@ var models []*User
 var mapModel *map[string]interface{}
 var mapModels *[]map[string]interface{}
 
-var config = Config{
+var config = &Config{
 	Addr: "gz-cdb-6ggn2bux.sql.tencentcdb.com",
 	Port: 63438,
 

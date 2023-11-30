@@ -20,7 +20,7 @@ type Config struct {
 	Password string
 }
 
-func NewGorm(config Config) (*gorm.DB, error) {
+func NewGorm(config *Config) (*gorm.DB, error) {
 	if config.Addr == "" || config.Port == 0 || config.Database == "" {
 		return nil, errors.New("config is error")
 	}

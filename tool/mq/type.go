@@ -34,11 +34,11 @@ func NewMessage(data interface{}) (msg *Message, err error) {
 }
 
 type Mq interface {
-	CreateTopic(context context.Context, topic string, numPartitions int, replicationFactor int) error
-	DeleteTopic(context context.Context, topic string) error
+	CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
+	DeleteTopic(ctx context.Context, topic string) error
 
-	Send(context context.Context, topic string, key string, message *Message) error
-	BulkSend(context context.Context, topic string, key string, message []*Message) error
+	Send(ctx context.Context, topic string, key string, message *Message) error
+	BulkSend(ctx context.Context, topic string, key string, message []*Message) error
 
-	Subscribe(context context.Context, topic string, consumerGroup string)
+	Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(c *Message, err error) error)
 }

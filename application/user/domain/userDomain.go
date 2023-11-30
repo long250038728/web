@@ -17,5 +17,5 @@ func NewUserDomain(userRepository *repository.UserRepository) *UserDomain {
 }
 
 func (s *UserDomain) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {
-	return &user.ResponseHello{Str: "HELLO :" + request.Name}, nil
+	return &user.ResponseHello{Str: s.userRepository.GetName(request)}, nil
 }

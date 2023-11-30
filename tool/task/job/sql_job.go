@@ -15,7 +15,7 @@ func NewSqlJob(db *gorm.DB) *SqlJob {
 	return &SqlJob{db}
 }
 
-func (j *SqlJob) run(context context.Context, t string, sql string) error {
+func (j *SqlJob) run(ctx context.Context, t string, sql string) error {
 	location, err := time.LoadLocation("Local")
 	if err != nil {
 		return err
@@ -36,6 +36,6 @@ func (j *SqlJob) run(context context.Context, t string, sql string) error {
 	<-timer.C
 
 	//执行
-	res := j.db.Session(&gorm.Session{Context: context}).Exec(sql)
+	res := j.db.Session(&gorm.Session{Context: ctx}).Exec(sql)
 	return res.Error
 }

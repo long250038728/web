@@ -13,8 +13,8 @@ type Span struct {
 	span     trace.Span
 }
 
-func NewSpan(context context.Context, spanName string) *Span {
-	ctx, span := otel.Tracer("").Start(context, spanName)
+func NewSpan(ctx context.Context, spanName string) *Span {
+	ctx, span := otel.Tracer("").Start(ctx, spanName)
 	return &Span{
 		spanName: spanName, context: ctx, span: span,
 	}

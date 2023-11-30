@@ -6,15 +6,17 @@ import (
 	"time"
 )
 
-var addr = "43.139.51.99:32088"
-var password = "zby123456"
-var db = 0
+var config = &Config{
+	Addr:     "43.139.51.99:32088",
+	Password: "zby123456",
+	Db:       0,
+}
 
 var key = "z"
 var value = "100"
 
 func TestNewRedisCache(t *testing.T) {
-	cache := NewRedisCache(addr, password, db)
+	cache := NewRedisCache(config)
 	ctx := context.Background()
 
 	ok, err := cache.Set(ctx, key, value)

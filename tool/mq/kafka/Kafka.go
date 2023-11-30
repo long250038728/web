@@ -13,17 +13,17 @@ type Mq struct {
 	address []string
 }
 
-func NewKafkaMq(address ...string) *Mq {
+func NewKafkaMq(config *Config) *Mq {
 	return &Mq{
-		address: address,
+		address: config.Address,
 	}
 }
 
-func (m *Mq) CreateTopic(context context.Context, topic string, numPartitions int, replicationFactor int) error {
+func (m *Mq) CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error {
 	//如果外部关闭了就不退出循环
 	select {
-	case <-context.Done():
-		return context.Err()
+	case <-ctx.Done():
+		return ctx.Err()
 	default:
 	}
 
@@ -47,11 +47,11 @@ func (m *Mq) CreateTopic(context context.Context, topic string, numPartitions in
 	return conn.CreateTopics(topicConfigs...)
 }
 
-func (m *Mq) DeleteTopic(context context.Context, topic string) error {
+func (m *Mq) DeleteTopic(ctx context.Context, topic string) error {
 	//如果外部关闭了就不退出循环
 	select {
-	case <-context.Done():
-		return context.Err()
+	case <-ctx.Done():
+		return ctx.Err()
 	default:
 	}
 
@@ -67,11 +67,11 @@ func (m *Mq) DeleteTopic(context context.Context, topic string) error {
 	return conn.DeleteTopics(topic)
 }
 
-func (m *Mq) Send(context context.Context, topic string, key string, message *mq.Message) error {
-	return m.BulkSend(context, topic, key, []*mq.Message{message})
+func (m *Mq) Send(ctx context.Context, topic string, key string, message *mq.Message) error {
+	return m.BulkSend(ctx, topic, key, []*mq.Message{message})
 }
 
-func (m *Mq) BulkSend(context context.Context, topic string, key string, messages []*mq.Message) error {
+func (m *Mq) BulkSend(ctx context.Context, topic string, key string, messages []*mq.Message) error {
 	list := make([]kafka.Message, 0, len(messages))
 
 	for _, message := range messages {
@@ -95,10 +95,10 @@ func (m *Mq) BulkSend(context context.Context, topic string, key string, message
 		AllowAutoTopicCreation: false,
 	}
 	defer w.Close()
-	return w.WriteMessages(context, list...)
+	return w.WriteMessages(ctx, list...)
 }
 
-func (m *Mq) Subscribe(context context.Context, topic string, consumerGroup string, callback func(c *mq.Message, err error) error) {
+func (m *Mq) Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(c *mq.Message, err error) error) {
 	// 设置Kafka消费者配置
 	config := kafka.ReaderConfig{
 		Brokers: m.address,     // Kafka broker地址
@@ -114,14 +114,14 @@ func (m *Mq) Subscribe(context context.Context, topic string, consumerGroup stri
 	for {
 		//如果外部关闭了就不退出循环
 		select {
-		case <-context.Done():
-			_ = callback(nil, context.Err())
+		case <-ctx.Done():
+			_ = callback(nil, ctx.Err())
 			return
 		default:
 		}
 
 		// 读取消息
-		kafkaMessage, err := reader.FetchMessage(context)
+		kafkaMessage, err := reader.FetchMessage(ctx)
 		if err != nil {
 			_ = callback(nil, err)
 			continue
@@ -142,7 +142,7 @@ func (m *Mq) Subscribe(context context.Context, topic string, consumerGroup stri
 
 			//提交失败重试次数
 			for {
-				commitErr := reader.CommitMessages(context, kafkaMessage)
+				commitErr := reader.CommitMessages(ctx, kafkaMessage)
 				if commitErr == nil || ErrRetryNum >= MaxRetryNum {
 					break
 				}

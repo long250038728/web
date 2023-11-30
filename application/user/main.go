@@ -11,7 +11,6 @@ import (
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
-	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 )
 
@@ -20,46 +19,28 @@ func main() {
 }
 
 func Run() error {
-	//获取app配置信息
-	config, err := app.NewConfig()
-	if err != nil {
-		return err
-	}
-
-	////创建consul客户端
-	//register, err := consul.NewConsulRegister(config.RegisterAddr)
-	//if err != nil {
-	//	return err
-	//}
-
-	//创建链路
-	exporter, err := opentelemetry.NewJaegerExporter(config.TracingUrl)
+	util, err := app.NewUtil()
 	if err != nil {
 		return err
 	}
 
 	// 定义服务
 	userService := service.NewUserService(
-		service.UserDomain(domain.NewUserDomain(repository.NewUserRepository())),
+		service.UserDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
 	)
 
 	//启动服务
 	application, err := app.NewApp(
-		// 服务
-		app.Servers(
-			http.NewHttp(config.ServerName, config.IP, config.HttpPort, func(engine *gin.Engine) {
+		app.Register(util.Register()),                      //服务注册 && 发现
+		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+		app.Servers( // 服务
+			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
 				router.RegisterUserServerServer(engine, userService)
 			}),
-			rpc.NewGrpc(config.ServerName, config.IP, config.GrpcPort, func(engine *grpc.Server) {
+			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
 				user.RegisterUserServerServer(engine, userService)
 			}),
 		),
-
-		//服务注册 && 发现
-		//app.Register(register),
-
-		//链路
-		app.Tracing(exporter, config.ServerName),
 	)
 	defer application.Stop()
 	if err != nil {

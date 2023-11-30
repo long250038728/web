@@ -7,12 +7,10 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/hashicorp/consul/api v1.25.1
 	github.com/olivere/elastic/v7 v7.0.32
-	github.com/opentracing/opentracing-go v1.2.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/qiniu/go-sdk/v7 v7.18.2
 	github.com/robfig/cron v1.2.0
 	github.com/segmentio/kafka-go v0.4.44
-	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/xuri/excelize/v2 v2.8.0
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -27,7 +25,6 @@ require (
 )
 
 require (
-	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
@@ -76,12 +73,10 @@ require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.3 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
-	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/xuri/efp v0.0.0-20230802181842-ad255f2331ca // indirect
 	github.com/xuri/nfp v0.0.0-20230819163627-dc951e3ffe1a // indirect
 	go.opentelemetry.io/otel/metric v1.20.0 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect

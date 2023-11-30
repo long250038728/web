@@ -19,7 +19,7 @@ func RegisterUserServerServer(engine *gin.Engine, srv user.UserServerServer) {
 
 	//设置权限
 
-	engine.GET("/help", func(gin *gin.Context) {
+	engine.GET("/", func(gin *gin.Context) {
 		req := &user.RequestHello{}
 		http.NewMiddleware(gin, opts...).Bind(req).Do(func(ctx context.Context) (interface{}, error) {
 			return srv.SayHello(ctx, req)
