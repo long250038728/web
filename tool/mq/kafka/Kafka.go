@@ -108,6 +108,7 @@ func (m *Mq) Subscribe(context context.Context, topic string, consumerGroup stri
 
 	// 创建Kafka消费者
 	reader := kafka.NewReader(config)
+	defer reader.Close()
 
 	// 循环读取消息
 	for {

@@ -51,10 +51,6 @@ func (r *Cache) Incr(context context.Context, key string) (int64, error) {
 	return r.client.Incr(context, key).Result()
 }
 
-func (r *Cache) GetDel(context context.Context, key string) (string, error) {
-	return r.client.GetDel(context, key).Result()
-}
-
 func (r *Cache) Del(context context.Context, key ...string) (bool, error) {
 	res, err := r.client.Del(context, key...).Result()
 	return res > 0, err

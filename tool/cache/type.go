@@ -15,7 +15,6 @@ type Cache interface {
 	SetNX(context context.Context, key string, value string, expiration time.Duration) (bool, error)
 
 	Incr(context context.Context, key string) (int64, error)
-
-	GetDel(context context.Context, key string) (string, error)
+	
 	Del(context context.Context, key ...string) (bool, error)
 }
