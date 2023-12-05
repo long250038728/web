@@ -55,3 +55,7 @@ func (r *Cache) Del(ctx context.Context, key ...string) (bool, error) {
 	res, err := r.client.Del(ctx, key...).Result()
 	return res > 0, err
 }
+
+func (r *Cache) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
+	return r.client.Eval(ctx, script, keys, args...).Result()
+}

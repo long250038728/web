@@ -17,4 +17,5 @@ type Cache interface {
 	Incr(ctx context.Context, key string) (int64, error)
 
 	Del(ctx context.Context, key ...string) (bool, error)
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
 }
