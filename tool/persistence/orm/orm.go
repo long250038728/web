@@ -3,6 +3,7 @@ package orm
 import (
 	"errors"
 	"fmt"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -76,13 +77,15 @@ func callback(db *gorm.DB) {
 
 // beforeCallBack 开始回调
 func beforeCallBack(db *gorm.DB) {
-	db.InstanceSet("time", time.Now())
-	fmt.Println("before")
+	span := opentelemetry.NewSpan(db.Statement.Context, "SQL")
+	db.InstanceSet("span", span)
 }
 
 // 结束回调
 func afterCallBack(db *gorm.DB) {
-	t, _ := db.InstanceGet("time")
-	fmt.Println(db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...))
-	fmt.Println(time.Now().Sub(t.(time.Time)))
+	if s, ok := db.InstanceGet("span"); ok {
+		span := s.(*opentelemetry.Span)
+		span.AddEvent(db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...))
+		span.Close()
+	}
 }

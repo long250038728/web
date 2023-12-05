@@ -28,8 +28,11 @@ func Register(register *consul.Register) Option {
 
 func Tracing(exporter *jaeger.Exporter, serviceName string) Option {
 	return func(app *App) error {
-		t, err := opentelemetry.NewTrace(context.Background(), exporter, serviceName)
-		app.trace = t
-		return err
+		if exporter != nil {
+			t, err := opentelemetry.NewTrace(context.Background(), exporter, serviceName)
+			app.trace = t
+			return err
+		}
+		return nil
 	}
 }

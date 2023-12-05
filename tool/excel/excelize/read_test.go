@@ -1,11 +1,9 @@
 package excelize
 
 import (
-	"context"
 	"fmt"
 	"github.com/long250038728/web/tool/excel"
 	"testing"
-	"time"
 )
 
 type BonusModel struct {
@@ -16,12 +14,12 @@ type BonusModel struct {
 	MerchantShopName string  `json:"merchant_shop_name"`
 	Staff            string  `json:"staff"`
 	TimeAdd          string  `json:"time_add"`
+	BonusStr         string  `json:"bonus_str"`
 }
 
 var BonusHeader = []excel.Header{
 	{Key: "telephone", Name: "手机号", Type: "string"},
-	{Key: "name", Name: "姓名", Type: "string"},
-	{Key: "bonus", Name: "可用积分", Type: "float"},
+	{Key: "bonus", Name: "增加积分", Type: "float"},
 	{Key: "total_bonus", Name: "累计积分", Type: "float"},
 	{Key: "merchant_shop_name", Name: "所属门店", Type: "string"},
 	{Key: "staff", Name: "归属员工手机号", Type: "string"},
@@ -36,18 +34,9 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 
 	fmt.Println(err)
 
-	//fmt.Println(err)
-
-	//for _, d := range data {
-	//	//d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
-	//	////fmt.Printf("'%s',\n", d.Telephone)
-	//	//fmt.Printf("['%s','%s'],\n", d.Telephone, d.BonusStr)
-	//}
-
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, BonusModel{}, "hello")
-	fmt.Println(ctx.Value(BonusModel{}))
-
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
+	for _, d := range data {
+		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
+		////fmt.Printf("'%s',\n", d.Telephone)
+		fmt.Printf("['%s','%s'],\n", d.Telephone, d.BonusStr)
+	}
 }

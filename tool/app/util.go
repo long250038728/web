@@ -1,8 +1,9 @@
 package app
 
 import (
+	"context"
 	"github.com/long250038728/web/tool/cache"
-	"github.com/long250038728/web/tool/cache/redis"
+	redisCache "github.com/long250038728/web/tool/cache/redis"
 	"github.com/long250038728/web/tool/locker"
 	redisLocker "github.com/long250038728/web/tool/locker/redis"
 	"github.com/long250038728/web/tool/mq"
@@ -21,7 +22,7 @@ type Util struct {
 	Info *Config
 
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
-	Db *gorm.DB
+	db *gorm.DB
 	Es *elastic.Client
 
 	//cache locker mq 主要是一些通用的东西，可以用接口代替
@@ -54,12 +55,12 @@ func NewUtil() (*Util, error) {
 		if err != nil {
 			return nil, err
 		}
-		util.Db = client
+		util.db = client
 	}
 
 	//创建redis && locker
 	if config.Redis != nil {
-		util.Cache = redis.NewRedisCache(config.Redis)
+		util.Cache = redisCache.NewRedisCache(config.Redis)
 		util.Locker = redisLocker.NewRedisLocker(util.Cache)
 	}
 
@@ -103,4 +104,8 @@ func (u *Util) Register() *consul.Register {
 
 func (u *Util) Exporter() *jaeger.Exporter {
 	return u.exporter
+}
+
+func (u *Util) Db(ctx context.Context) *gorm.DB {
+	return u.db.WithContext(ctx)
 }
