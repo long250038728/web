@@ -14,6 +14,11 @@ type Cache struct {
 }
 
 func NewRedisCache(config *Config) cache.Cache {
+	////哨兵机制客户端init方法
+	//redisClient := redis.NewFailoverClient(&redis.FailoverOptions{
+	//	MasterName:"master",
+	//	SentinelAddrs:[]string{"xxx1:6379","xxx2:6379","xxx3:6379"},
+	//})
 	redisClient := redis.NewClient(&redis.Options{Addr: config.Addr, Password: config.Password, DB: config.Db})
 	return &Cache{
 		client: redisClient,

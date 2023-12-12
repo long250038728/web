@@ -12,7 +12,6 @@ service UserServer {
 message RequestHello {
   string name = 1;
 }
-
 message ResponseHello {
   string str = 1;
 }

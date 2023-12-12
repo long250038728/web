@@ -6,10 +6,10 @@ Cache Aside (默认：旁路缓存)
     2.有则返回，无则查数据库（采用singlefight：本地locker的概念）插入缓存（可同步可异步）
     3.返回数据
 
-Cache read through（只管读缓存）
+Cache read through（只管读缓存类）
     到缓存类中读数据，当缓存不存在的时候，内部有方法去获取（依赖注入）
 
-Cache write through（只管写缓存）
+Cache write through（只管写缓存类）
     到缓存类中写数据，内部有方法去写入到其他（依赖注入）
 
 Cache write back（只写缓存）
@@ -27,4 +27,4 @@ Cache write back（只写缓存）
 缓存雪崩（可对key的过期加一个随机时间，避免大量key同时过期）
     大量的缓存过期，大量的请求直击数据库————缓存预热的场景
 
-解决思路方法：避免同时大量请求到数据库
+解决思路：避免同时大量请求到数据库

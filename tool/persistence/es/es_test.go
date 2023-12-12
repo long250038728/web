@@ -220,8 +220,8 @@ func TestIndexSearchAge(t *testing.T) {
 		SubAggregation("sum", elastic.NewSumAggregation().Field("label_price")).
 		SubAggregation("min", elastic.NewMinAggregation().Field("label_price"))
 
-	// 加条件用NewFilterAggregation
-	// 分组用NewTermsAggregation
+	// 加条件 用NewFilterAggregation
+	// 分组   用NewTermsAggregation
 	// 具体函数NewSum/MinAggregation
 	agr2 := elastic.NewFilterAggregation().Filter(q).SubAggregation(
 		"merchant_id_168", elastic.NewTermsAggregation().Field("classify_id").
@@ -270,4 +270,34 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 	aggregation := string(data.Aggregations["merchant_id"])
 	fmt.Println(aggregation)
 	t.Log(err)
+}
+
+func TestUpdateByQuery(t *testing.T) {
+	query := elastic.NewBoolQuery().Must(
+		elastic.NewTermsQuery("type", 1),
+		elastic.NewExistsQuery("hello"),
+	)
+
+	//对es进行添加script操作，新增一个字段值为field
+	do, err := persistence.UpdateByQuery().
+		Index(indexName).
+		Query(query).
+		Script(elastic.NewScript("ctx._source.new_field = ctx._source.field")).
+		Do(context.Background())
+	if err != nil {
+		return
+	}
+	t.Log(do.Updated)
+}
+
+func TestReindex(t *testing.T) {
+	do, err := persistence.Reindex().
+		SourceIndex(indexName).
+		DestinationIndex("index_bac").
+		WaitForCompletion(true).
+		Do(context.Background())
+	if err != nil {
+		return
+	}
+	t.Log(do.Updated)
 }

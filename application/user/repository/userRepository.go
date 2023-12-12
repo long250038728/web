@@ -23,7 +23,6 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 		Name string `json:"name"`
 	}
 	c := &customer{}
-
 	//orm
 	r.util.Db(ctx).Where("id = ?", 1).Find(c)
 
@@ -35,8 +34,17 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	//_, _ = r.util.Cache.Get(ctx, "hello")
 
 	////lock
-	//_, _ = r.util.Locker.Lock(ctx, "hello")
-	//_, _ = r.util.Locker.UnLock(ctx, "hello")
+	lock, err := r.util.Locker("hello", "123", time.Second*5)
+	if err != nil {
+		return "", err
+	}
+	_, _ = lock.Lock(ctx)
+	cancelCtx, cancel := context.WithCancel(ctx)
+	go lock.AutoRefresh(cancelCtx)
+	defer func() {
+		cancel()
+		lock.UnLock(ctx)
+	}()
 
 	////es
 	//query := elastic.NewBoolQuery().Must(
