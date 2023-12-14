@@ -4,7 +4,6 @@ import (
 	"context"
 	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/server/rpc"
-	"github.com/long250038728/web/tool/tracing/opentracing"
 	"testing"
 )
 
@@ -36,5 +35,5 @@ func userGrpcClientTest() (interface{}, error) {
 
 	//请求数据
 	rpcClient := user.NewUserServerClient(conn)
-	return rpcClient.SayHello(opentracing.Ctx(ctx), &user.RequestHello{Name: "long"})
+	return rpcClient.SayHello(ctx, &user.RequestHello{Name: "long"})
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"io"
 	"net/http"
-	url2 "net/url"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -16,24 +16,28 @@ type Client struct {
 	timeout time.Duration
 }
 
-type otp func(c *Client)
+type Otp func(c *Client)
 
-func NewClient(timeout time.Duration, opts ...otp) *Client {
-	client := &Client{
-		timeout: timeout,
+func SetTimeout(timeout time.Duration) Otp {
+	return func(c *Client) {
+		c.timeout = timeout
 	}
+}
+
+func NewClient(opts ...Otp) *Client {
+	client := &Client{}
 	for _, opt := range opts {
 		opt(client)
 	}
 	return client
 }
 
-func (c *Client) Post(ctx context.Context, url string, data map[string]any) ([]byte, int, error) {
-	return c.do(ctx, http.MethodPost, url, data)
+func (c *Client) Post(ctx context.Context, address string, data map[string]any) ([]byte, int, error) {
+	return c.do(ctx, http.MethodPost, address, data)
 }
 
-func (c *Client) Get(ctx context.Context, url string, data map[string]any) ([]byte, int, error) {
-	reqURL, err := url2.Parse(url)
+func (c *Client) Get(ctx context.Context, address string, data map[string]any) ([]byte, int, error) {
+	reqURL, err := url.Parse(address)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -47,13 +51,13 @@ func (c *Client) Get(ctx context.Context, url string, data map[string]any) ([]by
 	return c.do(ctx, http.MethodGet, reqURL.String(), nil)
 }
 
-func (c *Client) do(ctx context.Context, method string, url string, data map[string]any) ([]byte, int, error) {
+func (c *Client) do(ctx context.Context, method string, address string, data map[string]any) ([]byte, int, error) {
 	client := &http.Client{
 		Timeout: c.timeout,
 	}
 	span := opentelemetry.NewSpan(ctx, "HTTP Client")
 	defer span.Close()
-	span.AddEvent(url)
+	span.AddEvent(address)
 
 	var body io.Reader
 	if data != nil {
@@ -65,7 +69,7 @@ func (c *Client) do(ctx context.Context, method string, url string, data map[str
 		body = strings.NewReader(string(jsonBody))
 	}
 
-	request, err := http.NewRequest(method, url, body)
+	request, err := http.NewRequest(method, address, body)
 	if err != nil {
 		return nil, 0, err
 	}

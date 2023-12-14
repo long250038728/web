@@ -25,7 +25,7 @@ func TestClient_Post(t *testing.T) {
 		t.Error(err)
 	}()
 
-	c := NewClient(time.Second * 5)
+	c := NewClient(SetTimeout(time.Second * 5))
 
 	data := map[string]any{
 		"a": "Login",
@@ -59,7 +59,7 @@ func TestClient_Get(t *testing.T) {
 		t.Error(err)
 	}()
 
-	c := NewClient(time.Second * 5)
+	c := NewClient(SetTimeout(time.Second * 5))
 
 	data := map[string]any{
 		"merchant_id":      394,

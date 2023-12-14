@@ -5,6 +5,7 @@ import (
 	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"time"
 )
 
@@ -38,9 +39,14 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	if err != nil {
 		return "", err
 	}
-	_, _ = lock.Lock(ctx)
+	_ = lock.Lock(ctx)
 	cancelCtx, cancel := context.WithCancel(ctx)
-	go lock.AutoRefresh(cancelCtx)
+	go func() {
+		err := lock.AutoRefresh(cancelCtx)
+		span := opentelemetry.NewSpan(ctx, "AutoRefresh")
+		defer span.Close()
+		span.AddEvent(err.Error())
+	}()
 	defer func() {
 		cancel()
 		lock.UnLock(ctx)
@@ -58,7 +64,7 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 
 	//request http
 
-	client := http.NewClient(time.Second * 5)
+	client := http.NewClient(http.SetTimeout(time.Second * 5))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
