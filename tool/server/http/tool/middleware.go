@@ -1,18 +1,25 @@
-package http
+package tool
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"io"
 	"net/http"
 )
 
 type Middleware struct {
-	ginContext *gin.Context
-	errorData  map[error]Err
+	//错误信息显示 错误显示的code及
+	error map[error]Err
+	//权限
+	auth auth.Auth
+	//限流
+	limiter limiter.Limiter
 
+	ginContext  *gin.Context
 	requestData string
 	err         error
 }
@@ -20,7 +27,7 @@ type Middleware struct {
 func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 	errData := make(map[error]Err, 0)
 	middle := &Middleware{
-		errorData: errData,
+		error: errData,
 	}
 	for _, opt := range opts {
 		opt(middle)
@@ -29,11 +36,29 @@ func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 }
 
 func (m *Middleware) GinContext(gin *gin.Context) *Middleware {
+	// 限流
+	if m.limiter != nil {
+		if err := m.limiter.Allow(gin.Request.Context(), gin.ClientIP()); err != nil {
+			m.err = err
+		}
+	}
+
+	// 权限
+	if m.auth != nil {
+		if err := m.auth.Allow(gin); err != nil {
+			m.err = err
+		}
+	}
+
 	m.ginContext = gin
 	return m
 }
 
 func (m *Middleware) Bind(data interface{}) *Middleware {
+	if m.err != nil {
+		return m
+	}
+
 	//读数据
 	if m.ginContext.Request.Method == http.MethodGet {
 		err := m.ginContext.ShouldBindQuery(data)
@@ -94,14 +119,13 @@ func (m *Middleware) responseJSON(data interface{}, err error) ([]byte, error) {
 	if err != nil {
 		code = "999999"
 		message = err.Error()
-		if errMsg, ok := m.errorData[err]; ok {
+		if errMsg, ok := m.error[err]; ok {
 			code = errMsg.Code
 			message = errMsg.Message
 		}
 		m.ginContext.Writer.WriteHeader(http.StatusBadRequest)
 	}
 	res := &response{Code: code, Message: message, Data: data}
-
 	b, _ := json.Marshal(res)
 	_, err = m.ginContext.Writer.Write(b)
 	return b, err

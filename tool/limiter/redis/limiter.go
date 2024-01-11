@@ -21,7 +21,7 @@ func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) 
 	}
 }
 
-func (l *Limiter) Allow(ctx context.Context, key string) (bool, error) {
+func (l *Limiter) Allow(ctx context.Context, key string) error {
 	script := `
 		if (redis.call("SETNX",KEYS[1],ARGV[1]) == 1) then
 			redis.call("EXPIRE",KEYS[1],ARGV[2]);
@@ -30,8 +30,11 @@ func (l *Limiter) Allow(ctx context.Context, key string) (bool, error) {
 	`
 	data, err := l.client.Eval(ctx, script, []string{key}, 0, l.expiration)
 	if err != nil {
-		return false, err
+		return err
 	}
 	num := data.(int64)
-	return l.times >= num, nil
+	if l.times >= num {
+		return nil
+	}
+	return limiter.ErrorLimiter
 }

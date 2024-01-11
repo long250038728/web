@@ -6,6 +6,3 @@
 
 // GC学习一下
 
-
-locker  弄一下
-limiter 弄一下

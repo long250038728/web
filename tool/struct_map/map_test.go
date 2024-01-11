@@ -24,12 +24,14 @@ func TestMap(t *testing.T) {
 }
 
 type Struct3 struct {
-	Num float32 `json:"num" format:"YuanToFen"`
+	Num  float32 `json:"num" format:"Kg"`
+	ANum string  `json:"ANum" format:"Kg"`
+	BNum int32   `json:"BNum" format:"Kg"`
 }
 
 func TestFormat(t *testing.T) {
-	s1 := &Struct3{100}
-	err := Format(s1, "format")
+	s1 := &Struct3{100, "100", 100}
+	err := Format(s1, "format", false)
 	t.Log(err)
 	t.Log(s1)
 }

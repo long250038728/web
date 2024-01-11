@@ -9,7 +9,6 @@ import (
 )
 
 func TestClient_Post(t *testing.T) {
-
 	ctx := context.Background()
 	exporter, err := opentelemetry.NewJaegerExporter("http://link.zhubaoe.cn:14268/api/traces")
 	if err != nil {

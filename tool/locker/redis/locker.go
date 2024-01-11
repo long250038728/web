@@ -98,6 +98,7 @@ func (l *Locker) AutoRefresh(ctx context.Context) error {
 
 				//如果续约失败，那续约直到到达重试次数
 				if retry >= retryTimes {
+					retry = 0
 					return locker.ErrorOverRetry
 				}
 				retry++

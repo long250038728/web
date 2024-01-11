@@ -3,6 +3,7 @@ syntax = "proto3";
 package user;
 
 option go_package = "/user";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
 service UserServer {
@@ -10,7 +11,7 @@ service UserServer {
 }
 
 message RequestHello {
-  string name = 1;
+  string name = 1  [(gogoproto.moretags) = 'form:"xxxx"'];
 }
 message ResponseHello {
   string str = 1;

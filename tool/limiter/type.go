@@ -1,7 +1,12 @@
 package limiter
 
-import "context"
+import (
+	"context"
+	"errors"
+)
+
+var ErrorLimiter = errors.New("api limiter")
 
 type Limiter interface {
-	Allow(ctx context.Context, key string) (bool, error)
+	Allow(ctx context.Context, key string) error
 }

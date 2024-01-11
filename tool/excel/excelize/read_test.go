@@ -3,6 +3,8 @@ package excelize
 import (
 	"fmt"
 	"github.com/long250038728/web/tool/excel"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -34,9 +36,20 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 
 	fmt.Println(err)
 
+	b := strings.Builder{}
+	b2 := strings.Builder{}
+
 	for _, d := range data {
+		//tel & bonus
 		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
-		////fmt.Printf("'%s',\n", d.Telephone)
-		fmt.Printf("['%s','%s'],\n", d.Telephone, d.BonusStr)
+		b.Write([]byte(fmt.Sprintf("['%s','%s'],\n", d.Telephone, d.BonusStr)))
+
+		//tel
+		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
+		b2.Write([]byte(fmt.Sprintf("'%s',\n", d.Telephone)))
 	}
+	err = os.WriteFile("/Users/linlong/Desktop/bonus.md", []byte(b.String()), 0777)
+	fmt.Println(err)
+	err = os.WriteFile("/Users/linlong/Desktop/tel.md", []byte(b2.String()), 0777)
+	fmt.Println(err)
 }

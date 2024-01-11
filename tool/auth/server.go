@@ -1,46 +1,37 @@
 package auth
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 )
 
-var Token = "token"
+var ErrorToken = errors.New("token disabled")
 
-// HandlerFunc 权限认证  ———— http
-func HandlerFunc(auth Auth) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		path := c.Request.URL.Path
-		query := c.Request.URL.Query()
-		token := c.Request.Header.Get(Token)
+func NewJwtAuth() Auth {
+	return &JwtAuth{}
+}
 
-		////1.判断路径是否是无需校验的
-		if auth.Neglect(path) {
-			c.Next()
-			return
-		}
+type JwtAuth struct {
+	white map[string]interface{}
+	login map[string]interface{}
+	info  map[string]interface{}
+}
 
-		//2.判断是否登录校验的
-		_, err := auth.Token(token)
-		if err != nil {
-			c.Writer.Write([]byte("无权限访问"))
-			c.Abort()
-			return
-		}
-
-		// 是登录即可访问
-		if auth.Login(token) {
-			c.Next()
-			return
-		}
-
-		// 路径是该角色可以访问
-		if auth.Rule(token, path, query) {
-			c.Next()
-			return
-		}
-
-		// 不能访问
-		c.Writer.Write([]byte("无权限访问"))
-		c.Abort()
+func (auth *JwtAuth) Allow(c *gin.Context) error {
+	path := c.Request.URL.Path
+	//无需校验
+	if _, ok := auth.white[path]; ok {
+		return nil
 	}
+
+	//校验token
+	if _, ok := auth.login[path]; ok {
+
+	}
+
+	//需要校验权限信息
+	if _, ok := auth.info[path]; ok {
+
+	}
+	return ErrorToken
 }

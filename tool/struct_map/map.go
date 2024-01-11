@@ -2,7 +2,9 @@ package struct_map
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
+	"strconv"
 )
 
 var errorType = errors.New("target must Pointer")
@@ -45,8 +47,8 @@ const (
 	Kg     = "Kg"
 )
 
-// Format 对结构体中的值进行格式化
-func Format(data interface{}, tag string) error {
+// Format 遍历结构体，把对应的数据克重或金额的转换
+func Format(data interface{}, tag string, isIn bool) error {
 	if reflect.ValueOf(data).Kind() != reflect.Pointer {
 		return errorType
 	}
@@ -59,18 +61,38 @@ func Format(data interface{}, tag string) error {
 		//type取定义的数据（struct 定义的）
 		t := value.Type().Field(j)
 
-		switch t.Type.Kind() {
-		case reflect.Float64, reflect.Float32: //目前只对float处理
+		var ratio float64 = 0
+		switch t.Tag.Get(tag) {
+		case Amount:
+			ratio = 100
+		case Kg:
+			ratio = 1000
+		}
 
-			var ratio float64 = 0
-			switch t.Tag.Get(tag) {
-			case Amount:
-				ratio = 100
-			case Kg:
-				ratio = 1000
+		switch t.Type.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if isIn {
+				v.SetInt(v.Int() * int64(ratio))
+			} else {
+				v.SetInt(v.Int() / int64(ratio))
 			}
 
-			v.SetFloat(v.Float() * ratio)
+		case reflect.Float64, reflect.Float32:
+			if isIn {
+				v.SetFloat(v.Float() * ratio)
+			} else {
+				v.SetFloat(v.Float() / ratio)
+			}
+		case reflect.String:
+			value, err := strconv.ParseFloat(v.String(), 32)
+			if err != nil {
+				return err
+			}
+			if isIn {
+				v.SetString(fmt.Sprintf("%.2f", value*ratio))
+			} else {
+				v.SetString(fmt.Sprintf("%.2f", value/ratio))
+			}
 		}
 	}
 
