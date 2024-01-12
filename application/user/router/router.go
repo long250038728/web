@@ -51,15 +51,3 @@ func RegisterUserServerServer(engine *gin.Engine, srv user.UserServerServer) {
 		})
 	})
 }
-
-////实际操作
-//
-//type AA struct {
-//	Name string `json:"name" form:"name"`
-//}
-//reqT := &AA{}
-////TODO 因为struct AA中的字段有tag，后续考虑在protoc生成的结构体有form tag
-//err := struct_map.Map(reqT, req)
-//if err != nil {
-//	return nil, err
-//}

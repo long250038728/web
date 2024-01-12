@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/user/domain"
-	user "github.com/long250038728/web/application/user/protoc"
-	"github.com/long250038728/web/application/user/repository"
+	"github.com/long250038728/web/application/user/ddd/domain"
+	"github.com/long250038728/web/application/user/ddd/repository"
+	"github.com/long250038728/web/application/user/ddd/service"
+	protoc "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/application/user/router"
-	"github.com/long250038728/web/application/user/service"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
@@ -38,10 +38,11 @@ func Run() error {
 				router.RegisterUserServerServer(engine, userService)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
-				user.RegisterUserServerServer(engine, userService)
+				protoc.RegisterUserServerServer(engine, userService)
 			}),
 		),
 	)
+
 	defer application.Stop()
 	if err != nil {
 		return err

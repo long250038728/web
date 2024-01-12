@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	user "github.com/long250038728/web/application/user/protoc"
+	"github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/server/rpc"
 	"testing"
 )

@@ -2,8 +2,8 @@ package domain
 
 import (
 	"context"
-	user "github.com/long250038728/web/application/user/protoc"
-	"github.com/long250038728/web/application/user/repository"
+	"github.com/long250038728/web/application/user/ddd/repository"
+	"github.com/long250038728/web/application/user/protoc"
 )
 
 type UserDomain struct {

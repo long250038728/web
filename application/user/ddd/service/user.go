@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"github.com/long250038728/web/application/user/domain"
-	user "github.com/long250038728/web/application/user/protoc"
+	"github.com/long250038728/web/application/user/ddd/domain"
+	"github.com/long250038728/web/application/user/protoc"
 )
 
 type UserService struct {
