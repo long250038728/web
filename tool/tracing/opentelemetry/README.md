@@ -1,7 +1,7 @@
 go get go.opentelemetry.io/otel
 go get go.opentelemetry.io/otel/sdk
 go get go.opentelemetry.io/otel/trace
-go.opentelemetry.io/otel/exporters/jaeger
+go get go.opentelemetry.io/otel/exporters/jaeger
 
 ```
     jaeger链路追踪（包含ui，client等）
