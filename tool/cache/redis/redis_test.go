@@ -2,6 +2,8 @@ package redis
 
 import (
 	"context"
+	"fmt"
+	"github.com/go-redis/redis/v8"
 	"testing"
 	"time"
 )
@@ -46,4 +48,24 @@ func TestNewRedisCache(t *testing.T) {
 	del, err := cache.Del(ctx, key)
 	t.Log(del)
 	t.Log(err)
+}
+func TestSentinel(t *testing.T) {
+	client := redis.NewFailoverClient(&redis.FailoverOptions{
+		MasterName:    "mymaster",
+		SentinelAddrs: []string{"localhost:26379", "localhost:26380", "localhost:26381"},
+		DB:            0,
+		DialTimeout:   5 * time.Second,
+		ReadTimeout:   5 * time.Second,
+		WriteTimeout:  5 * time.Second,
+	})
+
+	// 使用客户端进行操作
+	ctx := context.Background()
+
+	// 示例：设置键值对
+	err := client.Set(ctx, "example_key", "example_value", 0).Err()
+	if err != nil {
+		fmt.Println("Error setting value:", err)
+		return
+	}
 }

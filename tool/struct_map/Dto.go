@@ -20,14 +20,14 @@ func MakeDto(req interface{}) {
 
 func dto(req interface{}) *class {
 	typ := reflect.TypeOf(req)
-	if typ.Kind() == reflect.Pointer {
+	for typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	class := &class{Name: typ.Name(), Fields: make([]*field, 0, typ.NumField())}
 
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
-		if !isFirstCharUpper(f.Name) {
+		if !f.IsExported() { //私有的
 			continue
 		}
 		class.Fields = append(class.Fields, &field{Name: f.Name, Type: f.Type.Name(), Tag: `form:"` + camelToSnake(f.Name) + `"`})

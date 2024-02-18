@@ -45,14 +45,14 @@ func NewConfig() (config *Config, err error) {
 		HttpPort:   8090,
 		Type:       TypeLocalIP,
 		Db: &orm.Config{
-			Addr: "gz-cdb-6ggn2bux.sql.tencentcdb.com",
-			Port: 63438,
+			Addr: "gz-cdb-9tvaefsf.sql.tencentcdb.com",
+			Port: 63436,
 
 			Database:    "zhubaoe",
 			TablePrefix: "zby_",
 
 			User:     "root",
-			Password: "Zby_123456",
+			Password: "zby123456",
 		},
 		Redis: &redis.Config{
 			Addr:     "43.139.51.99:32088",

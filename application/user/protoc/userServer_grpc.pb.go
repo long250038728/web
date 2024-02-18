@@ -18,86 +18,86 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// UserServerClient is the client API for UserServer service.
+// UserClient is the client API for User service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type UserServerClient interface {
+type UserClient interface {
 	SayHello(ctx context.Context, in *RequestHello, opts ...grpc.CallOption) (*ResponseHello, error)
 }
 
-type userServerClient struct {
+type userClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewUserServerClient(cc grpc.ClientConnInterface) UserServerClient {
-	return &userServerClient{cc}
+func NewUserClient(cc grpc.ClientConnInterface) UserClient {
+	return &userClient{cc}
 }
 
-func (c *userServerClient) SayHello(ctx context.Context, in *RequestHello, opts ...grpc.CallOption) (*ResponseHello, error) {
+func (c *userClient) SayHello(ctx context.Context, in *RequestHello, opts ...grpc.CallOption) (*ResponseHello, error) {
 	out := new(ResponseHello)
-	err := c.cc.Invoke(ctx, "/user.UserServer/SayHello", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.User/SayHello", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// UserServerServer is the server API for UserServer service.
-// All implementations must embed UnimplementedUserServerServer
+// UserServer is the server API for User service.
+// All implementations must embed UnimplementedUserServer
 // for forward compatibility
-type UserServerServer interface {
+type UserServer interface {
 	SayHello(context.Context, *RequestHello) (*ResponseHello, error)
-	mustEmbedUnimplementedUserServerServer()
+	mustEmbedUnimplementedUserServer()
 }
 
-// UnimplementedUserServerServer must be embedded to have forward compatible implementations.
-type UnimplementedUserServerServer struct {
+// UnimplementedUserServer must be embedded to have forward compatible implementations.
+type UnimplementedUserServer struct {
 }
 
-func (UnimplementedUserServerServer) SayHello(context.Context, *RequestHello) (*ResponseHello, error) {
+func (UnimplementedUserServer) SayHello(context.Context, *RequestHello) (*ResponseHello, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")
 }
-func (UnimplementedUserServerServer) mustEmbedUnimplementedUserServerServer() {}
+func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
-// UnsafeUserServerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to UserServerServer will
+// UnsafeUserServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserServer will
 // result in compilation errors.
-type UnsafeUserServerServer interface {
-	mustEmbedUnimplementedUserServerServer()
+type UnsafeUserServer interface {
+	mustEmbedUnimplementedUserServer()
 }
 
-func RegisterUserServerServer(s grpc.ServiceRegistrar, srv UserServerServer) {
-	s.RegisterService(&UserServer_ServiceDesc, srv)
+func RegisterUserServer(s grpc.ServiceRegistrar, srv UserServer) {
+	s.RegisterService(&User_ServiceDesc, srv)
 }
 
-func _UserServer_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _User_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RequestHello)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServerServer).SayHello(ctx, in)
+		return srv.(UserServer).SayHello(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.UserServer/SayHello",
+		FullMethod: "/user.User/SayHello",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServerServer).SayHello(ctx, req.(*RequestHello))
+		return srv.(UserServer).SayHello(ctx, req.(*RequestHello))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// UserServer_ServiceDesc is the grpc.ServiceDesc for UserServer service.
+// User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var UserServer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "user.UserServer",
-	HandlerType: (*UserServerServer)(nil),
+var User_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "user.User",
+	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SayHello",
-			Handler:    _UserServer_SayHello_Handler,
+			Handler:    _User_SayHello_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

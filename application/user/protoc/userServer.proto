@@ -6,7 +6,7 @@ option go_package = "/user";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
-service UserServer {
+service User{
    rpc SayHello(RequestHello) returns (ResponseHello);
 }
 

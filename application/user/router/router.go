@@ -6,10 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/server/http/tool"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"sync"
 )
 
-func RegisterUserServerServer(engine *gin.Engine, srv user.UserServerServer) {
+func RegisterUserServerServer(engine *gin.Engine, srv user.UserServer) {
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
+
 	//设置错误
 	//设置限流
 	//设置权限

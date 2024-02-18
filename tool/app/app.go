@@ -41,7 +41,7 @@ func (app *App) Start() error {
 	app.ctx = ctx
 
 	//优雅退出
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	group.Go(func() error {
 		select {

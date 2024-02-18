@@ -1,6 +1,8 @@
 文档
 https://gorm.io/zh_CN/docs/
 
+https://mp.weixin.qq.com/s/Lj7W6ijlTp3el1WxGiQZng
+
 // go get gorm.io/gorm
 // go get gorm.io/driver/mysql
 
@@ -15,7 +17,7 @@ gorm.open()	 : gorm.db
     1.new db						//创建db对象
     2.dialector.initialize(db)		//把db对象扔到dialector初始化配置
     3.db.coonpool = sql.open()      //sql包     新增连接池从sql包中获取
-    4.new statemnet					//新增statement,里面有db对象也存放自己，，查询的时候优先读取statement.DB中的connPool
+    4.new statemnet					//新增statement，会话的状态信息，比如请求和响应信息,里面有db对象也存放自己，，查询的时候优先读取statement.DB中的connPool
 
 ```
     db =>

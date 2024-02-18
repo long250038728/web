@@ -19,7 +19,7 @@ func NewUserRepository(util *app.Util) *UserRepository {
 	}
 }
 
-func (r *UserRepository) GetName(ctx context.Context, request *user.user) (string, error) {
+func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	type customer struct {
 		Name string `json:"name"`
 	}

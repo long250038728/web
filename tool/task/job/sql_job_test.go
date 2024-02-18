@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-var config = orm.Config{
+var config = &orm.Config{
 	Addr: "gz-cdb-6ggn2bux.sql.tencentcdb.com",
 	Port: 63438,
 

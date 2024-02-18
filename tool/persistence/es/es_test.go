@@ -21,6 +21,7 @@ var persistence, _ = NewEs(config)
 func TestAllIndex(t *testing.T) {
 	names, err := persistence.IndexNames()
 	if err != nil {
+		t.Log(err)
 		return
 	}
 	for _, name := range names {
@@ -28,8 +29,6 @@ func TestAllIndex(t *testing.T) {
 			t.Log(name)
 		}
 	}
-
-	t.Log(err)
 }
 
 func TestIndexInfo(t *testing.T) {
@@ -149,6 +148,7 @@ func TestIndexBulkInsert(t *testing.T) {
 
 	bulk := persistence.Bulk()
 	bulk.Add(
+		elastic.NewBulkCreateRequest().Index(indexName).Doc(doc1),
 		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc1),
 		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc2),
 	)
@@ -292,9 +292,9 @@ func TestUpdateByQuery(t *testing.T) {
 
 func TestReindex(t *testing.T) {
 	do, err := persistence.Reindex().
-		SourceIndex(indexName).
-		DestinationIndex("index_bac").
-		WaitForCompletion(true).
+		SourceIndex(indexName).        //源index
+		DestinationIndex("index_bac"). //目标index
+		WaitForCompletion(true).       //是否阻塞等待完成
 		Do(context.Background())
 	if err != nil {
 		return

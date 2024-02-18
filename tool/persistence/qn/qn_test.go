@@ -2,6 +2,10 @@ package qn
 
 import (
 	"context"
+	"fmt"
+	"io/fs"
+	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -41,4 +45,34 @@ func TestQn_Delete(t *testing.T) {
 		return
 	}
 	t.Log("ok")
+}
+
+func TestQn_Uploads(t *testing.T) {
+	//qn := NewQn(config)
+
+	filepath.Walk("/Users/linlong/Desktop", func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			fmt.Println("Error:", err)
+			return err
+		}
+
+		// 检查是否为文件
+		if info.IsDir() {
+			return nil
+		}
+
+		// 检查文件扩展名是否为png
+		if strings.HasSuffix(strings.ToLower(info.Name()), ".png") {
+			name := strings.Split(path, "/")[len(strings.Split(path, "/"))-1]
+			fmt.Println(path)
+			fmt.Println(name)
+			fmt.Println("")
+			//err := qn.UpLoad(context.Background(), "zhubaoe-hn", path, name)
+			//if err != nil {
+			//	return err
+			//}
+		}
+
+		return nil
+	})
 }
