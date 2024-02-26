@@ -49,6 +49,7 @@ func (r Register) Register(ctx context.Context, serviceInstance *register.Servic
 			_, _ = r.client.KeepAliveOnce(ctx, res.ID)
 		}()
 	}
+	return nil
 }
 
 func (r Register) DeRegister(ctx context.Context, serviceInstance *register.ServiceInstance) error {
@@ -83,4 +84,5 @@ func (r Register) Subscribe(ctx context.Context, serviceName string) (<-chan *re
 			fmt.Printf("Event Type: %v, Key: %s, Value: %s\n", event.Type, event.Kv.Key, event.Kv.Value)
 		}
 	}
+	return nil, nil
 }

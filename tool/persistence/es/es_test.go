@@ -28,23 +28,40 @@ func TestAllIndex(t *testing.T) {
 		if strings.Contains(name, "zby_") || strings.Contains(name, "report") {
 			t.Log(name)
 		}
+
+		if name == indexName {
+			t.Log(name)
+		}
 	}
 }
 
 func TestIndexInfo(t *testing.T) {
-	i, err := persistence.IndexGet("sale_order_record_report").Do(context.Background()) //获取index信息
-	t.Log(err)
+	i, _ := persistence.IndexGet(indexName).Do(context.Background())
+	b, _ := json.Marshal(i)
+
+	//获取index信息
+	t.Log(string(b))
 	t.Log(i)
 }
 
 func TestIndexCreateIndex(t *testing.T) {
 	ctx := context.Background()
-	do, err := persistence.CreateIndex(indexName).Do(ctx)
+
+	// 定义索引的配置（settings）
+	indexSettings := `
+	{
+		"settings": {
+			"number_of_shards": 1,
+			"number_of_replicas": 0
+		}
+	}
+	`
+	do, err := persistence.CreateIndex(indexName).BodyJson(indexSettings).Do(ctx)
 	if err != nil {
 		t.Log(err)
 		return
 	}
-	if !do.Acknowledged {
+	if !do.Acknowledged { //Acknowledged 公认
 		t.Log("Failed to create index")
 		return
 	}
@@ -67,20 +84,85 @@ func TestIndexCreateIndex(t *testing.T) {
 	//Array（数组类型）：可以包含多个值的字段类型。
 	//Object（对象类型）：可以包含其他字段的复杂数据类型。
 	//Nested（嵌套类型）：用于处理嵌套对象的字段类型，可以进行独立的查询和索引。
-	mapping := map[string]interface{}{
-		"mappings": map[string]map[string]map[string]interface{}{
-			"properties": {
-				"name":   {"type": "text"},
-				"age":    {"type": "integer"},
-				"gender": {"type": "keyword"},
+	//mapping := map[string]interface{}{
+	//	"mappings": map[string]map[string]map[string]interface{}{
+	//		"properties": {
+	//			"name": {"type": "text"},
+	//			//"age":    {"type": "integer"},
+	//			//"gender": {"type": "keyword"},
+	//		},
+	//	},
+	//}
+
+	mapping := `
+	{
+		"properties": {
+			"name": {
+				"type": "text"
 			},
-		},
-	}
-	doNew, err := persistence.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
+			"age": {
+				"type": "integer"
+			},
+			"gender": {
+				"type": "keyword"
+			},
+			"other": {
+				"type": "nested",
+				"properties": {
+					"other_name": {"type": "keyword"},
+					"other_age": {"type": "integer"}
+				}
+			}
+		}
+	}`
+
+	//mappingRes, err := persistence.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
+	mappingRes, err := persistence.PutMapping().Index(indexName).BodyString(mapping).Do(ctx)
 	if err != nil {
+		t.Error(err)
 		return
 	}
-	if !doNew.Acknowledged {
+	if !mappingRes.Acknowledged {
+		t.Log("Failed to put index")
+		return
+	}
+	fmt.Println("Data put successfully")
+}
+
+func TestIndexUpDateMappings(t *testing.T) {
+	ctx := context.Background()
+	mapping := `
+	{
+		"properties": {
+			"name": {
+				"type": "text"
+			},
+			"age": {
+				"type": "integer"
+			},
+			"gender": {
+				"type": "keyword"
+			},
+			"other": {
+				"type": "nested",
+				"properties": {
+					"other_name": {"type": "keyword"},
+					"other_age": {"type": "integer"}
+				}
+			},
+			"address": {
+				"type": "text"
+			}
+		}
+	}`
+
+	//doNew, err := persistence.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
+	mappingRes, err := persistence.PutMapping().Index(indexName).BodyString(mapping).Do(ctx)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	if !mappingRes.Acknowledged {
 		t.Log("Failed to put index")
 		return
 	}
@@ -107,14 +189,20 @@ func TestIndexInsert(t *testing.T) {
 		"name":   "Document 1",
 		"gender": "This is the content of document 1",
 		"age":    12,
-		"num":    11,
+		"other": map[string]interface{}{
+			"other_name": "other doc name",
+			"other_age":  10,
+		},
 	}
 
 	doc2 := map[string]interface{}{
 		"name":   "Document 2",
 		"gender": "This is the content of document 2",
 		"age":    22,
-		"num":    1,
+		"other": map[string]interface{}{
+			"other_name": "other doc2 name",
+			"other_age":  100,
+		},
 	}
 
 	_, err := persistence.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
@@ -171,6 +259,44 @@ func TestUpdateDoc(t *testing.T) {
 	}
 	fmt.Println(do)
 	fmt.Println("Data update successfully")
+}
+
+func TestIndexSearchNested(t *testing.T) {
+	////filter 不计算相关性
+	////must no_must should   计算相关性
+
+	// text: Term精确查询  match模糊匹配单词  match_phrase模糊匹配短语
+	query := elastic.NewBoolQuery()
+	query.Must(
+		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_age", 10)),
+		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_name", "other doc name")),
+		//elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_name", "other doc2 name")),
+		//当查询时字段中有多个条件子条件，Nested的作用跟Object不同
+		//		Object是只要在整个文档存在就可以查询，不把字段列表当成一个整体
+		//  	Nested需要同时存在同一个对象中，把字段列表当成一个整体
+	)
+
+	source, _ := query.Source() //es对应的查询语句
+	j, _ := json.Marshal(source)
+	t.Log(string(j))
+
+	data, err := persistence.Search(indexName).
+		Query(query).
+		Do(context.Background())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if data.Hits.TotalHits.Value <= 0 {
+		t.Log("找不到")
+		return
+	}
+
+	for _, s := range data.Hits.Hits {
+		fmt.Println(string(s.Source))
+	}
+	t.Log(err)
 }
 
 func TestIndexSearch(t *testing.T) {
@@ -273,18 +399,19 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 }
 
 func TestUpdateByQuery(t *testing.T) {
-	query := elastic.NewBoolQuery().Must(
-		elastic.NewTermsQuery("type", 1),
-		elastic.NewExistsQuery("hello"),
-	)
+	//query := elastic.NewBoolQuery().Must(
+	//	elastic.NewTermsQuery("type", 1),
+	//	elastic.NewExistsQuery("hello"),
+	//)
 
 	//对es进行添加script操作，新增一个字段值为field
 	do, err := persistence.UpdateByQuery().
 		Index(indexName).
-		Query(query).
-		Script(elastic.NewScript("ctx._source.new_field = ctx._source.field")).
+		//Query(query).
+		Script(elastic.NewScript("ctx._source.address = ctx._source.name")).
 		Do(context.Background())
 	if err != nil {
+		t.Error(err)
 		return
 	}
 	t.Log(do.Updated)
@@ -293,10 +420,11 @@ func TestUpdateByQuery(t *testing.T) {
 func TestReindex(t *testing.T) {
 	do, err := persistence.Reindex().
 		SourceIndex(indexName).        //源index
-		DestinationIndex("index_bac"). //目标index
+		DestinationIndex("index_bac"). //目标index （先创建index，然后指定mappings，如果不指定mappings新index会自动生成type）
 		WaitForCompletion(true).       //是否阻塞等待完成
 		Do(context.Background())
 	if err != nil {
+		t.Error(err)
 		return
 	}
 	t.Log(do.Updated)

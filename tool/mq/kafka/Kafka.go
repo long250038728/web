@@ -113,12 +113,6 @@ func (m *Mq) Subscribe(ctx context.Context, topic string, consumerGroup string, 
 	// 循环读取消息
 	for {
 		//如果外部关闭了就不退出循环
-		select {
-		case <-ctx.Done():
-			_ = callback(nil, ctx.Err())
-			return
-		default:
-		}
 
 		// 读取消息
 		kafkaMessage, err := reader.FetchMessage(ctx)

@@ -6,7 +6,7 @@ import (
 	"github.com/long250038728/web/application/user/ddd/domain"
 	"github.com/long250038728/web/application/user/ddd/repository"
 	"github.com/long250038728/web/application/user/ddd/service"
-	protoc "github.com/long250038728/web/application/user/protoc"
+	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/application/user/router"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -38,7 +38,7 @@ func Run() error {
 				router.RegisterUserServerServer(engine, userService)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
-				protoc.RegisterUserServerServer(engine, userService)
+				user.RegisterUserServer(engine, userService)
 			}),
 		),
 	)

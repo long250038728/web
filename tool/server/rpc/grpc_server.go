@@ -41,7 +41,7 @@ func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		Port:    svc.port,
 		Type:    "GRPC",
 	}
-
+	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
 	handlerFunc(svc.server)
 	return svc
 }

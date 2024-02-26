@@ -20,8 +20,8 @@ type BonusModel struct {
 }
 
 var BonusHeader = []excel.Header{
-	{Key: "telephone", Name: "手机号", Type: "string"},
-	{Key: "bonus", Name: "增加积分", Type: "float"},
+	{Key: "telephone", Name: "顾客手机号", Type: "string"},
+	{Key: "bonus", Name: "积分", Type: "float"},
 	{Key: "total_bonus", Name: "累计积分", Type: "float"},
 	{Key: "merchant_shop_name", Name: "所属门店", Type: "string"},
 	{Key: "staff", Name: "归属员工手机号", Type: "string"},
@@ -34,7 +34,10 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 	defer r.Close()
 	err := r.Read("Sheet1", BonusHeader, &data)
 
-	fmt.Println(err)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	b := strings.Builder{}
 	b2 := strings.Builder{}
@@ -49,7 +52,13 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 		b2.Write([]byte(fmt.Sprintf("'%s',\n", d.Telephone)))
 	}
 	err = os.WriteFile("/Users/linlong/Desktop/bonus.md", []byte(b.String()), 0777)
-	fmt.Println(err)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	err = os.WriteFile("/Users/linlong/Desktop/tel.md", []byte(b2.String()), 0777)
-	fmt.Println(err)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 }

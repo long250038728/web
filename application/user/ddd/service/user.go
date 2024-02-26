@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"github.com/long250038728/web/application/user/ddd/domain"
-	"github.com/long250038728/web/application/user/protoc"
+	user "github.com/long250038728/web/application/user/protoc"
 )
 
 type UserService struct {
+	user.UnimplementedUserServer
 	domain *domain.UserDomain
-	user.UnimplementedUserServerServer
 }
 
 type UserServerOpt func(s *UserService)

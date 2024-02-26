@@ -20,8 +20,7 @@ func TestClient_Post(t *testing.T) {
 		t.Error(err)
 	}
 	defer func() {
-		err = trace.Close(ctx)
-		t.Error(err)
+		t.Error(trace.Close(ctx))
 	}()
 
 	c := NewClient(SetTimeout(time.Second * 5))
@@ -54,8 +53,7 @@ func TestClient_Get(t *testing.T) {
 		t.Error(err)
 	}
 	defer func() {
-		err = trace.Close(ctx)
-		t.Error(err)
+		t.Error(trace.Close(ctx))
 	}()
 
 	c := NewClient(SetTimeout(time.Second * 5))
@@ -69,7 +67,7 @@ func TestClient_Get(t *testing.T) {
 		"client_name":      "app",
 	}
 
-	res, code, err := c.Get(context.Background(), "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+	res, code, err := c.Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
 	fmt.Println(string(res))
 	fmt.Println(code)
 	fmt.Println(err)

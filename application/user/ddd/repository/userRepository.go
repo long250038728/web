@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"github.com/long250038728/web/application/user/protoc"
+	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
@@ -17,9 +17,11 @@ func NewUserRepository(util *app.Util) *UserRepository {
 	return &UserRepository{
 		util: util,
 	}
+	return nil
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+
 	type customer struct {
 		Name string `json:"name"`
 	}
