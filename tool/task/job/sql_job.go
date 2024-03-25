@@ -2,7 +2,7 @@ package job
 
 import (
 	"context"
-	"errors"
+	"github.com/long250038728/web/tool/server/http/tool"
 	"gorm.io/gorm"
 	"time"
 )
@@ -28,7 +28,7 @@ func (j *SqlJob) run(ctx context.Context, t string, sql string) error {
 
 	subTime := executionTime.Sub(time.Now())
 	if subTime < 0 {
-		return errors.New("subTime error")
+		return tool.JobSubTime
 	}
 
 	// 等待定时器触发

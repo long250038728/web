@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-var errorType = errors.New("target must Pointer")
+var errorType = errors.New("target must Pointer and  target Elem must Struct")
 
 // Map 把一个结构体的值映射到另外一个结构体上（要求映射及映射的参数类型相同才允许映射）
 func Map(source, target interface{}) error {
@@ -48,15 +48,18 @@ const (
 )
 
 // Format 遍历结构体，把对应的数据克重或金额的转换
+// data数据（指针）
+// tag 标签名
+// isIn	     true: 元转分 克转毫克	  false： 分转元 毫克转克
 func Format(data interface{}, tag string, isIn bool) error {
-	if reflect.ValueOf(data).Kind() != reflect.Pointer {
+	if data == nil || reflect.ValueOf(data).Kind() != reflect.Pointer || reflect.ValueOf(data).Elem().Kind() != reflect.Struct {
 		return errorType
 	}
-
 	value := reflect.ValueOf(data).Elem()
+
 	for j := 0; j < value.NumField(); j++ {
 		//value取值的数据
-		v := value.Field(j)
+		val := value.Field(j)
 
 		//type取定义的数据（struct 定义的）
 		t := value.Type().Field(j)
@@ -72,26 +75,31 @@ func Format(data interface{}, tag string, isIn bool) error {
 		switch t.Type.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if isIn {
-				v.SetInt(v.Int() * int64(ratio))
+				val.SetInt(val.Int() * int64(ratio))
 			} else {
-				v.SetInt(v.Int() / int64(ratio))
+				val.SetInt(val.Int() / int64(ratio))
 			}
 
 		case reflect.Float64, reflect.Float32:
 			if isIn {
-				v.SetFloat(v.Float() * ratio)
+				val.SetFloat(val.Float() * ratio)
 			} else {
-				v.SetFloat(v.Float() / ratio)
+				val.SetFloat(val.Float() / ratio)
 			}
 		case reflect.String:
-			value, err := strconv.ParseFloat(v.String(), 32)
+			value, err := strconv.ParseFloat(val.String(), 32)
 			if err != nil {
 				return err
 			}
+
+			formatStr := "%.2f"
+			if ratio == 1000 {
+				formatStr = "%.3f"
+			}
 			if isIn {
-				v.SetString(fmt.Sprintf("%.2f", value*ratio))
+				val.SetString(fmt.Sprintf(formatStr, value*ratio))
 			} else {
-				v.SetString(fmt.Sprintf("%.2f", value/ratio))
+				val.SetString(fmt.Sprintf(formatStr, value/ratio))
 			}
 		}
 	}

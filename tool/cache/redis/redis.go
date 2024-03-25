@@ -34,6 +34,10 @@ func (r *Cache) TTL(ctx context.Context, key string) (time.Duration, error) {
 	return r.client.TTL(ctx, key).Result()
 }
 
+func (r *Cache) PTTL(ctx context.Context, key string) (time.Duration, error) {
+	return r.client.PTTL(ctx, key).Result()
+}
+
 func (r *Cache) Get(ctx context.Context, key string) (string, error) {
 	return r.client.Get(ctx, key).Result()
 }

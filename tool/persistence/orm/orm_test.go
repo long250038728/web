@@ -16,14 +16,14 @@ var mapModel *map[string]interface{}
 var mapModels *[]map[string]interface{}
 
 var config = &Config{
-	Addr: "gz-cdb-6ggn2bux.sql.tencentcdb.com",
-	Port: 63438,
+	Addr: "gz-cdb-9tvaefsf.sql.tencentcdb.com",
+	Port: 63436,
 
 	Database:    "zhubaoe",
 	TablePrefix: "zby_",
 
 	User:     "root",
-	Password: "Zby_123456",
+	Password: "zby123456",
 }
 
 func TestCreateGorm(t *testing.T) {
@@ -118,4 +118,42 @@ func TestTransactionGorm(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+}
+
+func TestTempTable(t *testing.T) {
+	db, err := NewGorm(config)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	type Temp struct {
+		Id      int32
+		NewName string
+	}
+
+	list := []*Temp{
+		{Id: 1, NewName: "lin"},
+		{Id: 2, NewName: "lin1"},
+		{Id: 3, NewName: "lin2"},
+		{Id: 4, NewName: "lin3"},
+	}
+
+	// 创建临时表
+	if err := db.Exec("CREATE TEMPORARY TABLE zby_temp (id INT, new_name VARCHAR(255))").Error; err != nil {
+		t.Error(err)
+		return
+	}
+
+	if err = db.Create(list).Error; err != nil {
+		t.Error(err)
+		return
+	}
+
+	var d *Temp
+	if err = db.Where("id = 3").Find(&d).Error; err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(d)
 }

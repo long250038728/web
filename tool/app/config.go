@@ -1,16 +1,14 @@
 package app
 
 import (
-	"errors"
 	"github.com/long250038728/web/tool/cache/redis"
 	"github.com/long250038728/web/tool/mq/kafka"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/server/http/tool"
 	"net"
 	"os"
 )
-
-var ErrNotFind = errors.New("IP not find")
 
 type ipType int32
 
@@ -82,7 +80,7 @@ func (info *Config) ip() (string, error) {
 	case TypeEnvIP:
 		return info.getEnvIP()
 	default:
-		return "", ErrNotFind
+		return "", tool.Address
 	}
 }
 
@@ -91,7 +89,7 @@ func (info *Config) getEnvIP() (string, error) {
 	ip := os.Getenv("APP_IP")
 	var err error
 	if len(ip) == 0 {
-		err = ErrNotFind
+		err = tool.Address
 	}
 	return ip, err
 }
@@ -123,5 +121,5 @@ func (info *Config) getLocalIP() (string, error) {
 			}
 		}
 	}
-	return "", ErrNotFind
+	return "", tool.Address
 }

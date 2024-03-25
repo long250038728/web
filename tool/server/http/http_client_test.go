@@ -2,29 +2,34 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"testing"
 	"time"
 )
 
-func TestClient_Post(t *testing.T) {
-	ctx := context.Background()
+var ctx = context.Background()
+
+func initTracing() (*opentelemetry.Trace, error) {
 	exporter, err := opentelemetry.NewJaegerExporter("http://link.zhubaoe.cn:14268/api/traces")
 	if err != nil {
-		t.Error(err)
+		return nil, err
 	}
+	return opentelemetry.NewTrace(ctx, exporter, "ServiceA")
+}
 
-	trace, err := opentelemetry.NewTrace(ctx, exporter, "ServiceA")
+func TestClient_Post(t *testing.T) {
+	trace, err := initTracing()
+	defer func() {
+		if trace != nil {
+			_ = trace.Close(ctx)
+		}
+	}()
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	defer func() {
-		t.Error(trace.Close(ctx))
-	}()
 
-	c := NewClient(SetTimeout(time.Second * 5))
-
+	httpClient := NewClient(SetTimeout(time.Millisecond), SetIsTracing(true))
 	data := map[string]any{
 		"a": "Login",
 		"m": "Admin",
@@ -33,31 +38,27 @@ func TestClient_Post(t *testing.T) {
 		"t": "00000",
 		"v": "2.4.4",
 	}
-
-	res, code, err := c.Post(context.Background(), "http://test.zhubaoe.cn:9999/", data)
-	fmt.Println(string(res))
-	fmt.Println(code)
-	fmt.Println(err)
-
+	res, code, err := httpClient.Post(ctx, "http://test.zhubaoe.cn:9999/", data)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(string(res), code)
 }
 
 func TestClient_Get(t *testing.T) {
-	ctx := context.Background()
-	exporter, err := opentelemetry.NewJaegerExporter("http://link.zhubaoe.cn:14268/api/traces")
-	if err != nil {
-		t.Error(err)
-	}
-
-	trace, err := opentelemetry.NewTrace(ctx, exporter, "ServiceA")
-	if err != nil {
-		t.Error(err)
-	}
+	trace, err := initTracing()
 	defer func() {
-		t.Error(trace.Close(ctx))
+		if trace != nil {
+			_ = trace.Close(ctx)
+		}
 	}()
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
-	c := NewClient(SetTimeout(time.Second * 5))
-
+	httpClient := NewClient(SetTimeout(time.Millisecond), SetIsTracing(true))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
@@ -66,10 +67,10 @@ func TestClient_Get(t *testing.T) {
 		"field":            "goods_type_id",
 		"client_name":      "app",
 	}
-
-	res, code, err := c.Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
-	fmt.Println(string(res))
-	fmt.Println(code)
-	fmt.Println(err)
-
+	res, code, err := httpClient.Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(string(res), code)
 }

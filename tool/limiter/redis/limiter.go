@@ -2,8 +2,10 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/limiter"
+	"github.com/long250038728/web/tool/server/http/tool"
 	"time"
 )
 
@@ -24,17 +26,20 @@ func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) 
 func (l *Limiter) Allow(ctx context.Context, key string) error {
 	script := `
 		if (redis.call("SETNX",KEYS[1],ARGV[1]) == 1) then
-			redis.call("EXPIRE",KEYS[1],ARGV[2]);
+			redis.call("PEXPIRE",KEYS[1],ARGV[2]);
 		end
 		return redis.call("incr",KEYS[1]);
 	`
-	data, err := l.client.Eval(ctx, script, []string{key}, 0, l.expiration)
+	if l.expiration < time.Millisecond {
+		return errors.New("expiration time is error")
+	}
+
+	data, err := l.client.Eval(ctx, script, []string{key}, 0, l.expiration/time.Millisecond)
 	if err != nil {
 		return err
 	}
-	num := data.(int64)
-	if l.times >= num {
+	if l.times >= data.(int64) {
 		return nil
 	}
-	return limiter.ErrorLimiter
+	return tool.LimiterErr
 }

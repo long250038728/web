@@ -2,7 +2,6 @@ package redis
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
 	"testing"
 	"time"
@@ -17,37 +16,17 @@ var config = &Config{
 var key = "z"
 var value = "100"
 
+var cache = NewRedisCache(config)
+var ctx = context.Background()
+
 func TestNewRedisCache(t *testing.T) {
-	cache := NewRedisCache(config)
-	ctx := context.Background()
-
-	ok, err := cache.Set(ctx, key, value)
-	t.Log(ok)
-	t.Log(err)
-
-	val, err := cache.Get(ctx, key)
-	t.Log(val)
-	t.Log(err)
-
-	ttl, err := cache.TTL(ctx, key)
-	t.Log(ttl)
-	t.Log(err)
-
-	valueEx, err := cache.SetEX(ctx, key, value, time.Second)
-	t.Log(valueEx)
-	t.Log(err)
-
-	valueNx, err := cache.SetNX(ctx, key, value, 0)
-	t.Log(valueNx)
-	t.Log(err)
-
-	v, err := cache.Get(ctx, key)
-	t.Log(v)
-	t.Log(err)
-
-	del, err := cache.Del(ctx, key)
-	t.Log(del)
-	t.Log(err)
+	t.Log(cache.Set(ctx, key, value))
+	t.Log(cache.Get(ctx, key))
+	t.Log(cache.TTL(ctx, key))
+	t.Log(cache.PTTL(ctx, key))
+	t.Log(cache.SetEX(ctx, key, value, time.Second))
+	t.Log(cache.SetNX(ctx, key, value, 0))
+	t.Log(cache.Del(ctx, key))
 }
 func TestSentinel(t *testing.T) {
 	client := redis.NewFailoverClient(&redis.FailoverOptions{
@@ -58,14 +37,5 @@ func TestSentinel(t *testing.T) {
 		ReadTimeout:   5 * time.Second,
 		WriteTimeout:  5 * time.Second,
 	})
-
-	// 使用客户端进行操作
-	ctx := context.Background()
-
-	// 示例：设置键值对
-	err := client.Set(ctx, "example_key", "example_value", 0).Err()
-	if err != nil {
-		fmt.Println("Error setting value:", err)
-		return
-	}
+	t.Log(client.Set(ctx, "example_key", "example_value", 0).Err())
 }

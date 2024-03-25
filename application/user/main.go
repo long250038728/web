@@ -35,7 +35,7 @@ func Run() error {
 		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
-				router.RegisterUserServerServer(engine, userService)
+				router.RegisterUserServer(engine, userService, util)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
 				user.RegisterUserServer(engine, userService)

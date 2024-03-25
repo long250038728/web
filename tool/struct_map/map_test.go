@@ -6,36 +6,45 @@ import (
 	"testing"
 )
 
-type Struct1 struct {
-	Field1 float64
-	Field2 string
-}
-
-type Struct2 struct {
-	Field1 string
-	Field2 string
-}
-
 func TestMap(t *testing.T) {
-	s1 := Struct1{Field1: 123.89, Field2: "10"}
-	s2 := Struct2{}
+	type Source struct {
+		Field1 float64
+		Field2 string
+	}
+
+	type Target struct {
+		Field1 string
+		Field2 string
+	}
+
+	s1 := Source{Field1: 123.89, Field2: "10"}
+	s2 := Target{}
 
 	err := Map(s1, &s2)
-	t.Log(err)
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log(s2)
 }
 
-type Struct3 struct {
-	Num  float32 `json:"num" format:"Kg"`
-	ANum string  `json:"ANum" format:"Kg"`
-	BNum int32   `json:"BNum" format:"Kg"`
-}
-
 func TestFormat(t *testing.T) {
-	s1 := &Struct3{100, "100", 100}
-	err := Format(s1, "format", false)
-	t.Log(err)
-	t.Log(s1)
+	type TestFormat struct {
+		FloatKg  float32 `format:"Kg"`
+		StringKg string  `format:"Kg"`
+		IntKg    int32   `format:"Kg"`
+
+		FloatPrice  float32 `format:"Amount"`
+		StringPrice string  `format:"Amount"`
+		IntPrice    int32   `format:"Amount"`
+	}
+
+	s1 := &TestFormat{100, "1.1111111", 100, 10, "10", 10}
+	isFormat := Format(s1, "format", true)
+	t.Log(s1, isFormat)
+
+	s1 = &TestFormat{100, "1.1111", 100, 10, "10", 10}
+	isFormat = Format(s1, "format", false)
+	t.Log(s1, isFormat)
 }
 
 type Test struct {

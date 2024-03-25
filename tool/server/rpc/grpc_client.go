@@ -2,20 +2,26 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/register"
+	"github.com/long250038728/web/tool/server/http/tool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
+	"time"
 )
-
-var ErrIpNull = errors.New("ip无法获取到")
 
 // Client 客户端
 type Client struct {
 	serverName   string
 	register     register.Register
 	svcInstances []*register.ServiceInstance
+}
+
+var clientParameters = keepalive.ClientParameters{
+	Time:                10 * time.Second, // 如果没有活动，每10秒发送一次心跳
+	Timeout:             time.Second,      // 等待1秒钟的心跳响应，若未收到则认为连接已断开
+	PermitWithoutStream: true,             // 即使没有活动的数据流，也发送心跳
 }
 
 //=================================================================================================
@@ -62,7 +68,7 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 
 	// 找不到有任何服务器实例
 	if c.svcInstances == nil || len(c.svcInstances) == 0 {
-		return nil, ErrIpNull
+		return nil, tool.Address
 	}
 
 	// 取第一个（之后可优化为负载均衡）
@@ -70,5 +76,5 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 
 	//创建socket 连接
 	address := fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port)
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials())) //rpc.WithResolvers() 服务发现
+	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(clientParameters)) //rpc.WithResolvers() 服务发现
 }

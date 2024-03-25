@@ -34,6 +34,6 @@ func userGrpcClientTest() (interface{}, error) {
 	defer conn.Close()
 
 	//请求数据
-	rpcClient := user.NewUserServerClient(conn)
+	rpcClient := user.NewUserClient(conn)
 	return rpcClient.SayHello(ctx, &user.RequestHello{Name: "long"})
 }

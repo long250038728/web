@@ -27,6 +27,8 @@ func TestNewCronJob(t *testing.T) {
 	}
 }
 
+// 秒 分 时 天 月 周几
+
 func do1(cronJob *CronJob) error {
 	return cronJob.AddFunc("*/1 * * * *", func() {
 		println("1")
