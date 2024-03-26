@@ -1,9 +1,8 @@
-package excelize
+package excel
 
 import (
 	"encoding/json"
 	"errors"
-	"github.com/long250038728/web/tool/excel"
 	"github.com/xuri/excelize/v2"
 	"strconv"
 )
@@ -21,7 +20,7 @@ func NewRead(path string) *Read {
 }
 
 // Read 读取excel
-func (r *Read) Read(sheet string, headers []excel.Header, data interface{}) error {
+func (r *Read) Read(sheet string, headers []Header, data interface{}) error {
 	if r.err != nil {
 		return r.err
 	}
@@ -39,28 +38,28 @@ func (r *Read) Read(sheet string, headers []excel.Header, data interface{}) erro
 }
 
 // matchHeader 根据标题匹配key
-func (r *Read) matchHeader(cols []string, headers []excel.Header) []excel.Header {
+func (r *Read) matchHeader(cols []string, headers []Header) []Header {
 	//headers 转换为 hash =》 {"name"：item}
-	var headHash = make(map[string]excel.Header)
+	var headHash = make(map[string]Header)
 	for _, head := range headers {
 		headHash[head.Name] = head
 	}
 
 	//根据表格中每个col值 ，对传入的header进行排序
-	var cellHeader = make([]excel.Header, 0, len(cols))
+	var cellHeader = make([]Header, 0, len(cols))
 	for _, headerName := range cols {
 		h, ok := headHash[headerName]
 		if ok {
 			cellHeader = append(cellHeader, h)
 		} else {
-			cellHeader = append(cellHeader, excel.Header{})
+			cellHeader = append(cellHeader, Header{})
 		}
 	}
 	return cellHeader
 }
 
 // marshal 转换为对象
-func (r *Read) marshal(headers []excel.Header, rows [][]string, data interface{}) error {
+func (r *Read) marshal(headers []Header, rows [][]string, data interface{}) error {
 	var list = make([]map[string]interface{}, 0, len(rows))
 
 	for _, row := range rows {

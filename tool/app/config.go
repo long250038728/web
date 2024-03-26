@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/long250038728/web/tool/cache/redis"
-	"github.com/long250038728/web/tool/mq/kafka"
+	"github.com/long250038728/web/tool/cache"
+	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/server/http/tool"
@@ -26,8 +26,8 @@ type Config struct {
 
 	Db    *orm.Config
 	Es    *es.Config
-	Redis *redis.Config
-	Kafka *kafka.Config
+	Redis *cache.Config
+	Kafka *mq.Config
 
 	Type ipType
 
@@ -52,7 +52,7 @@ func NewConfig() (config *Config, err error) {
 			User:     "root",
 			Password: "zby123456",
 		},
-		Redis: &redis.Config{
+		Redis: &cache.Config{
 			Addr:     "43.139.51.99:32088",
 			Password: "zby123456",
 			Db:       0,
@@ -62,7 +62,7 @@ func NewConfig() (config *Config, err error) {
 			User:     "elastic",
 			Password: "zhubaoe2023Es",
 		},
-		Kafka: &kafka.Config{
+		Kafka: &mq.Config{
 			Address: []string{"159.75.1.200:9093"},
 		},
 		//RegisterAddr: "192.168.0.89:8500",

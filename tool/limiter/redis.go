@@ -1,29 +1,27 @@
-package redis
+package limiter
 
 import (
 	"context"
 	"errors"
 	"github.com/long250038728/web/tool/cache"
-	"github.com/long250038728/web/tool/limiter"
-	"github.com/long250038728/web/tool/server/http/tool"
 	"time"
 )
 
-type Limiter struct {
+type Redis struct {
 	client     cache.Cache
 	expiration time.Duration
 	times      int64
 }
 
-func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) limiter.Limiter {
-	return &Limiter{
+func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) Limiter {
+	return &Redis{
 		client:     client,
 		expiration: expiration,
 		times:      times,
 	}
 }
 
-func (l *Limiter) Allow(ctx context.Context, key string) error {
+func (l *Redis) Allow(ctx context.Context, key string) error {
 	script := `
 		if (redis.call("SETNX",KEYS[1],ARGV[1]) == 1) then
 			redis.call("PEXPIRE",KEYS[1],ARGV[2]);
@@ -41,5 +39,5 @@ func (l *Limiter) Allow(ctx context.Context, key string) error {
 	if l.times >= data.(int64) {
 		return nil
 	}
-	return tool.LimiterErr
+	return errors.New("API Limiter")
 }

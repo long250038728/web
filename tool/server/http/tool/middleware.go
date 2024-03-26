@@ -46,7 +46,7 @@ func (m *Middleware) JSON(gin *gin.Context, function HttpFunc) {
 
 	//限流
 	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "hello"); err != nil {
+		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
 			item.WriteJSON(nil, err)
 			return
 		}

@@ -1,8 +1,7 @@
-package kafka
+package mq
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/mq"
 	"testing"
 	"time"
 )
@@ -37,7 +36,7 @@ func TestMqDelTopic(t *testing.T) {
 }
 
 func TestMqSend(t *testing.T) {
-	message := &mq.Message{
+	message := &Message{
 		Data: []byte("hello1"),
 	}
 	err := client.Send(ctx, topic, "", message)
@@ -48,10 +47,10 @@ func TestMqSend(t *testing.T) {
 }
 
 func TestMqBulkSend(t *testing.T) {
-	message := &mq.Message{
+	message := &Message{
 		Data: []byte("hello2"),
 	}
-	err := client.BulkSend(ctx, topic, "", []*mq.Message{message})
+	err := client.BulkSend(ctx, topic, "", []*Message{message})
 	if err != nil {
 		t.Log(err)
 	}
@@ -62,7 +61,7 @@ func TestMqSubscribe(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	client.Subscribe(ctx, topic, consumerGroup, func(message *mq.Message, err error) error {
+	client.Subscribe(ctx, topic, consumerGroup, func(message *Message, err error) error {
 		// 是否错误 （程序退出 或 reader报错）
 		if err != nil {
 			t.Log(err)

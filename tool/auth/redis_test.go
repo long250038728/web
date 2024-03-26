@@ -1,18 +1,16 @@
-package redis
+package auth
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/cache"
-	"github.com/long250038728/web/tool/cache/redis"
 	"testing"
 )
 
 var authToken = "12345678910"
-var at = &auth.UserToken{AuthList: []string{"/ok", "/true", "/1"}}
+var at = &UserToken{AuthList: []string{"/ok", "/true", "/1"}}
 var whiteList = []string{"/"}
 
-var c = redis.NewRedisCache(&redis.Config{
+var c = cache.NewRedisCache(&cache.Config{
 	Addr:     "43.139.51.99:32088",
 	Password: "zby123456",
 	Db:       0,
@@ -25,7 +23,7 @@ func TestRedis_Set(t *testing.T) {
 	}
 	type args struct {
 		ctx       context.Context
-		userToken *auth.UserToken
+		userToken *UserToken
 		token     string
 	}
 
@@ -66,11 +64,11 @@ func TestRedis_Auth(t *testing.T) {
 	}
 	type args struct {
 		ctx        context.Context
-		userClaims *auth.UserClaims
+		userClaims *UserClaims
 		path       string
 	}
 
-	u := &auth.UserClaims{}
+	u := &UserClaims{}
 	u.SetAuthToken(authToken)
 
 	tests := []struct {

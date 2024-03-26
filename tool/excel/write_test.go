@@ -1,12 +1,11 @@
-package excelize
+package excel
 
 import (
 	"fmt"
-	"github.com/long250038728/web/tool/excel"
 	"testing"
 )
 
-var headers = []excel.Header{
+var headers = []Header{
 	{Key: "num", Name: "序号", Type: "int"},
 	{Key: "first_name", Name: "姓", Type: "string"},
 	{Key: "other_name", Name: "名", Type: "string"},

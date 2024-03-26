@@ -4,11 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/long250038728/web/tool/cache"
-	redisCache "github.com/long250038728/web/tool/cache/redis"
 	"github.com/long250038728/web/tool/locker"
-	"github.com/long250038728/web/tool/locker/redis"
 	"github.com/long250038728/web/tool/mq"
-	"github.com/long250038728/web/tool/mq/kafka"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/register/consul"
@@ -58,12 +55,12 @@ func NewUtil() (*Util, error) {
 
 	//创建redis && locker
 	if config.Redis != nil {
-		util.cache = redisCache.NewRedisCache(config.Redis)
+		util.cache = cache.NewRedisCache(config.Redis)
 	}
 
 	//创建mq
 	if config.Kafka != nil {
-		util.mq = kafka.NewKafkaMq(config.Kafka)
+		util.mq = mq.NewKafkaMq(config.Kafka)
 	}
 
 	//创建es
@@ -115,7 +112,7 @@ func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (lo
 	if u.cache == nil {
 		return nil, errors.New("redis is null")
 	}
-	return redis.NewRedisLocker(u.cache, key, identification, RefreshTime), nil
+	return locker.NewRedisLocker(u.cache, key, identification, RefreshTime), nil
 }
 
 func (u *Util) Register() *consul.Register {

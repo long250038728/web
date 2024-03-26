@@ -1,11 +1,14 @@
-package yaml
+package config
 
 import (
 	"gopkg.in/yaml.v3"
 	"os"
 )
 
-func Yaml(path string, data interface{}) error {
+type Yaml struct {
+}
+
+func (y *Yaml) Load(path string, data interface{}) error {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return err

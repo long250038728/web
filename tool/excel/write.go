@@ -1,9 +1,8 @@
-package excelize
+package excel
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/long250038728/web/tool/excel"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -23,7 +22,7 @@ func NewWrite(path string) *Write {
 }
 
 // Create 创建excel
-func (w *Write) Create(sheet string, headers []excel.Header, data []interface{}) error {
+func (w *Write) Create(sheet string, headers []Header, data []interface{}) error {
 	//标题
 	header := make([]interface{}, 0, len(headers))
 	for headerIndex, row := range headers {

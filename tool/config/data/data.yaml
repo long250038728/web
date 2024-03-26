@@ -1,0 +1,10 @@
+name: lin
+age: 30
+other:
+  address: 深圳福田
+  port: 6369
+other_list:
+  - address: 深圳龙岗
+    port: 6370
+  - address: 深圳罗湖
+    port: 6371

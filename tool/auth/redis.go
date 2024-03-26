@@ -1,10 +1,9 @@
-package redis
+package auth
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/cache"
 	"strings"
 )
@@ -44,7 +43,7 @@ func WhiteList(list []string) Opt {
 }
 
 // Set 用户内部信息生产token
-func (p *Redis) Set(ctx context.Context, userToken *auth.UserToken, token string) error {
+func (p *Redis) Set(ctx context.Context, userToken *UserToken, token string) error {
 	if len(token) == 0 {
 		return errors.New("token str is err")
 	}
@@ -65,7 +64,7 @@ func (p *Redis) Set(ctx context.Context, userToken *auth.UserToken, token string
 }
 
 // Auth 判断是否有权限
-func (p *Redis) Auth(ctx context.Context, userClaims *auth.UserClaims, path string) error {
+func (p *Redis) Auth(ctx context.Context, userClaims *UserClaims, path string) error {
 	//转换为小写
 	path = strings.ToLower(path)
 
@@ -73,12 +72,17 @@ func (p *Redis) Auth(ctx context.Context, userClaims *auth.UserClaims, path stri
 	if p.whitePath(path) {
 		return nil
 	}
+
+	if userClaims.AuthToken() == "" {
+		return errors.New("token is empty")
+	}
+
 	token, err := p.cache.Get(ctx, userClaims.AuthToken())
 	if err != nil {
 		return err
 	}
 
-	var UserToken auth.UserToken
+	var UserToken UserToken
 	err = json.Unmarshal([]byte(token), &UserToken)
 	if err != nil {
 		return err

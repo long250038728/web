@@ -1,8 +1,7 @@
-package excelize
+package excel
 
 import (
 	"fmt"
-	"github.com/long250038728/web/tool/excel"
 	"os"
 	"strings"
 	"testing"
@@ -19,7 +18,7 @@ type BonusModel struct {
 	BonusStr         string  `json:"bonus_str"`
 }
 
-var BonusHeader = []excel.Header{
+var BonusHeader = []Header{
 	{Key: "telephone", Name: "顾客手机号", Type: "string"},
 	{Key: "bonus", Name: "积分", Type: "float"},
 	{Key: "total_bonus", Name: "累计积分", Type: "float"},

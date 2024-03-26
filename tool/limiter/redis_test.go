@@ -1,15 +1,14 @@
-package redis
+package limiter
 
 import (
 	"context"
 	"github.com/long250038728/web/tool/cache"
-	"github.com/long250038728/web/tool/cache/redis"
 	"sync"
 	"testing"
 	"time"
 )
 
-var cacheClient = redis.NewRedisCache(&redis.Config{
+var cacheClient = cache.NewRedisCache(&cache.Config{
 	Addr:     "43.139.51.99:32088",
 	Password: "zby123456",
 	Db:       0,
@@ -52,7 +51,7 @@ func TestLimiter_Allow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := &Limiter{
+			l := &Redis{
 				client:     tt.fields.client,
 				expiration: tt.fields.expiration,
 				times:      tt.fields.times,
@@ -65,7 +64,7 @@ func TestLimiter_Allow(t *testing.T) {
 }
 
 func TestLimiterTimes_Allow(t *testing.T) {
-	limiter := &Limiter{
+	limiter := &Redis{
 		client:     cacheClient,
 		expiration: time.Second,
 		times:      10,
