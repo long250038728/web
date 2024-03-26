@@ -13,12 +13,12 @@ type Config struct {
 }
 
 type Kafka struct {
-	address []string
+	config *Config
 }
 
 func NewKafkaMq(config *Config) *Kafka {
 	return &Kafka{
-		address: config.Address,
+		config: config,
 	}
 }
 
@@ -33,11 +33,11 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 	default:
 	}
 
-	if len(m.address) == 0 || m.address[0] == "" {
+	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
 		return tool.Address
 	}
 
-	conn, err := kafka.Dial("tcp", m.address[0]) // 未测试多主机地址
+	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
 	if err != nil {
 		return err
 	}
@@ -62,11 +62,11 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 	default:
 	}
 
-	if len(m.address) == 0 || m.address[0] == "" {
+	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
 		return tool.Address
 	}
 
-	conn, err := kafka.Dial("tcp", m.address[0]) // 未测试多主机地址
+	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
 	if err != nil {
 		return err
 	}
@@ -85,6 +85,7 @@ func (m *Kafka) Send(ctx context.Context, topic string, key string, message *Mes
 func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages []*Message) error {
 	list := make([]kafka.Message, 0, len(messages))
 
+	// 通过自定义的message 转换 为 kafka内部的message
 	for _, message := range messages {
 		headers := make([]kafka.Header, 0, len(message.Headers))
 		for _, header := range message.Headers {
@@ -100,10 +101,10 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 	}
 
 	w := &kafka.Writer{
-		Addr:                   kafka.TCP(m.address...),
+		Addr:                   kafka.TCP(m.config.Address...),
 		BatchSize:              len(messages),
-		RequiredAcks:           1,
-		AllowAutoTopicCreation: false,
+		RequiredAcks:           1,     //0:无需主节点写入成功  1:需要主节点写入成功  -1:所有的ISR节点写入成功
+		AllowAutoTopicCreation: false, //主题不存在不自动创建主题
 	}
 	defer w.Close()
 	return w.WriteMessages(ctx, list...)
@@ -115,9 +116,9 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(c *Message, err error) error) {
 	// 设置Kafka消费者配置
 	config := kafka.ReaderConfig{
-		Brokers: m.address,     // Kafka broker地址
-		Topic:   topic,         // 消费的主题
-		GroupID: consumerGroup, // 消费者组
+		Brokers: m.config.Address, // Kafka broker地址
+		Topic:   topic,            // 消费的主题
+		GroupID: consumerGroup,    // 消费者组
 	}
 
 	// 创建Kafka消费者
@@ -135,6 +136,7 @@ func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup strin
 			continue
 		}
 
+		// 通过kafka内部的message 转换为 自定义的message
 		// header头处理
 		headers := make([]Header, 0, len(kafkaMessage.Headers))
 		for _, header := range kafkaMessage.Headers {

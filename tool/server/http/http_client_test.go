@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
+	"sync"
 	"testing"
 	"time"
 )
@@ -73,4 +74,22 @@ func TestClient_Get(t *testing.T) {
 		return
 	}
 	t.Log(string(res), code)
+}
+
+func TestClient_GoGet(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(50)
+	for i := 0; i < 50; i++ {
+		go func() {
+			httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
+			res, code, err := httpClient.Get(ctx, "http://0.0.0.0:8090", nil)
+			wg.Done()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			t.Log(string(res), code)
+		}()
+	}
+	wg.Wait()
 }
