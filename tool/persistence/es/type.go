@@ -1,7 +1,7 @@
 package es
 
 type Config struct {
-	Addr     string
+	Address  string
 	User     string
 	Password string
 }

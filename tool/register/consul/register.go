@@ -10,11 +10,15 @@ type Register struct {
 	client *api.Client
 }
 
+type Config struct {
+	Address string `json:"address" yaml:"address"`
+}
+
 // NewConsulRegister   创建consul服务注册类
-func NewConsulRegister(addr string) (*Register, error) {
+func NewConsulRegister(conf *Config) (*Register, error) {
 	//创建consul客户端
 	config := api.DefaultConfig()
-	config.Address = addr
+	config.Address = conf.Address
 	client, err := api.NewClient(config)
 	if err != nil {
 		return nil, err

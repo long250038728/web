@@ -11,7 +11,7 @@ import (
 var ctx = context.Background()
 
 func initTracing() (*opentelemetry.Trace, error) {
-	exporter, err := opentelemetry.NewJaegerExporter("http://link.zhubaoe.cn:14268/api/traces")
+	exporter, err := opentelemetry.NewJaegerExporterAddress("http://link.zhubaoe.cn:14268/api/traces")
 	if err != nil {
 		return nil, err
 	}

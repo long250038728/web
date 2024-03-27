@@ -2,20 +2,22 @@ package mq
 
 import (
 	"context"
+	config2 "github.com/long250038728/web/tool/config"
 	"testing"
 	"time"
 )
 
 var topic = "bonus_message_queue_kafka"
-
-var config = &Config{
-	Address: []string{"159.75.1.200:9093"},
-}
-
-var client = NewKafkaMq(config)
 var ctx = context.Background()
-
 var consumerGroup = "hume_2"
+var client *Kafka
+
+func init() {
+	var conf Config
+	yaml := config2.Yaml{}
+	_ = yaml.Load("", &conf)
+	client = NewKafkaMq(&conf)
+}
 
 func TestMqCreateTopic(t *testing.T) {
 	err := client.CreateTopic(ctx, "aaa", 1, 1)

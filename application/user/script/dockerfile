@@ -8,5 +8,5 @@ RUN cd  /opt/app/web/application/user/cmd/ && \
 FROM ubuntu:latest
 WORKDIR /opt/app
 COPY --from=builder /opt/app/web/application/user/cmd/main /opt/app/main
-EXPOSE 8090 8092
+EXPOSE 8001 9001
 CMD ["/opt/app/main"]

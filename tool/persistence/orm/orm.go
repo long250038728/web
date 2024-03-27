@@ -11,18 +11,18 @@ import (
 )
 
 type Config struct {
-	Addr string
-	Port int
+	Address string `json:"address" yaml:"address"`
+	Port    int    `json:"port" yaml:"port"`
 
-	Database    string
-	TablePrefix string
+	Database    string `json:"database" yaml:"database"`
+	TablePrefix string `json:"table_prefix" yaml:"table_prefix"`
 
-	User     string
-	Password string
+	User     string `json:"user" yaml:"user"`
+	Password string `json:"password" yaml:"password"`
 }
 
 func NewGorm(config *Config) (*gorm.DB, error) {
-	if config.Addr == "" || config.Port == 0 || config.Database == "" {
+	if config.Address == "" || config.Port == 0 || config.Database == "" {
 		return nil, errors.New("config is error")
 	}
 
@@ -33,7 +33,7 @@ func NewGorm(config *Config) (*gorm.DB, error) {
 		},
 	}
 
-	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=false&loc=Local", config.User, config.Password, config.Addr, config.Port, config.Database)), cnf)
+	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=false&loc=Local", config.User, config.Password, config.Address, config.Port, config.Database)), cnf)
 	if err != nil {
 		return nil, err
 	}

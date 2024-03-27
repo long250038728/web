@@ -3,16 +3,19 @@ package limiter
 import (
 	"context"
 	"github.com/long250038728/web/tool/cache"
+	config2 "github.com/long250038728/web/tool/config"
 	"sync"
 	"testing"
 	"time"
 )
 
-var cacheClient = cache.NewRedisCache(&cache.Config{
-	Addr:     "43.139.51.99:32088",
-	Password: "zby123456",
-	Db:       0,
-})
+var conf cache.Config
+var cacheClient cache.Cache
+
+func init() {
+	_ = (&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	cacheClient = cache.NewRedisCache(&conf)
+}
 
 func TestLimiter_Allow(t *testing.T) {
 	type fields struct {

@@ -9,7 +9,7 @@ import (
 var _ Cache = &Redis{}
 
 type Config struct {
-	Addr     string
+	Address  string
 	Password string
 	Db       int
 }
@@ -24,7 +24,7 @@ func NewRedisCache(config *Config) Cache {
 	//	MasterName:"master",
 	//	SentinelAddrs:[]string{"xxx1:6379","xxx2:6379","xxx3:6379"},
 	//})
-	redisClient := redis.NewClient(&redis.Options{Addr: config.Addr, Password: config.Password, DB: config.Db})
+	redisClient := redis.NewClient(&redis.Options{Addr: config.Address, Password: config.Password, DB: config.Db})
 	return &Redis{
 		client: redisClient,
 	}

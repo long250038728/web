@@ -33,8 +33,8 @@ func SetIsTracing(isTracing bool) httpClientOpt {
 
 func NewClient(opts ...httpClientOpt) *Client {
 	client := &Client{
-		timeout:   time.Second * 3,
-		isTracing: true,
+		timeout:   time.Second * 3, //默认3s超时
+		isTracing: true,            //默认记录链路
 	}
 	for _, opt := range opts {
 		opt(client)

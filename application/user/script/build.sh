@@ -4,7 +4,10 @@ mkdir app
 cp -R ./../../../../web  app
 
 #打包成镜像
-docker build -t   web:latest .
+docker build -t   ccr.ccs.tencentyun.com/linl/user:latest .
 
 #无需使用进行删除
 rm -rf  app
+
+# 上传到hub
+docker push  ccr.ccs.tencentyun.com/linl/user:latest

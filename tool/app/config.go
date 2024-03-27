@@ -2,12 +2,16 @@ package app
 
 import (
 	"github.com/long250038728/web/tool/cache"
+	config2 "github.com/long250038728/web/tool/config"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/server/http/tool"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"net"
 	"os"
+	"path/filepath"
 )
 
 type ipType int32
@@ -18,58 +22,68 @@ const (
 )
 
 type Config struct {
-	ServerName string
-	IP         string
+	ServerName string `json:"server_name" yaml:"serverName"`
+	HttpPort   int    `json:"http_port" yaml:"http_port"`
+	GrpcPort   int    `json:"grpc_port" yaml:"grpc_port"`
+	Type       ipType `json:"type" yaml:"type"`
 
-	HttpPort int
-	GrpcPort int
+	IP string `json:"ip" yaml:"ip"`
 
-	Db    *orm.Config
-	Es    *es.Config
-	Redis *cache.Config
-	Kafka *mq.Config
-
-	Type ipType
-
-	RegisterAddr string
-	TracingAddr  string
+	dbConfig       *orm.Config
+	esConfig       *es.Config
+	redisConfig    *cache.Config
+	kafkaConfig    *mq.Config
+	registerConfig *consul.Config
+	tracingConfig  *opentelemetry.Config
 }
 
-// NewConfig 获取app配置
-func NewConfig() (config *Config, err error) {
-	config = &Config{
-		ServerName: "AUser",
-		GrpcPort:   8092,
-		HttpPort:   8090,
-		Type:       TypeLocalIP,
-		Db: &orm.Config{
-			Addr: "gz-cdb-9tvaefsf.sql.tencentcdb.com",
-			Port: 63436,
+// NewAppConfig 获取app配置
+func NewAppConfig(rootPath string) (config *Config, err error) {
+	configLoad := &config2.Yaml{}
 
-			Database:    "zhubaoe",
-			TablePrefix: "zby_",
-
-			User:     "root",
-			Password: "zby123456",
-		},
-		Redis: &cache.Config{
-			Addr:     "43.139.51.99:32088",
-			Password: "zby123456",
-			Db:       0,
-		},
-		Es: &es.Config{
-			Addr:     "http://159.75.1.200:9220",
-			User:     "elastic",
-			Password: "zhubaoe2023Es",
-		},
-		Kafka: &mq.Config{
-			Address: []string{"159.75.1.200:9093"},
-		},
-		//RegisterAddr: "192.168.0.89:8500",
-		TracingAddr: "http://link.zhubaoe.cn:14268/api/traces",
+	var conf Config
+	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
+		return nil, err
 	}
-	config.IP, err = config.ip()
-	return
+	conf.IP, err = conf.ip()
+
+	var db orm.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "db.yaml"), &db); err != nil {
+		return nil, err
+	}
+
+	var redis cache.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "redis.yaml"), &redis); err != nil {
+		return nil, err
+	}
+
+	var kafka mq.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "kafka.yaml"), &kafka); err != nil {
+		return nil, err
+	}
+
+	var es es.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "es.yaml"), &es); err != nil {
+		return nil, err
+	}
+
+	var register consul.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "register.yaml"), &register); err != nil {
+		return nil, err
+	}
+
+	var tracing opentelemetry.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "tracing.yaml"), &tracing); err != nil {
+		return nil, err
+	}
+
+	conf.dbConfig = &db
+	conf.redisConfig = &redis
+	conf.esConfig = &es
+	conf.kafkaConfig = &kafka
+	conf.registerConfig = &register
+	conf.tracingConfig = &tracing
+	return &conf, nil
 }
 
 // getIP 获取ip地址

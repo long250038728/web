@@ -12,6 +12,8 @@ import (
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
 	"google.golang.org/grpc"
+	"os"
+	"path/filepath"
 )
 
 func main() {
@@ -19,20 +21,28 @@ func main() {
 }
 
 func Run() error {
-	util, err := app.NewUtil()
+	wd, _ := os.Getwd()
+	conf, err := app.NewAppConfig(filepath.Join(wd, "application", "user", "config"))
+	if err != nil {
+		return err
+	}
+
+	util, err := app.NewUtil(conf)
 	if err != nil {
 		return err
 	}
 
 	// 定义服务
 	userService := service.NewUserService(
-		service.UserDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
+		service.UserDomain(
+			domain.NewUserDomain(repository.NewUserRepository(util)),
+		),
 	)
 
 	//启动服务
 	application, err := app.NewApp(
 		//app.Register(util.Register()),                      //服务注册 && 发现
-		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+		//app.Tracing(util.Exporter(), util.Info.ServerName), //链路
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
 				router.RegisterUserServer(engine, userService, util)

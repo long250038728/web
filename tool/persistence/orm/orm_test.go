@@ -1,6 +1,7 @@
 package orm
 
 import (
+	config2 "github.com/long250038728/web/tool/config"
 	"gorm.io/gorm"
 	"testing"
 )
@@ -15,19 +16,14 @@ var models []*User
 var mapModel *map[string]interface{}
 var mapModels *[]map[string]interface{}
 
-var config = &Config{
-	Addr: "gz-cdb-9tvaefsf.sql.tencentcdb.com",
-	Port: 63436,
+var config Config
 
-	Database:    "zhubaoe",
-	TablePrefix: "zby_",
-
-	User:     "root",
-	Password: "zby123456",
+func init() {
+	(&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/db.yaml", &config)
 }
 
 func TestCreateGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -50,7 +46,7 @@ func TestCreateGorm(t *testing.T) {
 }
 
 func TestSearchGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -62,10 +58,11 @@ func TestSearchGorm(t *testing.T) {
 	//db.Take(&model)
 	//db.Last(&model)
 	db.Where("id = ?", 649650).Order("update_time desc").Limit(1).Find(&model)
+	t.Log(model)
 }
 
 func TestUpdateGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -88,7 +85,7 @@ func TestUpdateGorm(t *testing.T) {
 }
 
 func TestDeleteGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -97,7 +94,7 @@ func TestDeleteGorm(t *testing.T) {
 }
 
 func TestRawGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -107,7 +104,7 @@ func TestRawGorm(t *testing.T) {
 }
 
 func TestTransactionGorm(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return
@@ -121,7 +118,7 @@ func TestTransactionGorm(t *testing.T) {
 }
 
 func TestTempTable(t *testing.T) {
-	db, err := NewGorm(config)
+	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
 		return

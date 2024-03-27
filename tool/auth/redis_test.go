@@ -3,18 +3,21 @@ package auth
 import (
 	"context"
 	"github.com/long250038728/web/tool/cache"
+	config2 "github.com/long250038728/web/tool/config"
 	"testing"
 )
+
+var conf cache.Config
+var c cache.Cache
+
+func init() {
+	_ = (&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	c = cache.NewRedisCache(&conf)
+}
 
 var authToken = "12345678910"
 var at = &UserToken{AuthList: []string{"/ok", "/true", "/1"}}
 var whiteList = []string{"/"}
-
-var c = cache.NewRedisCache(&cache.Config{
-	Addr:     "43.139.51.99:32088",
-	Password: "zby123456",
-	Db:       0,
-})
 
 func TestRedis_Set(t *testing.T) {
 	type fields struct {

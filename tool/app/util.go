@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"github.com/olivere/elastic/v7"
@@ -22,31 +23,25 @@ type Util struct {
 	Sf   *singleflight.Group
 
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
-	db *gorm.DB
-	es *elastic.Client
+	db       *gorm.DB
+	es       *elastic.Client
+	exporter *jaeger.Exporter
 
 	//cache mq 主要是一些通用的东西，可以用接口代替
 	cache    cache.Cache
 	mq       mq.Mq
-	register *consul.Register
-	exporter *jaeger.Exporter
+	register register.Register
 }
 
-func NewUtil() (*Util, error) {
+func NewUtil(config *Config) (*Util, error) {
 	util := &Util{
-		Sf: &singleflight.Group{},
+		Info: config,
+		Sf:   &singleflight.Group{},
 	}
-
-	//获取app配置信息
-	config, err := NewConfig()
-	if err != nil {
-		return nil, err
-	}
-	util.Info = config
 
 	//创建db客户端
-	if config.Db != nil {
-		client, err := orm.NewGorm(config.Db)
+	if config.dbConfig != nil {
+		client, err := orm.NewGorm(config.dbConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -54,18 +49,18 @@ func NewUtil() (*Util, error) {
 	}
 
 	//创建redis && locker
-	if config.Redis != nil {
-		util.cache = cache.NewRedisCache(config.Redis)
+	if config.redisConfig != nil {
+		util.cache = cache.NewRedisCache(config.redisConfig)
 	}
 
 	//创建mq
-	if config.Kafka != nil {
-		util.mq = mq.NewKafkaMq(config.Kafka)
+	if config.kafkaConfig != nil {
+		util.mq = mq.NewKafkaMq(config.kafkaConfig)
 	}
 
 	//创建es
-	if config.Es != nil {
-		client, err := es.NewEs(config.Es)
+	if config.esConfig != nil {
+		client, err := es.NewEs(config.esConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -73,8 +68,8 @@ func NewUtil() (*Util, error) {
 	}
 
 	//创建consul客户端
-	if len(config.RegisterAddr) > 0 {
-		register, err := consul.NewConsulRegister(config.RegisterAddr)
+	if config.registerConfig != nil {
+		register, err := consul.NewConsulRegister(config.registerConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -82,13 +77,14 @@ func NewUtil() (*Util, error) {
 	}
 
 	//创建链路
-	if len(config.TracingAddr) > 0 {
-		exporter, err := opentelemetry.NewJaegerExporter(config.TracingAddr)
+	if config.tracingConfig != nil {
+		exporter, err := opentelemetry.NewJaegerExporter(config.tracingConfig)
 		if err != nil {
 			return nil, err
 		}
 		util.exporter = exporter
 	}
+
 	return util, nil
 }
 
@@ -115,7 +111,7 @@ func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (lo
 	return locker.NewRedisLocker(u.cache, key, identification, RefreshTime), nil
 }
 
-func (u *Util) Register() *consul.Register {
+func (u *Util) Register() register.Register {
 	return u.register
 }
 

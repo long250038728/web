@@ -3,30 +3,31 @@ package cache
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
+	config2 "github.com/long250038728/web/tool/config"
 	"testing"
 	"time"
 )
 
-var config = &Config{
-	Addr:     "43.139.51.99:32088",
-	Password: "zby123456",
-	Db:       0,
-}
-
 var key = "z"
 var value = "100"
+var conf Config
+var cacheClient Cache
 
-var cache = NewRedisCache(config)
+func init() {
+	_ = (&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	cacheClient = NewRedisCache(&conf)
+}
+
 var ctx = context.Background()
 
 func TestNewRedisCache(t *testing.T) {
-	t.Log(cache.Set(ctx, key, value))
-	t.Log(cache.Get(ctx, key))
-	t.Log(cache.TTL(ctx, key))
-	t.Log(cache.PTTL(ctx, key))
-	t.Log(cache.SetEX(ctx, key, value, time.Second))
-	t.Log(cache.SetNX(ctx, key, value, 0))
-	t.Log(cache.Del(ctx, key))
+	t.Log(cacheClient.Set(ctx, key, value))
+	t.Log(cacheClient.Get(ctx, key))
+	t.Log(cacheClient.TTL(ctx, key))
+	t.Log(cacheClient.PTTL(ctx, key))
+	t.Log(cacheClient.SetEX(ctx, key, value, time.Second))
+	t.Log(cacheClient.SetNX(ctx, key, value, 0))
+	t.Log(cacheClient.Del(ctx, key))
 }
 func TestSentinel(t *testing.T) {
 	client := redis.NewFailoverClient(&redis.FailoverOptions{

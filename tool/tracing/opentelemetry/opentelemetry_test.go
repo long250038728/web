@@ -10,7 +10,7 @@ import (
 func TestTracing(t *testing.T) {
 	ctx := context.Background()
 
-	exporter, err := NewJaegerExporter("http://link.zhubaoe.cn:14268/api/traces")
+	exporter, err := NewJaegerExporterAddress("http://link.zhubaoe.cn:14268/api/traces")
 	if err != nil {
 		t.Error(err)
 	}

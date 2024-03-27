@@ -10,7 +10,7 @@ import (
 )
 
 var config = &Config{
-	Addr:     "http://159.75.1.200:9220",
+	Address:  "http://159.75.1.200:9220",
 	User:     "elastic",
 	Password: "zhubaoe2023Es",
 }

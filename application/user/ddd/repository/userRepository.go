@@ -17,11 +17,9 @@ func NewUserRepository(util *app.Util) *UserRepository {
 	return &UserRepository{
 		util: util,
 	}
-	return nil
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
-
 	type customer struct {
 		Name string `json:"name"`
 	}
@@ -42,6 +40,7 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 		return "", err
 	}
 	_ = lock.Lock(ctx)
+
 	cancelCtx, cancel := context.WithCancel(ctx)
 	go func() {
 		err := lock.AutoRefresh(cancelCtx)
@@ -64,9 +63,6 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	//	fmt.Println(data.Source)
 	//}
 
-	//request http
-
-	client := http.NewClient(http.SetTimeout(time.Second * 5))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
@@ -76,6 +72,8 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 		"client_name":      "app",
 	}
 
-	_, _, _ = client.Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+	_, _, _ = http.NewClient().
+		Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+
 	return "hello:" + request.Name + " " + c.Name, nil
 }
