@@ -11,7 +11,7 @@ service User{
 }
 
 message RequestHello {
-  string name = 1  [(gogoproto.moretags) = 'form:"xxxx"'];
+  string name = 1  [(gogoproto.moretags) = 'form:"name"'];
 }
 message ResponseHello {
   string str = 1;

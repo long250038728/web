@@ -93,3 +93,21 @@ func TestClient_GoGet(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestClient_TGet(t *testing.T) {
+	data := map[string]any{
+		"name": "linl",
+	}
+	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
+	res, code, err := httpClient.Get(ctx, "http://192.168.0.30:8001/", data)
+	t.Log(err, code, string(res))
+}
+
+func TestClient_TPost(t *testing.T) {
+	data := map[string]any{
+		"name": "linl",
+	}
+	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
+	res, code, err := httpClient.Post(ctx, "http://192.168.0.30:8001/hello", data)
+	t.Log(err, code, string(res))
+}

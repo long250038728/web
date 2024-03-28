@@ -1,6 +1,6 @@
 ### http 跟 grpc对比
     grpc
-        1.可以通过protoc buffer 进行序列化/反序列化，传输性能高
+        1.可以通过protoc buffer 进行序列化/反序列化，传输性能高（proto文件双方都有，所以在序列化/反序列化的时候无需存放其他额外的信息）
         2.类似强类型语言（这个client有什么方法，方法中的参数是什么）—— protoc buffer
         3.同时也是弱点。客户端需要知道protoc文件才能调用，如果什么网站都需要这个，那无法进行下去，（常用于内部调用）
     http
@@ -18,10 +18,24 @@ export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
 
+用gogo gen
 ```
 protoc \
 --go_out=. \
 --go_opt=paths=source_relative \
+--go-grpc_out=. \
+--go-grpc_opt=paths=source_relative \
+-I=/Users/linlong/go/src/  -I=./ \
+userServer.proto
+```
+
+
+
+
+```
+protoc \
+--gogo_out=. \
+--gogo_opt=paths=source_relative \
 --go-grpc_out=. \
 --go-grpc_opt=paths=source_relative \
 -I=/Users/linlong/go/src/  -I=./ \

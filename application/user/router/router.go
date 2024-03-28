@@ -37,4 +37,17 @@ func RegisterUserServer(engine *gin.Engine, srv *service.UserService, util *app.
 			return srv.SayHello(ctx, req)
 		})
 	})
+
+	engine.POST("/hello", func(gin *gin.Context) {
+		//请求参数处理
+		req := &user.RequestHello{Name: "HELLO"}
+		//请求处理
+		middleware.JSON(gin, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, req)
+		})
+	})
 }
+
+//var data user.RequestHello
+//gin.BindQuery(&data)  //get
+//gin.ShouldBind(&data) //post
