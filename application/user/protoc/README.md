@@ -30,19 +30,6 @@ userServer.proto
 ```
 
 
-
-
-```
-protoc \
---gogo_out=. \
---gogo_opt=paths=source_relative \
---go-grpc_out=. \
---go-grpc_opt=paths=source_relative \
--I=/Users/linlong/go/src/  -I=./ \
-userServer.proto
-```
-
-
 | 参数                                                      | 解释                - | 其他 |
 |---------------------------------------------------------|---------------------|:--:|
 | --go_out                                                | go文件生成的目录           |    |
@@ -55,3 +42,18 @@ userServer.proto
  protoc --go_out=./p/ --go_opt=paths=source_relative  --go-grpc_out=./p/  --go-grpc_opt=paths=source_relative  demo.proto  //根据目录组织
  protoc --go_out=./i/ --go_opt=paths=import  --go-grpc_out=./i/  --go-grpc_opt=paths=import  demo.proto  //根据protoc 中的import
 ```
+
+
+
+
+由于gin框架get请求时绑定模型时用的的from标签，--go_out生成的是无法自定义标签。所以采用了gogo这个生成工具。
+```
+protoc \
+--gogo_out=. \
+--gogo_opt=paths=source_relative \
+--go-grpc_out=. \
+--go-grpc_opt=paths=source_relative \
+-I=/Users/linlong/go/src/  -I=./ \
+userServer.proto
+```
+
