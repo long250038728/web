@@ -42,7 +42,7 @@ func Run() error {
 	//启动服务
 	application, err := app.NewApp(
 		//app.Register(util.Register()),                      //服务注册 && 发现
-		//app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
 				router.RegisterUserServer(engine, userService, util)

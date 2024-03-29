@@ -2,13 +2,9 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
-	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"google.golang.org/grpc/metadata"
-	"time"
 )
 
 type UserRepository struct {
@@ -22,7 +18,10 @@ func NewUserRepository(util *app.Util) *UserRepository {
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
-	fmt.Println(metadata.FromIncomingContext(ctx))
+	//md, _ := metadata.FromOutgoingContext(ctx)
+	//d, _ := json.Marshal(md)
+	//fmt.Println(string(d))
+	//opentelemetry.NewSpan(ctx, "hello")
 
 	type customer struct {
 		Name string `json:"name"`
@@ -39,23 +38,12 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	//_, _ = r.util.Cache.Get(ctx, "hello")
 
 	////lock
-	lock, err := r.util.Locker("hello", "123", time.Second*5)
-	if err != nil {
-		return "", err
-	}
-	_ = lock.Lock(ctx)
-
-	cancelCtx, cancel := context.WithCancel(ctx)
-	go func() {
-		err := lock.AutoRefresh(cancelCtx)
-		span := opentelemetry.NewSpan(ctx, "AutoRefresh")
-		defer span.Close()
-		span.AddEvent(err.Error())
-	}()
-	defer func() {
-		cancel()
-		lock.UnLock(ctx)
-	}()
+	//lock, err := r.util.Locker("hello", "123", time.Second*5)
+	//if err != nil {
+	//	return "", err
+	//}
+	//_ = lock.Lock(ctx)
+	//_ = lock.UnLock(ctx)
 
 	////es
 	//query := elastic.NewBoolQuery().Must(
@@ -76,8 +64,7 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 		"client_name":      "app",
 	}
 
-	_, _, _ = http.NewClient().
-		Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
 
 	return "hello:" + request.Name + " " + c.Name, nil
 }

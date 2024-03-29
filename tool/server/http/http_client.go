@@ -84,7 +84,9 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 
 	//请求地址 	//请求参数  //把链路信息放到request中
 	span.AddEvent(address)
-	span.AddEvent(string(data))
+	if len(data) > 0 {
+		span.AddEvent(string(data))
+	}
 	opentelemetry.InjectHttp(span.Context(), request) //把链路信息写到http header中
 
 	//响应参数

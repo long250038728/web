@@ -39,10 +39,11 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 	}()
 
 	middleware.Set(gin)
+	ctx := middleware.Context()
 
 	//限流
 	if m.limiter != nil {
-		if err := m.limiter.Allow(context.Background(), "HTTP API"); err != nil {
+		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
 			middleware.WriteJSON(nil, err)
 			return
 		}
@@ -57,7 +58,7 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 			return
 		}
 
-		if err = m.auth.Auth(context.Background(), userClaims, gin.Request.URL.Path); err != nil {
+		if err = m.auth.Auth(ctx, userClaims, gin.Request.URL.Path); err != nil {
 			middleware.WriteJSON(nil, err)
 			return
 		}
@@ -70,6 +71,6 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 	}
 
 	//处理业务
-	res, err := function(middleware.Context())
+	res, err := function(ctx)
 	middleware.WriteJSON(res, err)
 }

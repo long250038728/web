@@ -31,7 +31,7 @@ func (m *Middleware) Set(ginContext *gin.Context) {
 
 	//把链路信息生成到metadata中
 	mCarrier := map[string]string{}
-	opentelemetry.ExtractMap(m.span.Context(), mCarrier) //通过span对象生成map放入metadata中（之后的grpc中获取）
+	opentelemetry.InjectMap(m.span.Context(), mCarrier) //通过span对象生成map放入metadata中（之后的grpc中获取）
 	m.ctx = metadata.NewOutgoingContext(m.span.Context(), metadata.New(mCarrier))
 
 	//记录请求头

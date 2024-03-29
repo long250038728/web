@@ -22,7 +22,7 @@ const (
 )
 
 type Config struct {
-	ServerName string `json:"server_name" yaml:"serverName"`
+	ServerName string `json:"server_name" yaml:"server_name"`
 	HttpPort   int    `json:"http_port" yaml:"http_port"`
 	GrpcPort   int    `json:"grpc_port" yaml:"grpc_port"`
 	Type       ipType `json:"type" yaml:"type"`
