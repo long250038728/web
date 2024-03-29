@@ -2,7 +2,7 @@ package mq
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/server/http/tool"
+	"errors"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -34,7 +34,7 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 	}
 
 	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
-		return tool.Address
+		return errors.New("IP / Address Not Find")
 	}
 
 	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
@@ -63,7 +63,7 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 	}
 
 	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
-		return tool.Address
+		return errors.New("IP / Address Not Find")
 	}
 
 	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址

@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
+	"google.golang.org/grpc/metadata"
 	"time"
 )
 
@@ -20,6 +22,8 @@ func NewUserRepository(util *app.Util) *UserRepository {
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+	fmt.Println(metadata.FromIncomingContext(ctx))
+
 	type customer struct {
 		Name string `json:"name"`
 	}

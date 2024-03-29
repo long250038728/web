@@ -24,7 +24,7 @@ type Server struct {
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	handler := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)
 
 	svc := &Server{
 		server:  &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},

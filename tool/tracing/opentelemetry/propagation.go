@@ -24,5 +24,5 @@ func InjectMap(ctx context.Context, mCarrier map[string]string) {
 
 // ExtractMap 提取 把map提取信息到context
 func ExtractMap(ctx context.Context, mCarrier map[string]string) context.Context {
-	return otel.GetTextMapPropagator().Extract(context.Background(), propagation.MapCarrier(mCarrier))
+	return otel.GetTextMapPropagator().Extract(ctx, propagation.MapCarrier(mCarrier))
 }

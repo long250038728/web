@@ -23,31 +23,23 @@ func RegisterUserServer(engine *gin.Engine, srv *service.UserService, util *app.
 	//设置权限
 	opts := []tool.MiddlewareOpt{
 		tool.Limiter(limiter.NewRedisLimiter(util.Cache(), time.Second, 10)),
-		tool.Auth(auth.NewRedisAuth(util.Cache(), auth.WhiteList([]string{"/"}))),
+		tool.Auth(auth.NewRedisAuth(util.Cache(), auth.WhiteList([]string{"/", "/hello"}))),
+		tool.Error([]tool.MiddleErr{}),
 	}
 
-	middleware := tool.NewMiddle(opts...)
+	middleware := tool.NewMiddlewarePool(opts...)
 
 	engine.GET("/", func(gin *gin.Context) {
-		//请求参数处理
-		req := &user.RequestHello{Name: "HELLO"}
-
-		//请求处理
-		middleware.JSON(gin, func(ctx context.Context) (interface{}, error) {
-			return srv.SayHello(ctx, req)
+		var request user.RequestHello
+		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
 		})
 	})
 
 	engine.POST("/hello", func(gin *gin.Context) {
-		//请求参数处理
-		req := &user.RequestHello{Name: "HELLO"}
-		//请求处理
-		middleware.JSON(gin, func(ctx context.Context) (interface{}, error) {
-			return srv.SayHello(ctx, req)
+		var request user.RequestHello
+		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
 		})
 	})
 }
-
-//var data user.RequestHello
-//gin.BindQuery(&data)  //get
-//gin.ShouldBind(&data) //post

@@ -14,18 +14,10 @@ func TestGrpcClient(t *testing.T) {
 func userGrpcClientTest() (interface{}, error) {
 	ctx := context.Background()
 
-	////创建consul客户端
-	//register, err := consul.NewConsulRegister("192.168.0.89:8500")
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	//tracing.OpentracingGlobalTracer("http://link.zhubaoe.cn:14268/api/traces", "Aclient")
-
 	//创建consul客户端
 	grpcClient := rpc.NewClient(
-		//rpc.Register("AUser", register),
-		rpc.LocalIP("192.168.1.20", 8092),
+		//rpc.Register("User", register),    //通过服务注册与发现找到 User的实例的IP及Port
+		rpc.LocalIP("192.168.1.20", 8092), //直接指定IP及Port
 	)
 	conn, err := grpcClient.Dial(ctx)
 	if err != nil {

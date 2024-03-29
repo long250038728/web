@@ -1,13 +1,13 @@
 package app
 
 import (
+	"errors"
 	"github.com/long250038728/web/tool/cache"
 	config2 "github.com/long250038728/web/tool/config"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/register/consul"
-	"github.com/long250038728/web/tool/server/http/tool"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"net"
 	"os"
@@ -94,7 +94,7 @@ func (info *Config) ip() (string, error) {
 	case TypeEnvIP:
 		return info.getEnvIP()
 	default:
-		return "", tool.Address
+		return "", errors.New("IP / Address Not Find")
 	}
 }
 
@@ -103,7 +103,7 @@ func (info *Config) getEnvIP() (string, error) {
 	ip := os.Getenv("APP_IP")
 	var err error
 	if len(ip) == 0 {
-		err = tool.Address
+		err = errors.New("IP / Address Not Find")
 	}
 	return ip, err
 }
@@ -135,5 +135,5 @@ func (info *Config) getLocalIP() (string, error) {
 			}
 		}
 	}
-	return "", tool.Address
+	return "", errors.New("IP / Address Not Find")
 }

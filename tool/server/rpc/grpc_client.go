@@ -2,9 +2,10 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/register"
-	"github.com/long250038728/web/tool/server/http/tool"
+	"github.com/long250038728/web/tool/server/rpc/tool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -16,6 +17,7 @@ type Client struct {
 	serverName   string
 	register     register.Register
 	svcInstances []*register.ServiceInstance
+	balancer     tool.Balancer
 }
 
 var clientParameters = keepalive.ClientParameters{
@@ -29,7 +31,7 @@ var clientParameters = keepalive.ClientParameters{
 // ClientOpt grpc客户端opt
 type ClientOpt func(client *Client)
 
-// LocalIP 指定ip
+// LocalIP 指定IP及Port
 func LocalIP(address string, port int) ClientOpt {
 	return func(client *Client) {
 		client.svcInstances = []*register.ServiceInstance{{Address: address, Port: port}}
@@ -48,7 +50,9 @@ func Register(serverName string, register register.Register) ClientOpt {
 
 // NewClient 构造函数
 func NewClient(opts ...ClientOpt) *Client {
-	c := &Client{}
+	c := &Client{
+		balancer: tool.NewRandBalancer(), //默认随机算法
+	}
 	for _, opt := range opts {
 		opt(c)
 	}
@@ -66,13 +70,13 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 		c.svcInstances = svcInstances
 	}
 
-	// 找不到有任何服务器实例
+	//找不到有任何服务器实例
 	if c.svcInstances == nil || len(c.svcInstances) == 0 {
-		return nil, tool.Address
+		return nil, errors.New("svcInstances is null")
 	}
 
-	// 取第一个（之后可优化为负载均衡）
-	svcInstance := c.svcInstances[0]
+	// 负载均衡
+	svcInstance := c.balancer.Balancer(c.svcInstances)
 
 	//创建socket 连接
 	address := fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port)

@@ -45,8 +45,8 @@ package opentracing
 //	}
 //}
 //
-//// Ctx 生成带链路的context  ———— grpc
-//func Ctx(ctx context.Context) context.Context {
+//// Context 生成带链路的context  ———— grpc
+//func Context(ctx context.Context) context.Context {
 //	//处理链路，加到md中
 //	carrier, _ := inject(ctx)
 //	return metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{tracing.Id: carrier[tracing.Id]}))
