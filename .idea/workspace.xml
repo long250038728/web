@@ -5,25 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc528061-b342-416e-b305-807dbc8c663e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/GOHCache.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/web.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/application/user/ddd/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/models.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/models.tmpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/models_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/type.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/register/consul/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/application/user/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/user/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/application/user/cmd/main_grpc_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/user/cmd/main_grpc_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/application/user/config/register.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/application/user/config/register.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/str/ast_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/learn/str/ast_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/app/opt.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/app/opt.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/register/consul/register.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/register/consul/register.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/register/etcd/register.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/register/etcd/register.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/struct_map/Dto.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/struct_map/Dto.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tool/gen/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
