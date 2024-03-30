@@ -36,7 +36,7 @@ func dto(req interface{}) *class {
 }
 
 func temp(req *class) (string, error) {
-	tem := "type  {{ .Name }}  struct { \n {{range $index,$item := .Fields}}  {{$item.Name}}  {{$item.Type}}   `{{ $item.Tag}}` \n {{end}}  }  "
+	tem := "type  {{ .TableName }}  struct { \n {{range $index,$item := .Fields}}  {{$item.TableName}}  {{$item.Type}}   `{{ $item.Tag}}` \n {{end}}  }  "
 
 	wio := &strings.Builder{}
 	t, _ := template.New("class_template").Parse(tem)

@@ -1,0 +1,9 @@
+package gen
+{{range $index,$item := .Tables}}
+{{if ne .TableComment "" }} //{{tableName .TableName }} {{.TableComment}} {{end}}
+type {{tableName .TableName }} struct {
+    {{range $index,$item := .Fields}}
+        {{- fieldName $item.Name }}  {{fieldType $item.Type}} {{if ne $item.Tag ""}} `json:"{{ $item.Tag -}}" yaml:"{{ $item.Tag -}}" form:"{{ $item.Tag -}}"` {{else}} `json:"{{ $item.Name -}}" yaml:"{{ $item.Name -}}" form:"{{ $item.Name -}}"`  {{end}}  {{if ne .Comment "" }} // {{.Comment}} {{end}}
+    {{end}}
+}
+{{end}}

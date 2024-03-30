@@ -3,23 +3,30 @@ package main
 import (
 	"context"
 	"github.com/long250038728/web/application/user/protoc"
+	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/rpc"
 	"testing"
 )
 
 func TestGrpcClient(t *testing.T) {
-	_, _ = userGrpcClientTest()
+	t.Log(userGrpcClientTest())
 }
 
 func userGrpcClientTest() (interface{}, error) {
 	ctx := context.Background()
 
+	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/config")
+	if err != nil {
+		return nil, err
+	}
+
+	util, err := app.NewUtil(conf)
+	if err != nil {
+		return nil, err
+	}
+
 	//创建consul客户端
-	grpcClient := rpc.NewClient(
-		//rpc.Register("User", register),    //通过服务注册与发现找到 User的实例的IP及Port
-		rpc.LocalIP("192.168.1.20", 8092), //直接指定IP及Port
-	)
-	conn, err := grpcClient.Dial(ctx)
+	conn, err := rpc.NewClient(rpc.Register("kobe-new", util.Register())).Dial(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/register/consul"
+	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -17,7 +17,7 @@ func Servers(servers ...server.Server) Option {
 	}
 }
 
-func Register(register *consul.Register) Option {
+func Register(register register.Register) Option {
 	return func(app *App) error {
 		if register != nil {
 			app.register = register

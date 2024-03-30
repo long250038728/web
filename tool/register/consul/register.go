@@ -36,6 +36,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Address: serviceInstance.Address,
 		Port:    serviceInstance.Port,
 	}
+	return r.client.Agent().ServiceRegister(&registration)
 
 	//check := api.AgentServiceCheck{}
 	//check.Timeout = "5s"

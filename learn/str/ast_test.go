@@ -25,7 +25,7 @@ const AA = "aa"
 
 type Customer struct {
 		Id   int32  
-		Name string 
+		TableName string 
 }
 func (c *Customer) hello() {
 
