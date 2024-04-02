@@ -153,7 +153,7 @@ func (g *Models) fieldType(fieldType string) string {
 	case "decimal":
 		return "float32" //decimal
 	default:
-		return "string" //varchar bigint char date  datetime json text timestamp
+		return "string" //varchar  char date  datetime json text timestamp
 	}
 }
 

@@ -1,0 +1,27 @@
+package gen
+
+{{- range  $index,$item := .List}}
+// {{fieldName $item.Key}} {{$item.Comment}}
+var (
+    {{fieldName $item.Key}} = map[int32] string{
+    	{{range  $enumIndex,$enumItem := $item.Items}}
+            {{- fieldName $item.Key}}{{fieldName $enumItem.Key}} : "{{$enumItem.Comment}}",
+        {{end}}
+    }
+    {{fieldName $item.Key}}List = []map[string]any{
+        {{ range  $enumIndex,$enumItem := $item.Items}}
+        {{- ""}}{"id": {{fieldName $item.Key}}{{fieldName $enumItem.Key}}, "name": "{{$enumItem.Comment}}"},
+        {{end}}
+    }
+	{{range  $enumIndex,$enumItem := $item.Items}}
+    {{- fieldName $item.Key}}{{fieldName $enumItem.Key}} int32 = {{$enumItem.Value}} //{{$enumItem.Comment}}
+    {{end}}
+)
+
+func {{fieldName $item.Key}}Str(enum int32) string {
+	if typ,ok := {{fieldName $item.Key}}[enum] ;ok {
+    	return typ
+    }
+    return ""
+}
+{{end}}
