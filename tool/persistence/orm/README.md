@@ -13,11 +13,26 @@ mysql.open() : dialector
 
 
 //生成gorm的db对象 后续操作都是操作gorm.db对象方法
-gorm.open()	 : gorm.db			
-    1.new db						//创建db对象
-    2.dialector.initialize(db)		//把db对象扔到dialector初始化配置
-    3.db.coonpool = sql.open()      //sql包     新增连接池从sql包中获取
-    4.new statemnet					//新增statement，会话的状态信息，比如请求和响应信息,里面有db对象也存放自己，，查询的时候优先读取statement.DB中的connPool
+gorm.open(dialector,opts)	 : gorm.db		
+    1.创建grom.Config配置文件
+        1.1 如果dialector有Apply接口则对config进行值的修改，遍历opts对对config进行值的修改
+        1.2 如果config中的某些值为nil，则设置默认值
+    2.创建一个gorm.DB对象
+        2.1 把上面的配置赋值到db.config中，db.clone等于1
+        2.2 设置db.callbacks = &callbacks{  //initializeCallbacks方法，主要是用于执行这些语句用这个当前这个db
+            processors: map[string]*processor{
+                "create": {db: db},
+                "query":  {db: db},
+                "update": {db: db},
+                "delete": {db: db},
+                "row":    {db: db},
+                "raw":    {db: db},
+            },
+        }
+        2.3 把db传入dialector初始化，生成sql链接对象赋值到ConnPool上，后续执行sql可以用到这个     
+            db.ConnPool, err = sql.Open(dialector.DriverName, dialector.DSN)  //创建db的ConnPool池这个是用sql包
+    3.创建gorm.Statement对象并赋值到db上
+        3.1 db.Statement = &Statement{ DB:db, ConnPool: db.ConnPool}
 
 ```
     db =>
@@ -25,22 +40,34 @@ gorm.open()	 : gorm.db
         Config =》 配置
         Statement =》
             => DB   =》 Statement（同样包含DB,connPool）
+            => ConnPool   			sql.db对象
             => table,model,Dest,select,joins,omits,sql
             => ReflectValue
             => Setting   			sync.Map对象
-            => ConnPool   			sql.db对象
+           
 ```
-
 ---
 
 ### db 中的方法
-db.DB()    
-1.优先获取db.Statement.ConnPool ，否则取 db.ConnPool
-2.通过类型断言判断是 *sql.tx 事务,  GetDBConnector, *sql.DB 当前db 类型 ，返回sql.db
+db.Session(session)  or  db.WithContext(ctx)
+    1.新建一个db出来。config是之前的db.config Merge 传进来的session
 
-db.getInstance()   =》 表示一个事务（可以是多个sql，或同个sql，这就是为什么要类型断言）
-1.判断db.clone标识(初始化时是1)   创建一个新的db，Statement中的值是之前db的值，clone = 0，返回新db 。
-如果是同条sql的话，getInstance第一次产生的clone = 0，之后各种where都是这个新db处理
+
+db.DB()    
+    1.获取connPool优先db.Statement.ConnPool ，否则取 db.ConnPool
+    2.通过类型断言判断是 *sql.tx 事务,  GetDBConnector, *sql.DB 当前db 类型 ，返回sql.db
+        *sql.tx 通过反射获取 tx.sql (因为不暴露只能反射)
+        *sql.DB 直接返回
+        GetDBConnector 通过GetDBConn返回
+
+
+db.getInstance()  根据clone的值返回db
+    //默认值1，是最外层的db，一般用于返回一个新的db对象
+    //0值代表的是当前sql，由于where/limit/find 都在同一个db上面处理
+    //2值事务内需要用到同个ConnPool
+    0：返回本身db     //当前sql
+    1: 创建一个新的db(tx) , tx.Statement.db = tx , tx.Statement.ConnPool = db 
+    2: 创建一个新的db(tx) , tx.Statement.db = tx , tx.Statement.ConnPool = db.Statement.ConnPool
 
 
 db.Find()	
