@@ -50,7 +50,7 @@ func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 		return nil, err
 	}
 
-	return (&GenImpl{
+	return (&Impl{
 		Name:     "gen models",
 		TmplPath: "./models.tmpl",
 		Func: template.FuncMap{

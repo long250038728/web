@@ -47,7 +47,7 @@ func TestEnum_Gen(t *testing.T) {
 `
 
 	//gen
-	if b, err = NewEnumGen().Gen(str); err != nil {
+	if b, err = NewEnumGen().GenStr(str); err != nil {
 		t.Error(err)
 		return
 	}

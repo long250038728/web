@@ -6,19 +6,19 @@ import (
 	"text/template"
 )
 
-type item struct {
+type EnumValue struct {
 	Key     string `json:"key" yaml:"key"`
 	Value   int32  `json:"value" yaml:"value"`
 	Comment string `json:"comment" yaml:"comment"`
 }
 
-type e struct {
-	item
-	Items []*item `json:"items" yaml:"items"`
+type EnumItem struct {
+	EnumValue
+	Items []*EnumValue `json:"items" yaml:"items"`
 }
 
 type list struct {
-	List []*e
+	List []*EnumItem
 }
 
 type Enum struct {
@@ -28,12 +28,9 @@ func NewEnumGen() *Enum {
 	return &Enum{}
 }
 
-func (g *Enum) Gen(str string) ([]byte, error) {
-	var data []*e
-	if err := json.Unmarshal([]byte(str), &data); err != nil {
-		return nil, err
-	}
-	return (&GenImpl{
+// Gen 通过EnumItem列表
+func (g *Enum) Gen(data []*EnumItem) ([]byte, error) {
+	return (&Impl{
 		Name:     "gen enum",
 		TmplPath: "./enum.tmpl",
 		Data:     &list{List: data},
@@ -42,6 +39,15 @@ func (g *Enum) Gen(str string) ([]byte, error) {
 		},
 		IsFormat: true,
 	}).Gen()
+}
+
+// GenStr 通过字符串
+func (g *Enum) GenStr(str string) ([]byte, error) {
+	var data []*EnumItem
+	if err := json.Unmarshal([]byte(str), &data); err != nil {
+		return nil, err
+	}
+	return g.Gen(data)
 }
 
 // fieldName 转换字段名

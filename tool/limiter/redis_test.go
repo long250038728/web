@@ -51,6 +51,12 @@ func TestLimiter_Allow(t *testing.T) {
 			args:    args{key: "limiter3", ctx: context.Background()},
 			wantErr: true,
 		},
+		{
+			name:    "limiter 0 ms",
+			fields:  fields{client: cacheClient, expiration: time.Microsecond * 500, times: 10},
+			args:    args{key: "limiter4", ctx: context.Background()},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,12 +84,12 @@ func TestLimiterTimes_Allow(t *testing.T) {
 	wg.Add(50)
 	for i := 0; i < 50; i++ {
 		go func(i int) {
+			defer wg.Done()
 			if err := limiter.Allow(context.Background(), key); err != nil {
 				t.Error(err, i)
-			} else {
-				t.Log("success", i)
+				return
 			}
-			wg.Done()
+			t.Log("success", i)
 		}(i)
 	}
 

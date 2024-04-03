@@ -10,11 +10,11 @@ var (
     }
     {{fieldName $item.Key}}List = []map[string]any{
         {{ range  $enumIndex,$enumItem := $item.Items}}
-        {{- ""}}{"id": {{fieldName $item.Key}}{{fieldName $enumItem.Key}}, "name": "{{$enumItem.Comment}}"},
+            {{- ""}}{"id": {{fieldName $item.Key}}{{fieldName $enumItem.Key}}, "name": "{{$enumItem.Comment}}"},
         {{end}}
     }
 	{{range  $enumIndex,$enumItem := $item.Items}}
-    {{- fieldName $item.Key}}{{fieldName $enumItem.Key}} int32 = {{$enumItem.Value}} //{{$enumItem.Comment}}
+        {{- fieldName $item.Key}}{{fieldName $enumItem.Key}} int32 = {{$enumItem.Value}} //{{$enumItem.Comment}}
     {{end}}
 )
 

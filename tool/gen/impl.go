@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-type GenImpl struct {
+type Impl struct {
 	Name     string
 	TmplPath string
 	Func     template.FuncMap
@@ -17,7 +17,7 @@ type GenImpl struct {
 	IsFormat bool
 }
 
-func (g *GenImpl) Gen() ([]byte, error) {
+func (g *Impl) Gen() ([]byte, error) {
 	var file *os.File
 	var contents []byte
 	var tmpl *template.Template

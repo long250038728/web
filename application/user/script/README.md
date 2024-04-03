@@ -133,3 +133,15 @@ pipeline {
   --data-urlencode "ENV=check"
 ```
 
+```
+curl -X POST http://111.230.143.16:8081/job/kobe-customer/buildWithParameters \
+--user admin:11fbfc1aab366147522f497f6c7d48b2ca \
+--data-urlencode "BRANCH=master" \
+--data-urlencode "SYSTEM=root@172.16.0.34"
+
+curl -X POST http://111.230.143.16:8081/job/kobe-customer/buildWithParameters \
+--user admin:11fbfc1aab366147522f497f6c7d48b2ca \
+--data-urlencode "BRANCH=master" \
+--data-urlencode "SYSTEM=root@172.16.0.9" 
+
+```
