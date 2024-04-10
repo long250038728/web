@@ -73,8 +73,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 	request.Header.Set("Content-Type", "application/json")
 
 	if !c.isTracing {
-		b, code, err := c.request(request)
-		return b, code, err
+		return c.request(request)
 	}
 	//======================================= 加入链路 ===============================================
 

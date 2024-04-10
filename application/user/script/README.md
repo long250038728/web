@@ -134,6 +134,7 @@ pipeline {
 ```
 
 ```
+// kobe
 curl -X POST http://111.230.143.16:8081/job/kobe-customer/buildWithParameters \
 --user admin:11fbfc1aab366147522f497f6c7d48b2ca \
 --data-urlencode "BRANCH=master" \
@@ -144,4 +145,34 @@ curl -X POST http://111.230.143.16:8081/job/kobe-customer/buildWithParameters \
 --data-urlencode "BRANCH=master" \
 --data-urlencode "SYSTEM=root@172.16.0.9" 
 
+
+// locke
+curl -X POST http://111.230.143.16:8081/job/locke-prod_32/build \
+--user admin:11fbfc1aab366147522f497f6c7d48b2ca
+
+curl -X POST http://111.230.143.16:8081/job/locke-prod_64/build \
+--user admin:11fbfc1aab366147522f497f6c7d48b2ca
+
+curl -X POST http://111.230.143.16:8081/job/locke-hot-prod-64/build \
+--user admin:11fbfc1aab366147522f497f6c7d48b2ca
+
+//创建分支（从master拉一个分支）
+curl -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+ 'https://gitee.com/api/v5/repos/zhubaoe/socrates/branches' \
+  -d '{"access_token":"5f8aaa1e024cad5e24e86fda85c57f49","refs":"master","branch_name":"hotfix/reshape_20240410"}'
+
+//pr 提交
+curl -X POST --header 'Content-Type: application/json;charset=UTF-8' \
+'https://gitee.com/api/v5/repos/zhubaoe/socrates/pulls' \
+ -d '{"access_token":"5f8aaa1e024cad5e24e86fda85c57f49","title":"feature/sm0407","head":"feature/sm0407","base":"release/v3.5.40"}'
+
+//pr 合并
+curl -X PUT --header 'Content-Type: application/json;charset=UTF-8' \
+'https://gitee.com/api/v5/repos/zhubaoe/socrates/pulls/1498/merge' \
+-d '{"access_token":"5f8aaa1e024cad5e24e86fda85c57f49","merge_method":"merge"}'
+
 ```
+
+
+
+//curl -X PUT --header 'Content-Type: application/json;charset=UTF-8' 'https://gitee.com/api/v5/repos/zhubaoe/socrates/pulls/1498/merge' -d '{"access_token":"ba07cf2df96fcddc623e5553a14910f7","merge_method":"merge"}'
