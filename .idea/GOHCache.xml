@@ -169,8 +169,14 @@
         <entry key="Pr">
           <value>
             <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/gitee.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="PrListItem">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_test.go" />
             </set>
           </value>
         </entry>
@@ -421,16 +427,14 @@
         <entry key="feature">
           <value>
             <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/gitee.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
             </set>
           </value>
         </entry>
         <entry key="features">
           <value>
             <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/gitee.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
             </set>
           </value>
         </entry>
@@ -438,7 +442,6 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/tool/gen/models.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
               <option value="file://$PROJECT_DIR$/tool/struct_map/Dto.go" />
             </set>
           </value>
@@ -472,32 +475,10 @@
             </set>
           </value>
         </entry>
-        <entry key="obj">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="pr">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="prs">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
-            </set>
-          </value>
-        </entry>
         <entry key="table">
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/tool/gen/models.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
             </set>
           </value>
         </entry>
@@ -505,7 +486,6 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/tool/gen/models.go" />
-              <option value="file://$PROJECT_DIR$/tool/gen/pr.go" />
             </set>
           </value>
         </entry>
@@ -608,6 +588,32 @@
           <value>
             <ScannedPath>
               <option name="lastModified" value="1711700016564" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712798468324" />
+              <option name="schema">
+                <list>
+                  <option value="feature" />
+                  <option value="features" />
+                  <option value="Pr" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_test.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712805289499" />
+              <option name="schema">
+                <list>
+                  <option value="PrListItem" />
+                </list>
+              </option>
             </ScannedPath>
           </value>
         </entry>
@@ -805,7 +811,7 @@
         <entry key="file://$PROJECT_DIR$/tool/auth/jwt.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711965747515" />
+              <option name="lastModified" value="1712798114126" />
               <option name="schema">
                 <list>
                   <option value="userClaims" />
@@ -1002,27 +1008,6 @@
             </ScannedPath>
           </value>
         </entry>
-        <entry key="file://$PROJECT_DIR$/tool/gen/gitee.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712738487719" />
-              <option name="schema">
-                <list>
-                  <option value="feature" />
-                  <option value="features" />
-                  <option value="Pr" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/tool/gen/gitee_test.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712738927741" />
-            </ScannedPath>
-          </value>
-        </entry>
         <entry key="file://$PROJECT_DIR$/tool/gen/impl.go">
           <value>
             <ScannedPath>
@@ -1054,27 +1039,6 @@
           <value>
             <ScannedPath>
               <option name="lastModified" value="1711790297826" />
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/tool/gen/pr.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712733550204" />
-              <option name="schema">
-                <list>
-                  <option value="feature" />
-                  <option value="features" />
-                  <option value="Pr" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/tool/gen/pr_test.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712733263355" />
             </ScannedPath>
           </value>
         </entry>
@@ -1287,7 +1251,7 @@
         <entry key="file://$PROJECT_DIR$/tool/server/http/http_server.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711700693403" />
+              <option name="lastModified" value="1712798114135" />
               <option name="schema">
                 <list>
                   <option value="Server" />
@@ -1554,6 +1518,7 @@
         <entry key="excel_data" value="ExcelData" />
         <entry key="feature" value="feature" />
         <entry key="features" value="features" />
+        <entry key="field" value="field" />
         <entry key="fields" value="fields" />
         <entry key="gauge" value="Gauge" />
         <entry key="header" value="Header" />
@@ -1570,6 +1535,7 @@
         <entry key="mu" value="mu" />
         <entry key="other" value="Other" />
         <entry key="pr" value="Pr" />
+        <entry key="pr_list_item" value="PrListItem" />
         <entry key="qn" value="Qn" />
         <entry key="query" value="Query" />
         <entry key="query_build" value="QueryBuild" />
@@ -1586,6 +1552,7 @@
         <entry key="span" value="Span" />
         <entry key="sql_job" value="SqlJob" />
         <entry key="summary" value="Summary" />
+        <entry key="table" value="table" />
         <entry key="table_models" value="tableModels" />
         <entry key="target" value="Target" />
         <entry key="temp" value="Temp" />
@@ -1594,7 +1561,7 @@
         <entry key="trace" value="Trace" />
         <entry key="unimplemented_user_server" value="UnimplementedUserServer" />
         <entry key="user" value="User" />
-        <entry key="user_claims" value="UserClaims" />
+        <entry key="user_claims" value="userClaims" />
         <entry key="user_client" value="userClient" />
         <entry key="user_domain" value="UserDomain" />
         <entry key="user_repository" value="UserRepository" />
@@ -1605,6 +1572,6 @@
         <entry key="yaml" value="Yaml" />
       </map>
     </option>
-    <option name="lastTimeChecked" value="1712630373513" />
+    <option name="lastTimeChecked" value="1712797931114" />
   </component>
 </project>

@@ -5,16 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc528061-b342-416e-b305-807dbc8c663e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/tool/gen/gitee.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/gitee_feature.tmpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/gitee_pr.tmpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/gitee_pr_merge.tmpl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tool/gen/gitee_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/GOHCache.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/GOHCache.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/application/user/script/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/application/user/script/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/server/http/http_client.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/server/http/http_client.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/server/http/http_client_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/server/http/http_client_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee.go" beforeDir="false" afterPath="$PROJECT_DIR$/learn/gitee/gitee.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_feature.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/learn/gitee/gitee_feature.tmpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_pr.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/learn/gitee/gitee_pr.tmpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_pr_merge.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/learn/gitee/gitee_pr_merge.tmpl" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/learn/gitee/gitee_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/auth/jwt.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/auth/jwt.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/server/http/http_server.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/server/http/http_server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,93 +61,80 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/learn/gitee" />
       <recent name="$PROJECT_DIR$/application/user/ddd" />
       <recent name="$PROJECT_DIR$/application/user/protoc" />
       <recent name="$PROJECT_DIR$/application/user/cmd" />
     </key>
   </component>
-  <component name="RunManager" selected="Go 测试.github.com/long250038728/web/tool/gen 中的 TestPrMerge_Gen">
-    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+  <component name="RunManager" selected="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestCreatePR_Http">
+    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestCreateFeature_Http" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build github.com/long250038728/web/application/user/cmd" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="web" />
-      <working_directory value="$PROJECT_DIR$" />
+      <working_directory value="$PROJECT_DIR$/learn/gitee" />
+      <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/application/user/cmd" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/application/user/cmd/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
-      <module name="web" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="DIRECTORY" />
+      <package value="github.com/long250038728/web/learn/gitee" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
+      <pattern value="^\QTestCreateFeature_Http\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/tool/gen 中的 TestFeature_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestCreatePR_Http" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
-      <working_directory value="$PROJECT_DIR$/tool/gen" />
+      <working_directory value="$PROJECT_DIR$/learn/gitee" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/tool/gen" />
+      <package value="github.com/long250038728/web/learn/gitee" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestCreatePR_Http\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestFeature_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="web" />
+      <working_directory value="$PROJECT_DIR$/learn/gitee" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/long250038728/web/learn/gitee" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestFeature_Gen\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/tool/gen 中的 TestPrMerge_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestPrAddr" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
-      <working_directory value="$PROJECT_DIR$/tool/gen" />
+      <working_directory value="$PROJECT_DIR$/learn/gitee" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/tool/gen" />
+      <package value="github.com/long250038728/web/learn/gitee" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestPrAddr\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestPrMerge_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="web" />
+      <working_directory value="$PROJECT_DIR$/learn/gitee" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/long250038728/web/learn/gitee" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestPrMerge_Gen\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/tool/gen 中的 TestPr_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="web" />
-      <working_directory value="$PROJECT_DIR$/tool/gen" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/tool/gen" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestPr_Gen\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="github.com/long250038728/web/tool/server/http 中的 TestClient_TPost" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="web" />
-      <working_directory value="$PROJECT_DIR$/tool/server/http" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/tool/server/http" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestClient_TPost\E$" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go 测试.github.com/long250038728/web/tool/gen 中的 TestPrMerge_Gen" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/tool/gen 中的 TestFeature_Gen" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/tool/gen 中的 TestPr_Gen" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/tool/server/http 中的 TestClient_TPost" />
-        <item itemvalue="Go 构建.go build github.com/long250038728/web/application/user/cmd" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestCreatePR_Http" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestCreateFeature_Http" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestPrAddr" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestFeature_Gen" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestPrMerge_Gen" />
       </list>
     </recent_temporary>
   </component>
@@ -235,13 +221,23 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/tool/server/http/http_client.go</url>
-          <line>103</line>
-          <option name="timeStamp" value="84" />
+          <line>110</line>
+          <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/tool/gen/gitee_test.go</url>
-          <line>20</line>
-          <option name="timeStamp" value="86" />
+          <url>file://$PROJECT_DIR$/learn/gitee/gitee_test.go</url>
+          <line>79</line>
+          <option name="timeStamp" value="95" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/learn/gitee/gitee_test.go</url>
+          <line>80</line>
+          <option name="timeStamp" value="96" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/tool/server/http/http_client.go</url>
+          <line>97</line>
+          <option name="timeStamp" value="97" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

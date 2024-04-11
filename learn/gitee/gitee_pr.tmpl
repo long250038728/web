@@ -1,4 +1,4 @@
-{{$token := .Token}}
+{{$token := .GiteeToken}}
 {{range $index,$item := .Features}}
 curl -X POST --header 'Content-Type: application/json;charset=UTF-8' \
 'https://gitee.com/api/v5/repos/{{$item.Addr}}/pulls' \

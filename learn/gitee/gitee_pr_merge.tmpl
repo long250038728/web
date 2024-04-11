@@ -3,27 +3,30 @@
 //3.其他项目合并
 //3.商户管家合并
 
-{{$token := .Token}}
-{{$kobe := .Kobe}}
+http://111.230.143.16:8081/ 用户名：admin 密码：admin@zhubaoe
+https://jenkins.zhubaoe.cn/ 用户名：admin 密码：admin@zhubaoe_new
+
+{{ $kobe := .Kobe}}{{ $giteeToken := .GiteeToken}} {{ $jenkinsToken := .JenkinsToken}}
 {{- range $index,$item := .Features}}
-============================{{ $index }} pr合并 ================================
+============================ {{ $index }} {{name $item.Addr}} pr合并 ================================
 curl -X POST --header 'Content-Type: application/json;charset=UTF-8' \
 '{{$item.Addr}}' \
--d '{"access_token":"{{$token}}","merge_method":"merge"}'
+-d '{"access_token":"{{$giteeToken}}","merge_method":"merge"}'
 
 {{- if  objectName $item.Addr "kobe"}}
 
 !!!!!!!!!!改tag!!!!!!!!!!
+https://gitee.com/zhubaoe-go/kobe
 
-======= 构建: =======
+===================== 构建: =====================
 {{- range $kobe_index,$kobe_item := $kobe}}
 curl -X POST http://111.230.143.16:8081/job/{{$kobe_item}}/buildWithParameters \
---user admin:11fbfc1aab366147522f497f6c7d48b2ca \
+--user {{ $jenkinsToken }} \
 --data-urlencode "BRANCH=master" \
 --data-urlencode "SYSTEM=root@172.16.0.34"
 
 curl -X POST http://111.230.143.16:8081/job/{{$kobe_item}}/buildWithParameters \
---user admin:11fbfc1aab366147522f497f6c7d48b2ca \
+--user {{ $jenkinsToken }} \
 --data-urlencode "BRANCH=master" \
 --data-urlencode "SYSTEM=root@172.16.0.9"
 
@@ -33,13 +36,13 @@ curl -X POST http://111.230.143.16:8081/job/{{$kobe_item}}/buildWithParameters \
 
 == 构建: ==
 curl -X POST http://111.230.143.16:8081/job/locke-prod_32/build \
---user admin:11fbfc1aab366147522f497f6c7d48b2ca
+--user {{ $jenkinsToken }}
 
 curl -X POST http://111.230.143.16:8081/job/locke-prod_64/build \
---user admin:11fbfc1aab366147522f497f6c7d48b2ca
+--user {{ $jenkinsToken }}
 
 curl -X POST http://111.230.143.16:8081/job/locke-hot-prod-64/build \
---user admin:11fbfc1aab366147522f497f6c7d48b2ca
+--user {{ $jenkinsToken }}
 {{ end }}
 {{end}}
 
