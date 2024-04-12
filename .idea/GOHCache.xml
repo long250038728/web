@@ -95,6 +95,22 @@
             </set>
           </value>
         </entry>
+        <entry key="GiteeClient">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_client.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="GiteeInfo">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_client.go" />
+            </set>
+          </value>
+        </entry>
         <entry key="Header">
           <value>
             <set>
@@ -169,6 +185,7 @@
         <entry key="Pr">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
               <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
             </set>
           </value>
@@ -176,6 +193,7 @@
         <entry key="PrListItem">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_test.go" />
               <option value="file://$PROJECT_DIR$/learn/gitee/gitee_test.go" />
             </set>
           </value>
@@ -198,6 +216,14 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/learn/orm/sqlBuild.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="QyHookClient">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/qyhook_client.go" />
+              <option value="file://$PROJECT_DIR$/learn/gitee/qyhook_client.go" />
             </set>
           </value>
         </entry>
@@ -427,6 +453,7 @@
         <entry key="feature">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
               <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
             </set>
           </value>
@@ -434,6 +461,7 @@
         <entry key="features">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
               <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
             </set>
           </value>
@@ -507,6 +535,73 @@
     </option>
     <option name="scannedPathMapping">
       <map>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712910183504" />
+              <option name="schema">
+                <list>
+                  <option value="feature" />
+                  <option value="features" />
+                  <option value="Pr" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712907353073" />
+              <option name="schema">
+                <list>
+                  <option value="GiteeInfo" />
+                  <option value="GiteeClient" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee_test.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712900409901" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/qyhook_client.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712894240827" />
+              <option name="schema">
+                <list>
+                  <option value="QyHookClient" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/tmpl.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712894151419" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/cmd/main.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712902721716" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/cmd/tool.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712913244322" />
+            </ScannedPath>
+          </value>
+        </entry>
         <entry key="file://$PROJECT_DIR$/application/user/cmd/main.go">
           <value>
             <ScannedPath>
@@ -605,13 +700,45 @@
             </ScannedPath>
           </value>
         </entry>
+        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_client.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712893730189" />
+              <option name="schema">
+                <list>
+                  <option value="GiteeInfo" />
+                  <option value="GiteeClient" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
         <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_test.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712816973508" />
+              <option name="lastModified" value="1712893804546" />
               <option name="schema">
                 <list>
                   <option value="PrListItem" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_tool.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712891921045" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/learn/gitee/qyhook_client.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712893043017" />
+              <option name="schema">
+                <list>
+                  <option value="QyHookClient" />
                 </list>
               </option>
             </ScannedPath>
@@ -740,7 +867,7 @@
         <entry key="file://$PROJECT_DIR$/learn/str/ast_test.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711788563302" />
+              <option name="lastModified" value="1712901961090" />
             </ScannedPath>
           </value>
         </entry>
@@ -1011,7 +1138,7 @@
         <entry key="file://$PROJECT_DIR$/tool/gen/impl.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712037734845" />
+              <option name="lastModified" value="1712910157074" />
               <option name="schema">
                 <list>
                   <option value="Impl" />
@@ -1232,7 +1359,7 @@
         <entry key="file://$PROJECT_DIR$/tool/server/http/http_client.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712728610471" />
+              <option name="lastModified" value="1712823879525" />
               <option name="schema">
                 <list>
                   <option value="Client" />
@@ -1521,6 +1648,8 @@
         <entry key="field" value="field" />
         <entry key="fields" value="fields" />
         <entry key="gauge" value="Gauge" />
+        <entry key="gitee_client" value="GiteeClient" />
+        <entry key="gitee_info" value="GiteeInfo" />
         <entry key="header" value="Header" />
         <entry key="histogram" value="Histogram" />
         <entry key="impl" value="Impl" />
@@ -1539,6 +1668,7 @@
         <entry key="qn" value="Qn" />
         <entry key="query" value="Query" />
         <entry key="query_build" value="QueryBuild" />
+        <entry key="qy_hook_client" value="QyHookClient" />
         <entry key="rand_balancer" value="RandBalancer" />
         <entry key="read" value="Read" />
         <entry key="redis" value="Redis" />

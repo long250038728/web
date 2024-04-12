@@ -12,6 +12,7 @@ import (
 type Impl struct {
 	Name     string
 	TmplPath string
+	Tmpl     string
 	Func     template.FuncMap
 	Data     any
 	IsFormat bool
@@ -23,12 +24,18 @@ func (g *Impl) Gen() ([]byte, error) {
 	var tmpl *template.Template
 	var err error
 
-	//读取文件字段
-	if file, err = os.Open(g.TmplPath); err != nil {
-		return nil, err
+	if len(g.Tmpl) > 0 {
+		contents = []byte(g.Tmpl)
 	}
-	if contents, err = io.ReadAll(file); err != nil {
-		return nil, err
+
+	if len(g.TmplPath) > 0 {
+		//读取文件字段
+		if file, err = os.Open(g.TmplPath); err != nil {
+			return nil, err
+		}
+		if contents, err = io.ReadAll(file); err != nil {
+			return nil, err
+		}
 	}
 
 	//生成tmpl

@@ -66,7 +66,10 @@ func (c *Client) Get(ctx context.Context, address string, data map[string]any) (
 }
 
 func (c *Client) do(ctx context.Context, method string, address string, data []byte) ([]byte, int, error) {
-	request, err := http.NewRequest(method, address, strings.NewReader(string(data)))
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+
+	request, err := http.NewRequestWithContext(ctx, method, address, strings.NewReader(string(data)))
 	if err != nil {
 		return nil, 0, err
 	}
