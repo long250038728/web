@@ -13,8 +13,9 @@ import (
 )
 
 type Client struct {
-	timeout   time.Duration
-	isTracing bool
+	timeout            time.Duration
+	isTracing          bool
+	username, password string
 }
 
 type httpClientOpt func(c *Client)
@@ -28,6 +29,12 @@ func SetTimeout(timeout time.Duration) httpClientOpt {
 func SetIsTracing(isTracing bool) httpClientOpt {
 	return func(c *Client) {
 		c.isTracing = isTracing
+	}
+}
+func SetBasicAuth(username, password string) httpClientOpt {
+	return func(c *Client) {
+		c.username = username
+		c.password = password
 	}
 }
 
@@ -74,6 +81,9 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 		return nil, 0, err
 	}
 	request.Header.Set("Content-Type", "application/json")
+	if len(c.username) > 0 && len(c.password) > 0 {
+		request.SetBasicAuth(c.username, c.password)
+	}
 
 	if !c.isTracing {
 		return c.request(request)

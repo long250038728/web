@@ -5,23 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc528061-b342-416e-b305-807dbc8c663e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/application/third_party/client/gitee_client.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/application/third_party/client/qyhook_client.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/application/third_party/cmd/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/application/third_party/cmd/tool.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/application/third_party/client/jenkins_client.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/application/third_party/client/jenkins_client_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/GOHCache.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/GOHCache.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/gitee.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_feature.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/tmpl/gitee_feature.tmpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_pr.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/tmpl/gitee_pr.tmpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_pr_merge.tmpl" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/tmpl/gitee_pr_merge.tmpl" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/gitee/gitee_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/gitee_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/mu/mu.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/orm/sqlBuild.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/learn/orm/sqlBuild_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tool/gen/impl.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/gen/impl.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/third_party/client/gitee.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/pr.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/third_party/client/gitee_client.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/gitee_client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/third_party/client/gitee_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/pr_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/third_party/client/qyhook_client.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/client/qyhook_client.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/third_party/cmd/tool.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/third_party/cmd/tool.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/application/user/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/db.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/db.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/es.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/es.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/kafka.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/kafka.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/redis.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/redis.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/register.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/register.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/config/tracing.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/tracing.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/script/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/script/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/script/build.sh" beforeDir="false" afterPath="$PROJECT_DIR$/script/build.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/script/dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/script/dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/script/k8s.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/script/k8s.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application/user/script/pipeline.jenkinsfile" beforeDir="false" afterPath="$PROJECT_DIR$/script/pipeline.jenkinsfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/app/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/app/app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/app/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/app/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/app/type.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/app/type.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tool/app/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/app/util.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tool/server/http/http_client.go" beforeDir="false" afterPath="$PROJECT_DIR$/tool/server/http/http_client.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -70,14 +79,14 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/application/third_party/client/tmpl" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/application/third_party/client" />
+      <recent name="$PROJECT_DIR$/application/third_party/client/tmpl" />
       <recent name="$PROJECT_DIR$/learn/gitee" />
       <recent name="$PROJECT_DIR$/application/user/ddd" />
-      <recent name="$PROJECT_DIR$/application/user/protoc" />
     </key>
   </component>
-  <component name="RunManager" selected="Go 构建.go build github.com/long250038728/web/application/third_party/cmd">
+  <component name="RunManager" selected="Go 测试.github.com/long250038728/web/application/third_party/client 中的 TestGetPrAddr_Http">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="web" />
       <working_directory value="$PROJECT_DIR$" />
@@ -104,7 +113,7 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/application/third_party/client 中的 TestPrMerge_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="github.com/long250038728/web/application/third_party/client 中的 TestGetPrAddr_Http" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
       <working_directory value="$PROJECT_DIR$/application/third_party/client" />
       <root_directory value="$PROJECT_DIR$" />
@@ -113,31 +122,31 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestPrMerge_Gen\E$" />
+      <pattern value="^\QTestGetPrAddr_Http\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestCreatePR_Http" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="github.com/long250038728/web/application/third_party/client 中的 TestJenkinsClient_Build" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
-      <working_directory value="$PROJECT_DIR$/learn/gitee" />
+      <working_directory value="$PROJECT_DIR$/application/third_party/client" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/learn/gitee" />
+      <package value="github.com/long250038728/web/application/third_party/client" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestCreatePR_Http\E$" />
+      <pattern value="^\QTestJenkinsClient_Build\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="github.com/long250038728/web/learn/gitee 中的 TestPrMerge_Gen" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="github.com/long250038728/web/application/third_party/client 中的 TestJenkinsClient_Queue" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="web" />
-      <working_directory value="$PROJECT_DIR$/learn/gitee" />
+      <working_directory value="$PROJECT_DIR$/application/third_party/client" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/long250038728/web/learn/gitee" />
+      <package value="github.com/long250038728/web/application/third_party/client" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestPrMerge_Gen\E$" />
+      <pattern value="^\QTestJenkinsClient_Queue\E$" />
       <method v="2" />
     </configuration>
     <configuration name="github.com/long250038728/web/learn/str 中的 TestAst" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -154,11 +163,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 测试.github.com/long250038728/web/application/third_party/client 中的 TestGetPrAddr_Http" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/application/third_party/client 中的 TestJenkinsClient_Queue" />
+        <item itemvalue="Go 测试.github.com/long250038728/web/application/third_party/client 中的 TestJenkinsClient_Build" />
         <item itemvalue="Go 构建.go build github.com/long250038728/web/application/third_party/cmd" />
         <item itemvalue="Go 测试.github.com/long250038728/web/learn/str 中的 TestAst" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/application/third_party/client 中的 TestPrMerge_Gen" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestCreatePR_Http" />
-        <item itemvalue="Go 测试.github.com/long250038728/web/learn/gitee 中的 TestPrMerge_Gen" />
       </list>
     </recent_temporary>
   </component>
@@ -245,16 +254,16 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/tool/server/http/http_client.go</url>
-          <line>113</line>
+          <line>123</line>
           <option name="timeStamp" value="93" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/tool/server/http/http_client.go</url>
-          <line>100</line>
+          <line>110</line>
           <option name="timeStamp" value="97" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/application/third_party/client/gitee_test.go</url>
+          <url>file://$PROJECT_DIR$/application/third_party/client/pr_test.go</url>
           <line>148</line>
           <option name="timeStamp" value="99" />
         </line-breakpoint>
@@ -262,6 +271,16 @@
           <url>file://$PROJECT_DIR$/learn/str/ast_test.go</url>
           <line>53</line>
           <option name="timeStamp" value="103" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/application/third_party/client/gitee_client.go</url>
+          <line>17</line>
+          <option name="timeStamp" value="104" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/application/third_party/client/jenkins_client.go</url>
+          <line>53</line>
+          <option name="timeStamp" value="106" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

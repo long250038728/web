@@ -18,6 +18,13 @@ func NewQyHookClient(token string) *QyHookClient {
 }
 
 func (q *QyHookClient) sendHook(ctx context.Context, content string, mobileList []string) error {
+	text := map[string]any{
+		"content": content,
+	}
+	if mobileList != nil && len(mobileList) > 0 {
+		text["mentioned_mobile_list"] = mobileList
+	}
+
 	data := map[string]any{
 		"msgtype": "text",
 		"text": map[string]any{

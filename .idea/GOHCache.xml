@@ -53,13 +53,6 @@
             </set>
           </value>
         </entry>
-        <entry key="Customer">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/learn/orm/sqlBuild_test.go" />
-            </set>
-          </value>
-        </entry>
         <entry key="Enum">
           <value>
             <set>
@@ -95,11 +88,18 @@
             </set>
           </value>
         </entry>
+        <entry key="GitInfo">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/../cronin/internal/biz/git.go" />
+            </set>
+          </value>
+        </entry>
         <entry key="GiteeClient">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/../cronin/internal/biz/git.go" />
               <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_client.go" />
             </set>
           </value>
         </entry>
@@ -107,7 +107,6 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_client.go" />
             </set>
           </value>
         </entry>
@@ -130,6 +129,20 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/tool/gen/impl.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Info">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="JenkinsClient">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/jenkins_client.go" />
             </set>
           </value>
         </entry>
@@ -182,22 +195,6 @@
             </set>
           </value>
         </entry>
-        <entry key="Pr">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="PrListItem">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee_test.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee_test.go" />
-            </set>
-          </value>
-        </entry>
         <entry key="Qn">
           <value>
             <set>
@@ -205,25 +202,10 @@
             </set>
           </value>
         </entry>
-        <entry key="Query">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/learn/orm/sqlBuild.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="QueryBuild">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/learn/orm/sqlBuild.go" />
-            </set>
-          </value>
-        </entry>
         <entry key="QyHookClient">
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/application/third_party/client/qyhook_client.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/qyhook_client.go" />
             </set>
           </value>
         </entry>
@@ -316,10 +298,24 @@
             </set>
           </value>
         </entry>
+        <entry key="Sqll">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/../zhubaoe/marx/apps/report/stock_report/sync.go" />
+            </set>
+          </value>
+        </entry>
         <entry key="Summary">
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/learn/metrics/prometheus/summary.go" />
+            </set>
+          </value>
+        </entry>
+        <entry key="Sync">
+          <value>
+            <set>
+              <option value="file://$PROJECT_DIR$/../zhubaoe/marx/apps/report/stock_report/sync.go" />
             </set>
           </value>
         </entry>
@@ -424,6 +420,7 @@
         <entry key="Yaml">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/../cronin/internal/basic/config/util.go" />
               <option value="file://$PROJECT_DIR$/tool/config/yaml.go" />
             </set>
           </value>
@@ -431,6 +428,7 @@
         <entry key="args">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/jenkins_client_test.go" />
               <option value="file://$PROJECT_DIR$/tool/auth/redis_test.go" />
               <option value="file://$PROJECT_DIR$/tool/limiter/redis_test.go" />
             </set>
@@ -450,22 +448,6 @@
             </set>
           </value>
         </entry>
-        <entry key="feature">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="features">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/application/third_party/client/gitee.go" />
-              <option value="file://$PROJECT_DIR$/learn/gitee/gitee.go" />
-            </set>
-          </value>
-        </entry>
         <entry key="field">
           <value>
             <set>
@@ -477,6 +459,7 @@
         <entry key="fields">
           <value>
             <set>
+              <option value="file://$PROJECT_DIR$/application/third_party/client/jenkins_client_test.go" />
               <option value="file://$PROJECT_DIR$/tool/auth/redis_test.go" />
               <option value="file://$PROJECT_DIR$/tool/limiter/redis_test.go" />
             </set>
@@ -493,13 +476,6 @@
           <value>
             <set>
               <option value="file://$PROJECT_DIR$/tool/gen/enum.go" />
-            </set>
-          </value>
-        </entry>
-        <entry key="mu">
-          <value>
-            <set>
-              <option value="file://$PROJECT_DIR$/learn/mu/mu.go" />
             </set>
           </value>
         </entry>
@@ -535,15 +511,33 @@
     </option>
     <option name="scannedPathMapping">
       <map>
-        <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee.go">
+        <entry key="file://$PROJECT_DIR$/../cronin/internal/basic/config/config_test.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712910183504" />
+              <option name="lastModified" value="1712974386625" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/../cronin/internal/basic/config/util.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712974421462" />
               <option name="schema">
                 <list>
-                  <option value="feature" />
-                  <option value="features" />
-                  <option value="Pr" />
+                  <option value="Yaml" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/../cronin/internal/biz/git.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712973058382" />
+              <option name="schema">
+                <list>
+                  <option value="GitInfo" />
+                  <option value="GiteeClient" />
                 </list>
               </option>
             </ScannedPath>
@@ -552,10 +546,10 @@
         <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee_client.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712907353073" />
+              <option name="lastModified" value="1712978744172" />
               <option name="schema">
                 <list>
-                  <option value="GiteeInfo" />
+                  <option value="Info" />
                   <option value="GiteeClient" />
                 </list>
               </option>
@@ -565,14 +559,40 @@
         <entry key="file://$PROJECT_DIR$/application/third_party/client/gitee_test.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712900409901" />
+              <option name="lastModified" value="1712976998114" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/jenkins.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712975185284" />
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/jenkins_client.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712997766408" />
+              <option name="schema">
+                <list>
+                  <option value="JenkinsClient" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/jenkins_client_test.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712976506744" />
             </ScannedPath>
           </value>
         </entry>
         <entry key="file://$PROJECT_DIR$/application/third_party/client/qyhook_client.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712894240827" />
+              <option name="lastModified" value="1712977542753" />
               <option name="schema">
                 <list>
                   <option value="QyHookClient" />
@@ -581,31 +601,24 @@
             </ScannedPath>
           </value>
         </entry>
-        <entry key="file://$PROJECT_DIR$/application/third_party/client/tmpl.go">
+        <entry key="file://$PROJECT_DIR$/application/third_party/client/tmpl/jenkins.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712894151419" />
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/application/third_party/cmd/main.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712902721716" />
+              <option name="lastModified" value="1712975166576" />
             </ScannedPath>
           </value>
         </entry>
         <entry key="file://$PROJECT_DIR$/application/third_party/cmd/tool.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712913244322" />
+              <option name="lastModified" value="1712979051600" />
             </ScannedPath>
           </value>
         </entry>
         <entry key="file://$PROJECT_DIR$/application/user/cmd/main.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711763466446" />
+              <option name="lastModified" value="1712999276480" />
             </ScannedPath>
           </value>
         </entry>
@@ -683,64 +696,6 @@
           <value>
             <ScannedPath>
               <option name="lastModified" value="1711700016564" />
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712798468324" />
-              <option name="schema">
-                <list>
-                  <option value="feature" />
-                  <option value="features" />
-                  <option value="Pr" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_client.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712893730189" />
-              <option name="schema">
-                <list>
-                  <option value="GiteeInfo" />
-                  <option value="GiteeClient" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_test.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712893804546" />
-              <option name="schema">
-                <list>
-                  <option value="PrListItem" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/gitee/gitee_tool.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712891921045" />
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/gitee/qyhook_client.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1712893043017" />
-              <option name="schema">
-                <list>
-                  <option value="QyHookClient" />
-                </list>
-              </option>
             </ScannedPath>
           </value>
         </entry>
@@ -827,43 +782,6 @@
             </ScannedPath>
           </value>
         </entry>
-        <entry key="file://$PROJECT_DIR$/learn/mu/mu.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1706688945629" />
-              <option name="schema">
-                <list>
-                  <option value="mu" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/orm/sqlBuild.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1704765076654" />
-              <option name="schema">
-                <list>
-                  <option value="Query" />
-                  <option value="QueryBuild" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
-        <entry key="file://$PROJECT_DIR$/learn/orm/sqlBuild_test.go">
-          <value>
-            <ScannedPath>
-              <option name="lastModified" value="1704770649554" />
-              <option name="schema">
-                <list>
-                  <option value="Customer" />
-                </list>
-              </option>
-            </ScannedPath>
-          </value>
-        </entry>
         <entry key="file://$PROJECT_DIR$/learn/str/ast_test.go">
           <value>
             <ScannedPath>
@@ -888,7 +806,7 @@
         <entry key="file://$PROJECT_DIR$/tool/app/app.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711416042118" />
+              <option name="lastModified" value="1712998839621" />
               <option name="schema">
                 <list>
                   <option value="App" />
@@ -900,7 +818,7 @@
         <entry key="file://$PROJECT_DIR$/tool/app/config.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711702081391" />
+              <option name="lastModified" value="1712998202664" />
               <option name="schema">
                 <list>
                   <option value="Config" />
@@ -919,14 +837,14 @@
         <entry key="file://$PROJECT_DIR$/tool/app/type.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711683184295" />
+              <option name="lastModified" value="1712998839649" />
             </ScannedPath>
           </value>
         </entry>
         <entry key="file://$PROJECT_DIR$/tool/app/util.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1711508530843" />
+              <option name="lastModified" value="1712998839626" />
               <option name="schema">
                 <list>
                   <option value="Util" />
@@ -1359,7 +1277,7 @@
         <entry key="file://$PROJECT_DIR$/tool/server/http/http_client.go">
           <value>
             <ScannedPath>
-              <option name="lastModified" value="1712823879525" />
+              <option name="lastModified" value="1712975572850" />
               <option name="schema">
                 <list>
                   <option value="Client" />
@@ -1626,12 +1544,24 @@
             </ScannedPath>
           </value>
         </entry>
+        <entry key="file://$PROJECT_DIR$/../zhubaoe/marx/apps/report/stock_report/sync.go">
+          <value>
+            <ScannedPath>
+              <option name="lastModified" value="1712993607142" />
+              <option name="schema">
+                <list>
+                  <option value="Sync" />
+                  <option value="Sqll" />
+                </list>
+              </option>
+            </ScannedPath>
+          </value>
+        </entry>
       </map>
     </option>
     <option name="tableStructMapping">
       <map>
         <entry key="app" value="App" />
-        <entry key="args" value="args" />
         <entry key="bonus_model" value="BonusModel" />
         <entry key="class" value="class" />
         <entry key="client" value="Client" />
@@ -1643,17 +1573,16 @@
         <entry key="enum_item" value="EnumItem" />
         <entry key="enum_value" value="EnumValue" />
         <entry key="excel_data" value="ExcelData" />
-        <entry key="feature" value="feature" />
-        <entry key="features" value="features" />
         <entry key="field" value="field" />
-        <entry key="fields" value="fields" />
         <entry key="gauge" value="Gauge" />
+        <entry key="git_info" value="GitInfo" />
         <entry key="gitee_client" value="GiteeClient" />
         <entry key="gitee_info" value="GiteeInfo" />
         <entry key="header" value="Header" />
         <entry key="histogram" value="Histogram" />
         <entry key="impl" value="Impl" />
-        <entry key="info" value="info" />
+        <entry key="info" value="Info" />
+        <entry key="jenkins_client" value="JenkinsClient" />
         <entry key="kafka" value="Kafka" />
         <entry key="list" value="list" />
         <entry key="message" value="Message" />
@@ -1661,13 +1590,8 @@
         <entry key="middleware" value="Middleware" />
         <entry key="middleware_pool" value="MiddlewarePool" />
         <entry key="models" value="Models" />
-        <entry key="mu" value="mu" />
         <entry key="other" value="Other" />
-        <entry key="pr" value="Pr" />
-        <entry key="pr_list_item" value="PrListItem" />
         <entry key="qn" value="Qn" />
-        <entry key="query" value="Query" />
-        <entry key="query_build" value="QueryBuild" />
         <entry key="qy_hook_client" value="QyHookClient" />
         <entry key="rand_balancer" value="RandBalancer" />
         <entry key="read" value="Read" />
@@ -1681,7 +1605,9 @@
         <entry key="source" value="Source" />
         <entry key="span" value="Span" />
         <entry key="sql_job" value="SqlJob" />
+        <entry key="sqll" value="Sqll" />
         <entry key="summary" value="Summary" />
+        <entry key="sync" value="Sync" />
         <entry key="table" value="table" />
         <entry key="table_models" value="tableModels" />
         <entry key="target" value="Target" />
@@ -1691,7 +1617,7 @@
         <entry key="trace" value="Trace" />
         <entry key="unimplemented_user_server" value="UnimplementedUserServer" />
         <entry key="user" value="User" />
-        <entry key="user_claims" value="userClaims" />
+        <entry key="user_claims" value="UserClaims" />
         <entry key="user_client" value="userClient" />
         <entry key="user_domain" value="UserDomain" />
         <entry key="user_repository" value="UserRepository" />
@@ -1702,6 +1628,6 @@
         <entry key="yaml" value="Yaml" />
       </map>
     </option>
-    <option name="lastTimeChecked" value="1712797931114" />
+    <option name="lastTimeChecked" value="1712971608095" />
   </component>
 </project>

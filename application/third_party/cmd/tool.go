@@ -9,7 +9,15 @@ import (
 	"os"
 )
 
-//go get -u github.com/spf13/cobra
+// go get -u github.com/spf13/cobra
+//
+// 打包成工具
+// go build tool
+// mv tool linl
+//
+// 使用
+// ./linl -h
+// ./linl branch master feature/sm100 hume locke
 
 var source string
 var target string
@@ -40,14 +48,13 @@ func main() {
 		Short: "上线快速生成工具",
 	}
 
-	rootCmd.AddCommand(list())
-	rootCmd.AddCommand(pr())
-	rootCmd.AddCommand(online())
 	rootCmd.AddCommand(branch())
+	rootCmd.AddCommand(pr())
+	rootCmd.AddCommand(list())
+	rootCmd.AddCommand(online())
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fmt.Println(err.Error())
 	}
 }
 

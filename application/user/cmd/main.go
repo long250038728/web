@@ -22,7 +22,7 @@ func main() {
 
 func Run() error {
 	wd, _ := os.Getwd()
-	conf, err := app.NewAppConfig(filepath.Join(wd, "application", "user", "config"))
+	conf, err := app.NewAppConfig(filepath.Join(wd, "config"))
 	if err != nil {
 		return err
 	}
