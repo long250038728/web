@@ -33,19 +33,29 @@ type Util struct {
 	register register.Register
 }
 
+// NewUtilPath 根据根路径获取Util工具箱
+func NewUtilPath(root string) (*Util, error) {
+	conf, err := NewAppConfig(root)
+	if err != nil {
+		return nil, err
+	}
+	return NewUtil(conf)
+}
+
+// NewUtil 根据配置获取Util工具箱
 func NewUtil(config *Config) (*Util, error) {
 	util := &Util{
 		Info: config,
 		Sf:   &singleflight.Group{},
 	}
 
+	var err error
+
 	//创建db客户端
 	if config.dbConfig != nil {
-		client, err := orm.NewGorm(config.dbConfig)
-		if err != nil {
+		if util.db, err = orm.NewGorm(config.dbConfig); err != nil {
 			return nil, err
 		}
-		util.db = client
 	}
 
 	//创建redis && locker
@@ -60,29 +70,23 @@ func NewUtil(config *Config) (*Util, error) {
 
 	//创建es
 	if config.esConfig != nil {
-		client, err := es.NewEs(config.esConfig)
-		if err != nil {
+		if util.es, err = es.NewEs(config.esConfig); err != nil {
 			return nil, err
 		}
-		util.es = client
 	}
 
 	//创建consul客户端
 	if config.registerConfig != nil {
-		register, err := consul.NewConsulRegister(config.registerConfig)
-		if err != nil {
+		if util.register, err = consul.NewConsulRegister(config.registerConfig); err != nil {
 			return nil, err
 		}
-		util.register = register
 	}
 
 	//创建链路
 	if config.tracingConfig != nil {
-		exporter, err := opentelemetry.NewJaegerExporter(config.tracingConfig)
-		if err != nil {
+		if util.exporter, err = opentelemetry.NewJaegerExporter(config.tracingConfig); err != nil {
 			return nil, err
 		}
-		util.exporter = exporter
 	}
 
 	return util, nil

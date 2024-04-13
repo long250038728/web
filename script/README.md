@@ -126,11 +126,17 @@ pipeline {
 
 用curl调用的是
 ```
-  curl -X POST https://jenkins.zhubaoe.cn/job/kobe-service-common/buildWithParameters \
-  --user admin:11739a99e314641a8f7c039db95458f6e1 \
-  --data-urlencode "BRANCH=check" \
-  --data-urlencode "SERVICENAME=order" \
-  --data-urlencode "ENV=check"
+//测试服
+curl -X POST https://jenkins.zhubaoe.cn/job/kobe-service-common/buildWithParameters \
+--user admin:11739a99e314641a8f7c039db95458f6e1 \
+--data-urlencode "BRANCH=check" \
+--data-urlencode "SERVICENAME=order" \
+--data-urlencode "ENV=check"
+  
+ 
+//获取jenkins队列 
+curl -X GET https://jenkins.zhubaoe.cn/queue/api/json \
+--user admin:11739a99e314641a8f7c039db95458f6e1 
 ```
 
 ```

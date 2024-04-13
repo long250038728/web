@@ -26,8 +26,7 @@ type Config struct {
 	HttpPort   int    `json:"http_port" yaml:"http_port"`
 	GrpcPort   int    `json:"grpc_port" yaml:"grpc_port"`
 	Type       ipType `json:"type" yaml:"type"`
-
-	IP string `json:"ip" yaml:"ip"`
+	IP         string `json:"ip" yaml:"ip"`
 
 	dbConfig       *orm.Config
 	esConfig       *es.Config
@@ -47,42 +46,25 @@ func NewAppConfig(rootPath string) (config *Config, err error) {
 	}
 	conf.IP, err = conf.ip()
 
-	var db orm.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "db.yaml"), &db); err != nil {
+	if err := configLoad.Load(filepath.Join(rootPath, "db.yaml"), &conf.dbConfig); err != nil {
+		return nil, err
+	}
+	if err := configLoad.Load(filepath.Join(rootPath, "redis.yaml"), &conf.redisConfig); err != nil {
+		return nil, err
+	}
+	if err := configLoad.Load(filepath.Join(rootPath, "kafka.yaml"), &conf.kafkaConfig); err != nil {
+		return nil, err
+	}
+	if err := configLoad.Load(filepath.Join(rootPath, "es.yaml"), &conf.esConfig); err != nil {
+		return nil, err
+	}
+	if err := configLoad.Load(filepath.Join(rootPath, "register.yaml"), &conf.registerConfig); err != nil {
+		return nil, err
+	}
+	if err := configLoad.Load(filepath.Join(rootPath, "tracing.yaml"), &conf.tracingConfig); err != nil {
 		return nil, err
 	}
 
-	var redis cache.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "redis.yaml"), &redis); err != nil {
-		return nil, err
-	}
-
-	var kafka mq.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "kafka.yaml"), &kafka); err != nil {
-		return nil, err
-	}
-
-	var es es.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "es.yaml"), &es); err != nil {
-		return nil, err
-	}
-
-	var register consul.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "register.yaml"), &register); err != nil {
-		return nil, err
-	}
-
-	var tracing opentelemetry.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "tracing.yaml"), &tracing); err != nil {
-		return nil, err
-	}
-
-	conf.dbConfig = &db
-	conf.redisConfig = &redis
-	conf.esConfig = &es
-	conf.kafkaConfig = &kafka
-	conf.registerConfig = &register
-	conf.tracingConfig = &tracing
 	return &conf, nil
 }
 

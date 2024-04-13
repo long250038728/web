@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+type Application interface {
+	Start() error
+	Stop()
+}
+
 var _ Application = &App{}
 
 type App struct {

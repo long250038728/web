@@ -31,12 +31,12 @@ var productList = []string{
 //var createTarget = "release/v3.5.53"
 
 // //合到check （创建pr）
-//var createSource = "release/v3.5.53"
-//var createTarget = "check"
+var createSource = "release/v3.5.53"
+var createTarget = "check"
 
 // //合到master （创建pr）
-var createSource = "release/v3.5.53"
-var createTarget = "master"
+//var createSource = "release/v3.5.53"
+//var createTarget = "master"
 
 // ==============================http=======================
 // 创建分支
