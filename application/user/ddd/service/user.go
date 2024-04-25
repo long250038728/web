@@ -13,7 +13,7 @@ type UserService struct {
 
 type UserServerOpt func(s *UserService)
 
-func UserDomain(domain *domain.UserDomain) UserServerOpt {
+func SetUserDomain(domain *domain.UserDomain) UserServerOpt {
 	return func(s *UserService) {
 		s.domain = domain
 	}

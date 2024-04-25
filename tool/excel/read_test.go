@@ -19,8 +19,8 @@ type BonusModel struct {
 }
 
 var BonusHeader = []Header{
-	{Key: "telephone", Name: "顾客手机号", Type: "string"},
-	{Key: "bonus", Name: "积分", Type: "float"},
+	{Key: "telephone", Name: "客户手机号", Type: "string"},
+	{Key: "bonus", Name: "应扣除积分", Type: "float"},
 	{Key: "total_bonus", Name: "累计积分", Type: "float"},
 	{Key: "merchant_shop_name", Name: "所属门店", Type: "string"},
 	{Key: "staff", Name: "归属员工手机号", Type: "string"},
@@ -29,7 +29,7 @@ var BonusHeader = []Header{
 
 func TestBonusCustomerReadExcel(t *testing.T) {
 	var data []*BonusModel
-	r := NewRead("/Users/linlong/Desktop/111.xlsx")
+	r := NewRead("/Users/linlong/Desktop/a.xlsx")
 	defer r.Close()
 	err := r.Read("Sheet1", BonusHeader, &data)
 
@@ -44,7 +44,7 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 	for _, d := range data {
 		//tel & bonus
 		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
-		b.Write([]byte(fmt.Sprintf("['%s','%s'],\n", d.Telephone, d.BonusStr)))
+		b.Write([]byte(fmt.Sprintf("['%s','-%s'],\n", d.Telephone, d.BonusStr)))
 
 		//tel
 		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)

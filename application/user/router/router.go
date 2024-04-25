@@ -42,4 +42,11 @@ func RegisterUserServer(engine *gin.Engine, srv *service.UserService, util *app.
 			return srv.SayHello(ctx, &request)
 		})
 	})
+
+	engine.POST("/xls", func(gin *gin.Context) {
+		var request user.RequestHello
+		middleware.File(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
+		})
+	})
 }

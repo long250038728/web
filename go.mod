@@ -13,6 +13,7 @@ require (
 	github.com/qiniu/go-sdk/v7 v7.18.2
 	github.com/robfig/cron v1.2.0
 	github.com/segmentio/kafka-go v0.4.44
+	github.com/spf13/cobra v1.8.0
 	github.com/xuri/excelize/v2 v2.8.0
 	go.opentelemetry.io/otel v1.20.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -76,7 +77,6 @@ require (
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.3 // indirect
-	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

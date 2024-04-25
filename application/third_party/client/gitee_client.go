@@ -13,10 +13,13 @@ type Git interface {
 	CreateFeature(ctx context.Context, repos, source, target string) error
 	CreatePR(ctx context.Context, repos, source, target string) (*Info, error)
 	GetPR(ctx context.Context, repos, source, target string) ([]*Info, error)
+	Merge(ctx context.Context, repos string, num int32) error
 }
 
 type Info struct {
 	HtmlUrl string `json:"html_url"`
+	Url     string `json:"url"`
+	Number  int32  `json:"number"`
 }
 
 type GiteeClient struct {
@@ -98,11 +101,25 @@ func (g *GiteeClient) GetPR(ctx context.Context, repos, source, target string) (
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s: %s", repos, err.Error()))
 	}
-
 	var list []*Info
 	err = json.Unmarshal(b, &list)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s: %s", repos, err.Error()))
 	}
 	return list, nil
+}
+
+func (g *GiteeClient) Merge(ctx context.Context, repos string, num int32) error {
+	url := fmt.Sprintf("%s/api/v5/repos/%s/pulls/%d/merge", g.address, repos, num)
+	data := map[string]any{
+		"access_token": g.token,
+		"merge_method": "merge",
+	}
+
+	res, _, err := g.client.Get(ctx, url, data)
+	if err != nil {
+		return errors.New(fmt.Sprintf("%s: %s", repos, err.Error()))
+	}
+	println(string(res))
+	return nil
 }

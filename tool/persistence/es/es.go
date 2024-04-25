@@ -4,15 +4,19 @@ import "github.com/olivere/elastic/v7"
 
 //github.com/olivere/elastic/v7
 
-func NewEs(config *Config) (*elastic.Client, error) {
-	var options []elastic.ClientOptionFunc
-	options = append(options, elastic.SetURL(config.Address))
-	options = append(options, elastic.SetBasicAuth(config.User, config.Password))
-	options = append(options, elastic.SetSniff(false))
+type ES struct {
+	*elastic.Client
+}
 
+func NewEs(config *Config) (*ES, error) {
+	options := []elastic.ClientOptionFunc{
+		elastic.SetURL(config.Address),
+		elastic.SetBasicAuth(config.User, config.Password),
+		elastic.SetSniff(false),
+	}
 	client, err := elastic.NewClient(options...)
 	if err != nil {
 		return nil, err
 	}
-	return client, nil
+	return &ES{Client: client}, nil
 }

@@ -21,7 +21,11 @@ type Config struct {
 	Password string `json:"password" yaml:"password"`
 }
 
-func NewGorm(config *Config) (*gorm.DB, error) {
+type Gorm struct {
+	*gorm.DB
+}
+
+func NewGorm(config *Config) (*Gorm, error) {
 	if config.Address == "" || config.Port == 0 || config.Database == "" {
 		return nil, errors.New("config is error")
 	}
@@ -46,7 +50,7 @@ func NewGorm(config *Config) (*gorm.DB, error) {
 	//回调
 	callback(db)
 
-	return db, nil
+	return &Gorm{db}, nil
 }
 
 func connSetting(db *gorm.DB) error {

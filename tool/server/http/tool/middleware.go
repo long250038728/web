@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
+	"net/url"
 )
 
 type Middleware struct {
@@ -23,7 +24,7 @@ func NewMiddleware(error map[error]MiddleErr) *Middleware {
 	}
 }
 
-func (m *Middleware) Set(ginContext *gin.Context) {
+func (m *Middleware) Set(ginContext *gin.Context) *Middleware {
 	m.ginContext = ginContext
 
 	m.ctx = opentelemetry.ExtractHttp(m.ginContext.Request.Context(), ginContext.Request) //从请求里面获取生成新的ctx
@@ -36,6 +37,8 @@ func (m *Middleware) Set(ginContext *gin.Context) {
 
 	//记录请求头
 	m.span.AddEvent(m.ginContext.Request.RequestURI)
+
+	return m
 }
 
 func (m *Middleware) bind(request any) error {
@@ -93,6 +96,16 @@ func (m *Middleware) WriteJSON(data interface{}, err error) {
 
 	ginContext.Header("Content-Type", "application/json")
 	_, _ = ginContext.Writer.Write(marshalByte)
+}
+
+func (m *Middleware) WriteFile(fileName string, data []byte, err error) {
+	fileName = url.QueryEscape(fileName) // 防止中文乱码
+	ginContext := m.ginContext
+	ginContext.Header("Content-Type", "application/octet-stream")
+	ginContext.Header("Content-Disposition", "attachment; filename=\""+fileName+"\"")
+	ginContext.Writer.Write(data)
+
+	m.span.AddEvent("file is write ok")
 }
 
 func (m *Middleware) response(data interface{}, err error) (res *Response) {

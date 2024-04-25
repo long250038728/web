@@ -11,10 +11,8 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"github.com/olivere/elastic/v7"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"golang.org/x/sync/singleflight"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -23,8 +21,8 @@ type Util struct {
 	Sf   *singleflight.Group
 
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
-	db       *gorm.DB
-	es       *elastic.Client
+	db       *orm.Gorm
+	es       *es.ES
 	exporter *jaeger.Exporter
 
 	//cache mq 主要是一些通用的东西，可以用接口代替
@@ -92,11 +90,11 @@ func NewUtil(config *Config) (*Util, error) {
 	return util, nil
 }
 
-func (u *Util) Db(ctx context.Context) *gorm.DB {
-	return u.db.WithContext(ctx)
+func (u *Util) Db(ctx context.Context) *orm.Gorm {
+	return &orm.Gorm{DB: u.db.DB.WithContext(ctx)}
 }
 
-func (u *Util) Es() *elastic.Client {
+func (u *Util) Es() *es.ES {
 	return u.es
 }
 
