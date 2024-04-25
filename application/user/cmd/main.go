@@ -34,15 +34,10 @@ func Run() error {
 
 	// 定义服务
 	userService := service.NewUserService(
-		service.UserDomain(
-			domain.NewUserDomain(repository.NewUserRepository(util)),
-		),
+		service.SetUserDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
 	)
 
-	//启动服务
-	application, err := app.NewApp(
-		app.Register(util.Register()),                      //服务注册 && 发现
-		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
 				router.RegisterUserServer(engine, userService, util)
@@ -51,8 +46,12 @@ func Run() error {
 				user.RegisterUserServer(engine, userService)
 			}),
 		),
-	)
+		app.Register(util.Register()),                      //服务注册 && 发现
+		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+	}
 
+	//启动服务
+	application, err := app.NewApp(opts...)
 	defer application.Stop()
 	if err != nil {
 		return err

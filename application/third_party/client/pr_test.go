@@ -141,10 +141,12 @@ func TestPrMerge_Gen(t *testing.T) {
 		"https://gitee.com/zhubaoe/aristotle/pulls/914",
 		"https://gitee.com/fissiongeek/h5-sales/pulls/385",
 	}
-	var kobe = []string{
-		"kobe-order",
-		"kobe-stock",
-		"kobe-customer",
+	var kobe = &Svc{
+		Kobe: []string{
+			"kobe-order",
+			"kobe-stock",
+			"kobe-customer",
+		},
 	}
 	gen, err := NewPrGen(token, jenkins).GenMerge(address, kobe)
 	if err != nil {

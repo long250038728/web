@@ -112,7 +112,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 }
 
 func (c *Client) request(request *http.Request) ([]byte, int, error) {
-	client := http.Client{Timeout: c.timeout}
+	client := http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
 		return nil, 0, err
