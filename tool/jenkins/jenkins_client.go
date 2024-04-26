@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/server/http"
+	"net/url"
 	"time"
 )
 
@@ -40,12 +41,18 @@ func NewJenkinsClient(config *Config) (*Client, error) {
 
 // Build 构建
 func (j *Client) Build(ctx context.Context, job string, params map[string]any) error {
-	url := fmt.Sprintf("%s/job/%s/buildWithParameters", j.address, job)
-	if params == nil {
-		url = fmt.Sprintf("%s/job/%s/build", j.address, job)
-	}
-	_, code, err := j.client.Post(ctx, url, params)
+	uri := fmt.Sprintf("%s/job/%s/build", j.address, job)
 
+	// build参数是在uri中
+	if params != nil {
+		val := url.Values{}
+		for key, value := range params {
+			val.Set(key, fmt.Sprintf("%v", value))
+		}
+		uri = fmt.Sprintf("%s/job/%s/buildWithParameters?%s", j.address, job, val.Encode())
+	}
+
+	_, code, err := j.client.Post(ctx, uri, nil)
 	if err != nil {
 		return err
 	}
