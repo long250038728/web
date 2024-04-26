@@ -19,6 +19,8 @@ func NewMessage(data interface{}) (msg *Message, err error) {
 	var bytes []byte
 
 	switch d := data.(type) {
+	case []byte:
+		bytes = d
 	case string:
 		bytes = []byte(d)
 	default:

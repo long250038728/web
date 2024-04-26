@@ -9,8 +9,8 @@ import (
 )
 
 type Config struct {
-	AccessKey string
-	SecretKey string
+	AccessKey string `json:"access_key" yaml:"accessKey"`
+	SecretKey string `json:"secret_key" yaml:"secretKey"`
 }
 
 type Qn struct {
@@ -48,8 +48,13 @@ func (qn *Qn) UpLoad(ctx context.Context, bucket, address string, fileName strin
 }
 
 func (qn *Qn) Download(ctx context.Context, bucket, address string, fileName string) error {
-	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
 
+	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
 	resp, err := bucketManager.Get(bucket, fileName, &storage.GetObjectInput{})
 	if err != nil || resp == nil {
 		return err
@@ -62,6 +67,12 @@ func (qn *Qn) Download(ctx context.Context, bucket, address string, fileName str
 }
 
 func (qn *Qn) Delete(ctx context.Context, bucket, fileName string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	bucketManager := storage.NewBucketManager(qn.mac, &storage.Config{})
 	return bucketManager.Delete(bucket, fileName)
 }

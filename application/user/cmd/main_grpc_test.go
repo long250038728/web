@@ -15,12 +15,12 @@ func TestGrpcClient(t *testing.T) {
 func userGrpcClientTest() (interface{}, error) {
 	ctx := context.Background()
 
-	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/config")
+	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/configurator")
 	if err != nil {
 		return nil, err
 	}
 
-	util, err := app.NewUtil(conf)
+	util, err := app.NewUtilConfig(conf)
 	if err != nil {
 		return nil, err
 	}

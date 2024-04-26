@@ -1,4 +1,4 @@
-package config
+package configurator
 
 import "testing"
 
@@ -16,6 +16,6 @@ func TestYaml(t *testing.T) {
 	}
 
 	var data info
-	err := (&Yaml{}).Load("./data/data.yaml", &data)
+	err := NewYaml().Load("./data/data.yaml", &data)
 	t.Log(data, err)
 }

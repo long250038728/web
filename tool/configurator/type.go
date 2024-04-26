@@ -1,5 +1,5 @@
-package config
+package configurator
 
-type Config interface {
+type Loader interface {
 	Load(path string, data interface{}) error
 }

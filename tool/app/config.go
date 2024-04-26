@@ -3,7 +3,7 @@ package app
 import (
 	"errors"
 	"github.com/long250038728/web/tool/cache"
-	config2 "github.com/long250038728/web/tool/config"
+	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
@@ -38,10 +38,10 @@ type Config struct {
 
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath string) (config *Config, err error) {
-	configLoad := &config2.Yaml{}
+	configLoad := configurator.NewYaml()
 
 	var conf Config
-	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
+	if err := configLoad.Load(filepath.Join(rootPath, "configurator.yaml"), &conf); err != nil {
 		return nil, err
 	}
 	conf.IP, err = conf.ip()
@@ -76,7 +76,7 @@ func (info *Config) ip() (string, error) {
 	case TypeEnvIP:
 		return info.getEnvIP()
 	default:
-		return "", errors.New("IP / Address Not Find")
+		return "", errors.New("IP / Project Not Find")
 	}
 }
 
@@ -85,7 +85,7 @@ func (info *Config) getEnvIP() (string, error) {
 	ip := os.Getenv("APP_IP")
 	var err error
 	if len(ip) == 0 {
-		err = errors.New("IP / Address Not Find")
+		err = errors.New("IP / Project Not Find")
 	}
 	return ip, err
 }
@@ -117,5 +117,5 @@ func (info *Config) getLocalIP() (string, error) {
 			}
 		}
 	}
-	return "", errors.New("IP / Address Not Find")
+	return "", errors.New("IP / Project Not Find")
 }

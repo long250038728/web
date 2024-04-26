@@ -50,7 +50,7 @@ package opentracing
 ////
 //
 //// extract   从carrier数据中提取SpanContext
-//func extract(operationName string, context context.Context, tracingId []string) (opentracing.Span, context.Context) {
+//func extract(operationName string, ctx context.Context, tracingId []string) (opentracing.Span, context.Context) {
 //	var opts []opentracing.StartSpanOption
 //	if parentContext, err := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier{tracing.Id: tracingId}); err == nil {
 //		opts = append(opts, ext.RPCServerOption(parentContext))
@@ -60,8 +60,8 @@ package opentracing
 //}
 //
 //// inject  通过SpanContext把data注入到carrier
-//func inject(context context.Context) (opentracing.TextMapCarrier, error) {
-//	span := opentracing.SpanFromContext(context)
+//func inject(ctx context.Context) (opentracing.TextMapCarrier, error) {
+//	span := opentracing.SpanFromContext(ctx)
 //	if span == nil {
 //		return opentracing.TextMapCarrier{}, nil
 //	}

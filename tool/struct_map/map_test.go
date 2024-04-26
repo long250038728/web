@@ -50,7 +50,7 @@ func TestFormat(t *testing.T) {
 type Test struct {
 }
 
-func (t Test) SayHello(str int) string {
+func (t *Test) SayHello(str int) string {
 	return fmt.Sprintf("hello:%d", str)
 }
 func (t *Test) SayPirHello(str string) (string, error) {

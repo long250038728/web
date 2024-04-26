@@ -12,8 +12,6 @@ import (
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
 	"google.golang.org/grpc"
-	"os"
-	"path/filepath"
 )
 
 func main() {
@@ -21,16 +19,7 @@ func main() {
 }
 
 func Run() error {
-	wd, _ := os.Getwd()
-	conf, err := app.NewAppConfig(filepath.Join(wd, "config"))
-	if err != nil {
-		return err
-	}
-
-	util, err := app.NewUtil(conf)
-	if err != nil {
-		return err
-	}
+	util := app.NewUtil()
 
 	// 定义服务
 	userService := service.NewUserService(

@@ -48,7 +48,7 @@ func TestQn_Delete(t *testing.T) {
 }
 
 func TestQn_Uploads(t *testing.T) {
-	//qn := NewQn(config)
+	//qn := NewQn(configurator)
 
 	filepath.Walk("/Users/linlong/Desktop", func(path string, info fs.FileInfo, err error) error {
 		if err != nil {

@@ -32,28 +32,6 @@ func NewPrGen(giteeToken, jenkinsToken string) *Pr {
 	return &Pr{GiteeToken: giteeToken, JenkinsToken: jenkinsToken}
 }
 
-func (g *Pr) GenFeature(address []string, source, target string) ([]byte, error) {
-	if len(address) == 0 {
-		return nil, errors.New("address num is error")
-	}
-	var list = make([]*feature, 0, len(address))
-	for _, addr := range address {
-		list = append(list, &feature{Addr: addr, Source: source, Feature: target})
-	}
-	return (&gen.Impl{Name: "gen feature", TmplPath: "./tmpl/gitee_feature.tmpl", Data: &features{Features: list, GiteeToken: g.GiteeToken}, IsFormat: false}).Gen()
-}
-
-func (g *Pr) GenPrCreate(address []string, source, target string) ([]byte, error) {
-	if len(address) == 0 {
-		return nil, errors.New("address num is error")
-	}
-	var list = make([]*feature, 0, len(address))
-	for _, addr := range address {
-		list = append(list, &feature{Addr: addr, Source: source, Feature: target})
-	}
-	return (&gen.Impl{Name: "gen pr create", TmplPath: "./tmpl/gitee_pr.tmpl", Data: &features{Features: list, GiteeToken: g.GiteeToken}, IsFormat: false}).Gen()
-}
-
 var tmpl = `
 //1.合并kobe kobe改tag         构建
 //2.合并locke                  构建

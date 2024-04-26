@@ -2,7 +2,7 @@ package gen
 
 import (
 	"errors"
-	"gorm.io/gorm"
+	"github.com/long250038728/web/tool/persistence/orm"
 	"strings"
 	"text/template"
 )
@@ -31,10 +31,10 @@ type tableModels struct {
 }
 
 type Models struct {
-	db *gorm.DB
+	db *orm.Gorm
 }
 
-func NewModelsGen(db *gorm.DB) *Models {
+func NewModelsGen(db *orm.Gorm) *Models {
 	return &Models{
 		db: db,
 	}
@@ -121,7 +121,7 @@ func (g *Models) tableName(tableName string) string {
 	if len(parts) == 0 {
 		return "undefined"
 	}
-	return g.fieldName(strings.Join(parts[1:len(parts)], "_"))
+	return g.fieldName(strings.Join(parts[1:], "_"))
 }
 
 // fieldName 转换字段名

@@ -1,7 +1,7 @@
 package orm
 
 import (
-	config2 "github.com/long250038728/web/tool/config"
+	"github.com/long250038728/web/tool/configurator"
 	"gorm.io/gorm"
 	"testing"
 )
@@ -19,7 +19,7 @@ var mapModels *[]map[string]interface{}
 var config Config
 
 func init() {
-	(&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/db.yaml", &config)
+	configurator.NewYaml().Load("/Users/linlong/Desktop/web/application/user/configurator/db.yaml", &config)
 }
 
 func TestCreateGorm(t *testing.T) {

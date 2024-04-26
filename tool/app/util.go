@@ -13,6 +13,9 @@ import (
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"golang.org/x/sync/singleflight"
+	"os"
+	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -31,17 +34,32 @@ type Util struct {
 	register register.Register
 }
 
+var once sync.Once
+var u *Util
+
+func NewUtil() *Util {
+	once.Do(func() {
+		wd, _ := os.Getwd()
+		util, err := NewUtilPath(filepath.Join(wd, "configurator"))
+		if err != nil {
+			panic("util init error" + err.Error())
+		}
+		u = util
+	})
+	return u
+}
+
 // NewUtilPath 根据根路径获取Util工具箱
 func NewUtilPath(root string) (*Util, error) {
 	conf, err := NewAppConfig(root)
 	if err != nil {
 		return nil, err
 	}
-	return NewUtil(conf)
+	return NewUtilConfig(conf)
 }
 
-// NewUtil 根据配置获取Util工具箱
-func NewUtil(config *Config) (*Util, error) {
+// NewUtilConfig 根据配置获取Util工具箱
+func NewUtilConfig(config *Config) (*Util, error) {
 	util := &Util{
 		Info: config,
 		Sf:   &singleflight.Group{},

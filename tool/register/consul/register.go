@@ -29,6 +29,12 @@ func NewConsulRegister(conf *Config) (*Register, error) {
 
 // Register 服务注册
 func (r *Register) Register(ctx context.Context, serviceInstance *register.ServiceInstance) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	//需要注册的内容
 	registration := api.AgentServiceRegistration{
 		ID:      serviceInstance.ID,
@@ -36,13 +42,12 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Address: serviceInstance.Address,
 		Port:    serviceInstance.Port,
 	}
-	return r.client.Agent().ServiceRegister(&registration)
 
 	//check := api.AgentServiceCheck{}
 	//check.Timeout = "5s"
 	//check.Interval = "5s"
 	//check.DeregisterCriticalServiceAfter = "30s"
-	//check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Address, serviceInstance.Port)
+	//check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Project, serviceInstance.Port)
 	//registration.Check = &check
 
 	return r.client.Agent().ServiceRegister(&registration)
@@ -50,11 +55,23 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 
 // DeRegister 服务注销
 func (r *Register) DeRegister(ctx context.Context, serviceInstance *register.ServiceInstance) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	return r.client.Agent().ServiceDeregister(serviceInstance.ID)
 }
 
 // List 获取服务列表
 func (r *Register) List(ctx context.Context, serviceName string) ([]*register.ServiceInstance, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	// 获取服务列表（可以加缓存）
 	svcList, _, err := r.client.Health().Service(serviceName, "", true, nil)
 

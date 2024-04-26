@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	config2 "github.com/long250038728/web/tool/config"
+	"github.com/long250038728/web/tool/configurator"
 	"testing"
 	"time"
 )
@@ -14,7 +14,7 @@ var conf Config
 var cacheClient Cache
 
 func init() {
-	_ = (&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	_ = configurator.NewYaml().Load("/Users/linlong/Desktop/web/application/user/configurator/redis.yaml", &conf)
 	cacheClient = NewRedisCache(&conf)
 }
 
