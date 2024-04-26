@@ -14,8 +14,6 @@ type FileInterface interface {
 	FileName() string
 	FileData() []byte
 }
-type authWithLimiter struct {
-}
 
 type MiddlewarePool struct {
 	error   map[error]MiddleErr
@@ -132,6 +130,6 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 	if file, ok := res.(FileInterface); !ok {
 		middleware.WriteJSON(nil, errors.New("the file is not interface to FileInterface"))
 	} else {
-		middleware.WriteFile(file.FileName(), file.FileData(), err)
+		middleware.WriteFile(file.FileName(), file.FileData())
 	}
 }

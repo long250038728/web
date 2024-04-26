@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// Summary
 type Summary struct {
 	summary    prometheus.Summary
 	summaryVec *prometheus.SummaryVec

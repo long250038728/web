@@ -27,7 +27,7 @@ type Gorm struct {
 
 func NewGorm(config *Config) (*Gorm, error) {
 	if config.Address == "" || config.Port == 0 || config.Database == "" {
-		return nil, errors.New("config is error")
+		return nil, errors.New("configurator is error")
 	}
 
 	cnf := &gorm.Config{

@@ -9,7 +9,7 @@ import (
 // go get github.com/segmentio/kafka-go
 
 type Config struct {
-	Address []string
+	Address []string `json:"address" yaml:"address"`
 }
 
 type Kafka struct {
@@ -34,7 +34,7 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 	}
 
 	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
-		return errors.New("IP / Address Not Find")
+		return errors.New("IP / Project Not Find")
 	}
 
 	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
@@ -63,7 +63,7 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 	}
 
 	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
-		return errors.New("IP / Address Not Find")
+		return errors.New("IP / Project Not Find")
 	}
 
 	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址

@@ -44,7 +44,7 @@ func Parse(signedString string) (*UserClaims, error) {
 	})
 	if err != nil {
 		if validationErr, ok := err.(*jwt.ValidationError); ok && validationErr.Errors == jwt.ValidationErrorExpired {
-			return nil, errors2.New("Token is Disabled")
+			return nil, errors2.New("token is Disabled")
 		}
 		return nil, err
 	}

@@ -1,6 +1,0 @@
-{{$token := .GiteeToken}}
-{{range $index,$item := .Features}}
-curl -X POST --header 'Content-Type: application/json;charset=UTF-8' \
-'https://gitee.com/api/v5/repos/{{$item.Addr}}/pulls' \
- -d '{"access_token":"{{$token}}","title":"{{$item.Feature}} merge {{$item.Source}}","head":"{{$item.Source}}","base":"{{$item.Feature}}"}'
-{{end}}

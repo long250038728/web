@@ -1,4 +1,4 @@
-package client
+package jenkins
 
 import (
 	"context"
@@ -6,31 +6,40 @@ import (
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/server/http"
-	http2 "net/http"
 	"time"
 )
 
-type JenkinsClient struct {
+type Client struct {
 	address string
 	client  *http.Client
 }
 
-type lastBuild struct {
-	Number int32 `json:"number"`
-}
-type queueBuild struct {
-	Result string `json:"result"`
+var timeLayout = "2006-01-02 15:04:05"
+
+type Config struct {
+	Address  string `json:"address" yaml:"address"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
 }
 
-func NewJenkinsClient(address, username, password string) *JenkinsClient {
-	return &JenkinsClient{
-		address: address,
-		client:  http.NewClient(http.SetBasicAuth(username, password)),
+func NewJenkinsClient(config *Config) (*Client, error) {
+	if len(config.Address) <= 0 {
+		return nil, errors.New("address is empty")
 	}
+
+	var opts []http.Opt
+	if len(config.Username) > 0 && len(config.Password) > 0 {
+		opts = append(opts, http.SetBasicAuth(config.Username, config.Password))
+	}
+
+	return &Client{
+		address: config.Address,
+		client:  http.NewClient(opts...),
+	}, nil
 }
 
 // Build 构建
-func (j *JenkinsClient) Build(ctx context.Context, job string, params map[string]any) error {
+func (j *Client) Build(ctx context.Context, job string, params map[string]any) error {
 	url := fmt.Sprintf("%s/job/%s/buildWithParameters", j.address, job)
 	if params == nil {
 		url = fmt.Sprintf("%s/job/%s/build", j.address, job)
@@ -40,18 +49,22 @@ func (j *JenkinsClient) Build(ctx context.Context, job string, params map[string
 	if err != nil {
 		return err
 	}
-	if code != http2.StatusCreated {
+	if code != http.StatusCreated {
 		return errors.New("request code is not 201")
 	}
 	return nil
 }
 
 // GetLastNumber 获取最后一个id
-func (j *JenkinsClient) GetLastNumber(ctx context.Context, job string) (int32, error) {
+func (j *Client) GetLastNumber(ctx context.Context, job string) (int32, error) {
 	var resp []byte
 	var err error
 	if resp, _, err = j.client.Get(ctx, fmt.Sprintf("%s/job/%s/lastBuild/api/json", j.address, job), nil); err != nil {
 		return 0, err
+	}
+
+	type lastBuild struct {
+		Number int32 `json:"number"`
 	}
 	var b lastBuild
 	if err := json.Unmarshal(resp, &b); err != nil {
@@ -64,7 +77,11 @@ func (j *JenkinsClient) GetLastNumber(ctx context.Context, job string) (int32, e
 }
 
 // Block 阻塞获取是否构建完成
-func (j *JenkinsClient) Block(ctx context.Context, job string, params map[string]any) error {
+func (j *Client) Block(ctx context.Context, job string) error {
+	type queueBuild struct {
+		Result string `json:"result"`
+	}
+
 	number, err := j.GetLastNumber(ctx, job)
 	if err != nil {
 		return err
@@ -83,7 +100,7 @@ func (j *JenkinsClient) Block(ctx context.Context, job string, params map[string
 		var err error
 		var q queueBuild
 
-		if resp, _, err = j.client.Get(context.Background(), fmt.Sprintf("%s/job/%s/%d/api/json?tree=result,building,displayName,duration", j.address, job, number), nil); err != nil {
+		if resp, _, err = j.client.Get(ctx, fmt.Sprintf("%s/job/%s/%d/api/json?tree=result,building,displayName,duration", j.address, job, number), nil); err != nil {
 			return err
 		}
 		if err := json.Unmarshal(resp, &q); err != nil {
@@ -99,13 +116,13 @@ func (j *JenkinsClient) Block(ctx context.Context, job string, params map[string
 }
 
 // BlockBuild  阻塞构建
-func (j *JenkinsClient) BlockBuild(ctx context.Context, job string, params map[string]any) error {
+func (j *Client) BlockBuild(ctx context.Context, job string, params map[string]any) error {
 	startTime := time.Now()
 	fmt.Println("============== ", job, " ===============")
-	fmt.Println("start time:", startTime.Format("2006-01-02 15:04:05"))
+	fmt.Println("start time:", startTime.Format(timeLayout))
 	defer func() {
 		endTime := time.Now()
-		fmt.Println("end time:", endTime.Format("2006-01-02 15:04:05"))
+		fmt.Println("end time:", endTime.Format(timeLayout))
 		fmt.Println("total:", endTime.Sub(startTime))
 	}()
 
@@ -115,9 +132,9 @@ func (j *JenkinsClient) BlockBuild(ctx context.Context, job string, params map[s
 
 	// 等待jenkins列表
 	time.Sleep(time.Second * 10)
-	fmt.Println("query start:", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Println("query start:", time.Now().Format(timeLayout))
 
-	if queryErr := j.Block(ctx, job, params); queryErr != nil {
+	if queryErr := j.Block(ctx, job); queryErr != nil {
 		return queryErr
 	}
 	return nil

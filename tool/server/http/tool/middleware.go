@@ -98,7 +98,7 @@ func (m *Middleware) WriteJSON(data interface{}, err error) {
 	_, _ = ginContext.Writer.Write(marshalByte)
 }
 
-func (m *Middleware) WriteFile(fileName string, data []byte, err error) {
+func (m *Middleware) WriteFile(fileName string, data []byte) {
 	fileName = url.QueryEscape(fileName) // 防止中文乱码
 	ginContext := m.ginContext
 	ginContext.Header("Content-Type", "application/octet-stream")

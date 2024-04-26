@@ -4,19 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/long250038728/web/tool/configurator"
 	"github.com/olivere/elastic/v7"
 	"strings"
 	"testing"
 )
 
-var config = &Config{
-	Address:  "http://159.75.1.200:9220",
-	User:     "elastic",
-	Password: "zhubaoe2023Es",
-}
-
+var persistence *ES
 var indexName = "hello_word"
-var persistence, _ = NewEs(config)
+
+func init() {
+	var cfg Config
+	_ = configurator.NewYaml().Load("/Users/linlong/Desktop/web/configurator/es.yaml", &cfg)
+	persistence, _ = NewEs(&cfg)
+}
 
 func TestAllIndex(t *testing.T) {
 	names, err := persistence.IndexNames()

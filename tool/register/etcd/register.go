@@ -34,7 +34,7 @@ package etcd
 //	if err != nil {
 //		return err
 //	}
-//	_, err = r.client.Put(ctx, serviceInstance.TableName, fmt.Sprintf("%s:%d", serviceInstance.Address, serviceInstance.Port), clientv3.WithLease(res.ID))
+//	_, err = r.client.Put(ctx, serviceInstance.TableName, fmt.Sprintf("%s:%d", serviceInstance.Project, serviceInstance.Port), clientv3.WithLease(res.ID))
 //	if err != nil {
 //		return err
 //	}
@@ -68,7 +68,7 @@ package etcd
 //		port, _ := strconv.ParseInt(val[1], 10, 0)
 //		list = append(list, &register.ServiceInstance{
 //			TableName:    serviceName,
-//			Address: val[0],
+//			Project: val[0],
 //			Port:    int(port),
 //		})
 //	}

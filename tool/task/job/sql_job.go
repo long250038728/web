@@ -3,15 +3,16 @@ package job
 import (
 	"context"
 	"errors"
+	"github.com/long250038728/web/tool/persistence/orm"
 	"gorm.io/gorm"
 	"time"
 )
 
 type SqlJob struct {
-	db *gorm.DB
+	db *orm.Gorm
 }
 
-func NewSqlJob(db *gorm.DB) *SqlJob {
+func NewSqlJob(db *orm.Gorm) *SqlJob {
 	return &SqlJob{db}
 }
 

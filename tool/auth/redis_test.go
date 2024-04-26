@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"github.com/long250038728/web/tool/cache"
-	config2 "github.com/long250038728/web/tool/config"
+	"github.com/long250038728/web/tool/configurator"
 	"testing"
 )
 
@@ -11,7 +11,7 @@ var conf cache.Config
 var c cache.Cache
 
 func init() {
-	_ = (&config2.Yaml{}).Load("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	_ = configurator.NewYaml().Load("/Users/linlong/Desktop/web/application/user/configurator/redis.yaml", &conf)
 	c = cache.NewRedisCache(&conf)
 }
 

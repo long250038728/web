@@ -9,9 +9,9 @@ import (
 var _ Cache = &Redis{}
 
 type Config struct {
-	Address  string
-	Password string
-	Db       int
+	Address  string `json:"address" yaml:"address"`
+	Password string `json:"password" yaml:"password"`
+	Db       int    `json:"db" yaml:"db"`
 }
 
 type Redis struct {

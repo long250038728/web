@@ -1,4 +1,4 @@
-package client
+package git
 
 import (
 	"context"
@@ -6,48 +6,32 @@ import (
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/server/http"
-	http2 "net/http"
 )
 
-type Git interface {
-	CreateFeature(ctx context.Context, repos, source, target string) error
-	CreatePR(ctx context.Context, repos, source, target string) (*Info, error)
-	GetPR(ctx context.Context, repos, source, target string) ([]*Info, error)
-	Merge(ctx context.Context, repos string, num int32) error
-}
-
-type Info struct {
-	HtmlUrl string `json:"html_url"`
-	Url     string `json:"url"`
-	Number  int32  `json:"number"`
-}
-
-type GiteeClient struct {
+type Client struct {
 	client         *http.Client
 	address, token string
 }
 
-type GiteeClientOpt func(c *GiteeClient)
-
-func SetGiteeAddress(address string) GiteeClientOpt {
-	return func(c *GiteeClient) {
-		c.address = address
-	}
+type Config struct {
+	Token string `json:"token" yaml:"token"`
 }
 
-func NewGiteeClinet(token string, opts ...GiteeClientOpt) Git {
-	client := &GiteeClient{
+type Opt func(c *Client)
+
+func NewGiteeClient(config *Config) (Git, error) {
+	if len(config.Token) <= 0 {
+		return nil, errors.New("token is empty")
+	}
+	client := &Client{
 		address: "https://gitee.com",
-		token:   token,
+		token:   config.Token,
 		client:  http.NewClient(),
 	}
-	for _, opt := range opts {
-		opt(client)
-	}
-	return client
+	return client, nil
 }
 
-func (g *GiteeClient) CreateFeature(ctx context.Context, repos, source, target string) error {
+func (g *Client) CreateFeature(ctx context.Context, repos, source, target string) error {
 	data := map[string]any{
 		"access_token": g.token,
 		"refs":         source,
@@ -58,13 +42,13 @@ func (g *GiteeClient) CreateFeature(ctx context.Context, repos, source, target s
 		return errors.New(fmt.Sprintf("%s %s", repos, err.Error()))
 	}
 
-	if code != http2.StatusCreated {
+	if code != http.StatusCreated {
 		return errors.New("request code is not 201")
 	}
 	return nil
 }
 
-func (g *GiteeClient) CreatePR(ctx context.Context, repos, source, target string) (*Info, error) {
+func (g *Client) CreatePR(ctx context.Context, repos, source, target string) (*Info, error) {
 	data := map[string]any{
 		"access_token": g.token,
 		"title":        fmt.Sprintf("Merge branch %s into %s", source, target),
@@ -84,7 +68,7 @@ func (g *GiteeClient) CreatePR(ctx context.Context, repos, source, target string
 	return item, nil
 }
 
-func (g *GiteeClient) GetPR(ctx context.Context, repos, source, target string) ([]*Info, error) {
+func (g *Client) GetPR(ctx context.Context, repos, source, target string) ([]*Info, error) {
 	url := fmt.Sprintf("%s/api/v5/repos/%s/pulls", g.address, repos)
 	data := map[string]any{
 		"access_token": g.token,
@@ -109,7 +93,7 @@ func (g *GiteeClient) GetPR(ctx context.Context, repos, source, target string) (
 	return list, nil
 }
 
-func (g *GiteeClient) Merge(ctx context.Context, repos string, num int32) error {
+func (g *Client) Merge(ctx context.Context, repos string, num int32) error {
 	url := fmt.Sprintf("%s/api/v5/repos/%s/pulls/%d/merge", g.address, repos, num)
 	data := map[string]any{
 		"access_token": g.token,
@@ -122,4 +106,15 @@ func (g *GiteeClient) Merge(ctx context.Context, repos string, num int32) error 
 	}
 	println(string(res))
 	return nil
+}
+
+func (g *Client) MergePR(ctx context.Context, repos string, source, target string) error {
+	list, err := g.GetPR(ctx, repos, source, target)
+	if err != nil {
+		return err
+	}
+	if len(list) != 1 {
+		return errors.New("pr list is not one")
+	}
+	return g.Merge(context.Background(), repos, list[0].Number)
 }

@@ -3,18 +3,18 @@ package gen
 import (
 	"context"
 	"github.com/long250038728/web/tool/app"
-	"gorm.io/gorm"
+	"github.com/long250038728/web/tool/persistence/orm"
 	"os"
 	"testing"
 )
 
-func initDB() (*gorm.DB, error) {
-	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/config")
+func initDB() (*orm.Gorm, error) {
+	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/configurator")
 	if err != nil {
 		return nil, err
 	}
 
-	util, err := app.NewUtil(conf)
+	util, err := app.NewUtilConfig(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func initDB() (*gorm.DB, error) {
 
 func TestModels_Gen(t *testing.T) {
 	var err error
-	var db *gorm.DB
+	var db *orm.Gorm
 	var b []byte
 
 	//db

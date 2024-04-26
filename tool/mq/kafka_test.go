@@ -2,7 +2,7 @@ package mq
 
 import (
 	"context"
-	config2 "github.com/long250038728/web/tool/config"
+	"github.com/long250038728/web/tool/configurator"
 	"testing"
 	"time"
 )
@@ -14,7 +14,7 @@ var client *Kafka
 
 func init() {
 	var conf Config
-	yaml := config2.Yaml{}
+	yaml := configurator.NewYaml()
 	_ = yaml.Load("", &conf)
 	client = NewKafkaMq(&conf)
 }
@@ -38,10 +38,11 @@ func TestMqDelTopic(t *testing.T) {
 }
 
 func TestMqSend(t *testing.T) {
-	message := &Message{
-		Data: []byte("hello1"),
+	message, err := NewMessage("hello1")
+	if err != nil {
+		t.Log(err)
 	}
-	err := client.Send(ctx, topic, "", message)
+	err = client.Send(ctx, topic, "", message)
 	if err != nil {
 		t.Log(err)
 	}
@@ -49,10 +50,11 @@ func TestMqSend(t *testing.T) {
 }
 
 func TestMqBulkSend(t *testing.T) {
-	message := &Message{
-		Data: []byte("hello2"),
+	message, err := NewMessage([]byte("hello2"))
+	if err != nil {
+		t.Log(err)
 	}
-	err := client.BulkSend(ctx, topic, "", []*Message{message})
+	err = client.BulkSend(ctx, topic, "", []*Message{message})
 	if err != nil {
 		t.Log(err)
 	}

@@ -12,36 +12,48 @@ import (
 	"time"
 )
 
+const (
+	StatusCreated = http.StatusCreated
+)
+
 type Client struct {
 	timeout            time.Duration
 	isTracing          bool
 	username, password string
+	contentType        string
 }
 
-type httpClientOpt func(c *Client)
+type Opt func(c *Client)
 
-func SetTimeout(timeout time.Duration) httpClientOpt {
+func SetTimeout(timeout time.Duration) Opt {
 	return func(c *Client) {
 		c.timeout = timeout
 	}
 }
 
-func SetIsTracing(isTracing bool) httpClientOpt {
+func SetIsTracing(isTracing bool) Opt {
 	return func(c *Client) {
 		c.isTracing = isTracing
 	}
 }
-func SetBasicAuth(username, password string) httpClientOpt {
+func SetBasicAuth(username, password string) Opt {
 	return func(c *Client) {
 		c.username = username
 		c.password = password
 	}
 }
 
-func NewClient(opts ...httpClientOpt) *Client {
+func SetContentType(contentType string) Opt {
+	return func(c *Client) {
+		c.contentType = contentType
+	}
+}
+
+func NewClient(opts ...Opt) *Client {
 	client := &Client{
-		timeout:   time.Second * 3, //默认3s超时
-		isTracing: true,            //默认记录链路
+		timeout:     time.Second * 3,    //默认3s超时
+		isTracing:   true,               //默认记录链路
+		contentType: "application/json", //默认json
 	}
 	for _, opt := range opts {
 		opt(client)
@@ -80,7 +92,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 	if err != nil {
 		return nil, 0, err
 	}
-	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Content-Type", c.contentType)
 	if len(c.username) > 0 && len(c.password) > 0 {
 		request.SetBasicAuth(c.username, c.password)
 	}
@@ -112,8 +124,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 }
 
 func (c *Client) request(request *http.Request) ([]byte, int, error) {
-	client := http.Client{}
-	res, err := client.Do(request)
+	res, err := (&http.Client{}).Do(request)
 	if err != nil {
 		return nil, 0, err
 	}
