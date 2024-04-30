@@ -41,11 +41,9 @@ func NewAppConfig(rootPath string) (config *Config, err error) {
 	configLoad := configurator.NewYaml()
 
 	var conf Config
-	if err := configLoad.Load(filepath.Join(rootPath, "configurator.yaml"), &conf); err != nil {
+	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
 		return nil, err
 	}
-	conf.IP, err = conf.ip()
-
 	if err := configLoad.Load(filepath.Join(rootPath, "db.yaml"), &conf.dbConfig); err != nil {
 		return nil, err
 	}
@@ -64,6 +62,8 @@ func NewAppConfig(rootPath string) (config *Config, err error) {
 	if err := configLoad.Load(filepath.Join(rootPath, "tracing.yaml"), &conf.tracingConfig); err != nil {
 		return nil, err
 	}
+
+	conf.IP, err = conf.ip()
 
 	return &conf, nil
 }

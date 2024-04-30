@@ -155,7 +155,7 @@ func list() *cobra.Command {
 				if err != nil {
 					continue
 				}
-				if len(list) != 1 {
+				if len(list) == 0 {
 					continue
 				}
 				address = append(address, list[0].HtmlUrl)

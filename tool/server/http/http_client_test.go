@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"sync"
 	"testing"
@@ -11,7 +12,10 @@ import (
 var ctx = context.Background()
 
 func initTracing() (*opentelemetry.Trace, error) {
-	exporter, err := opentelemetry.NewJaegerExporterAddress("http://link.zhubaoe.cn:14268/api/traces")
+	var cfg opentelemetry.Config
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/tracing.yaml", &cfg)
+
+	exporter, err := opentelemetry.NewJaegerExporter(&cfg)
 	if err != nil {
 		return nil, err
 	}

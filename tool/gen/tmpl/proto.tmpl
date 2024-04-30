@@ -3,7 +3,7 @@ syntax = "proto3";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 {{range $index,$item := .Tables}}
-message {{tableName .TableName }}{
+message {{tableName .TableName }} {
 {{- range $index,$item := .Fields}}
   // {{- $item.Comment}}
   {{fieldType $item.Type}} {{$item.Name}} = {{fieldNum $index}} [(gogoproto.jsontag) = '{{$item.Name}}', (gogoproto.moretags) = 'form:"{{$item.Name}}"'];

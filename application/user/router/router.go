@@ -17,7 +17,9 @@ import (
 //	log.Println(http.ListenAndServe("localhost:6060", nil))  //"net/http/pprof"
 //}()
 
-func RegisterUserServer(engine *gin.Engine, srv *service.UserService, util *app.Util) {
+func RegisterUserServer(engine *gin.Engine, srv *service.UserService) {
+	util := app.NewUtil()
+
 	//设置错误
 	//设置限流
 	//设置权限

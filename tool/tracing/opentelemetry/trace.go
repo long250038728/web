@@ -9,6 +9,10 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
+type Tracer interface {
+	Close(ctx context.Context) error
+}
+
 type Trace struct {
 	provider *trace.TracerProvider
 }

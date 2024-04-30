@@ -52,7 +52,7 @@ func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 
 	return (&Impl{
 		Name:     "gen models",
-		TmplPath: "./models.tmpl",
+		TmplPath: "./tmpl/models.tmpl",
 		Func: template.FuncMap{
 			"tableName": g.tableName,
 			"fieldName": g.fieldName,
@@ -62,6 +62,32 @@ func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 			Tables: list,
 		},
 		IsFormat: true,
+	}).Gen()
+}
+
+func (g *Models) GenProto(schema string, tables []string) ([]byte, error) {
+	if len(tables) == 0 {
+		return nil, errors.New("tables num is error")
+	}
+
+	list, err := g.dbSearch(schema, tables)
+	if err != nil {
+		return nil, err
+	}
+
+	return (&Impl{
+		Name:     "gen models",
+		TmplPath: "./tmpl/proto.tmpl",
+		Func: template.FuncMap{
+			"tableName": g.tableName,
+			"fieldName": g.fieldName,
+			"fieldType": g.fieldTypeProto,
+			"fieldNum":  g.num,
+		},
+		Data: &tableModels{
+			Tables: list,
+		},
+		IsFormat: false,
 	}).Gen()
 }
 
@@ -155,6 +181,23 @@ func (g *Models) fieldType(fieldType string) string {
 	default:
 		return "string" //varchar  char date  datetime json text timestamp
 	}
+}
+
+func (g *Models) fieldTypeProto(fieldType string) string {
+	switch fieldType {
+	case "int", "tinyint":
+		return "int32" //tinyint int
+	case "bigint":
+		return "int64" //bigint
+	case "decimal":
+		return "double" //decimal
+	default:
+		return "string" //varchar  char date  datetime json text timestamp
+	}
+}
+
+func (g *Models) num(num int) int {
+	return num + 1
 }
 
 var _ = `

@@ -15,7 +15,7 @@ var indexName = "hello_word"
 
 func init() {
 	var cfg Config
-	_ = configurator.NewYaml().Load("/Users/linlong/Desktop/web/configurator/es.yaml", &cfg)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/es.yaml", &cfg)
 	persistence, _ = NewEs(&cfg)
 }
 

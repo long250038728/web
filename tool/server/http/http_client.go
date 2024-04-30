@@ -132,5 +132,6 @@ func (c *Client) request(request *http.Request) ([]byte, int, error) {
 		_ = res.Body.Close()
 	}()
 	b, err := io.ReadAll(res.Body)
+
 	return b, res.StatusCode, err
 }

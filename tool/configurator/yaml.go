@@ -19,3 +19,14 @@ func (y *yamlLoad) Load(path string, data interface{}) error {
 	}
 	return yaml.Unmarshal(b, data)
 }
+
+func (y *yamlLoad) MustLoad(path string, data interface{}) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(b, data)
+	if err != nil {
+		panic(err)
+	}
+}
