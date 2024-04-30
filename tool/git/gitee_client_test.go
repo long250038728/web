@@ -10,11 +10,7 @@ var gitToken = "5f8aaa1e024cad5e24e86fda85c57f49"
 
 func TestClient_Merge(t *testing.T) {
 	var cfg Config
-	err := configurator.NewYaml().Load("/Users/linlong/Desktop/web/configurator/gitee.yaml", &cfg)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &cfg)
 
 	gitClient, err := NewGiteeClient(&cfg)
 	if err != nil {

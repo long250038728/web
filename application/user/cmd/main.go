@@ -29,7 +29,7 @@ func Run() error {
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
-				router.RegisterUserServer(engine, userService, util)
+				router.RegisterUserServer(engine, userService)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
 				user.RegisterUserServer(engine, userService)

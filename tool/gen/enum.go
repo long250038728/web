@@ -32,7 +32,7 @@ func NewEnumGen() *Enum {
 func (g *Enum) Gen(data []*EnumItem) ([]byte, error) {
 	return (&Impl{
 		Name:     "gen enum",
-		TmplPath: "./enum.tmpl",
+		TmplPath: "./tmpl/enum.tmpl",
 		Data:     &list{List: data},
 		Func: template.FuncMap{
 			"fieldName": g.fieldName,

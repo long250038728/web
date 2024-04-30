@@ -2,6 +2,7 @@ package opentelemetry
 
 import (
 	"context"
+	"github.com/long250038728/web/tool/configurator"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"testing"
@@ -10,7 +11,10 @@ import (
 func TestTracing(t *testing.T) {
 	ctx := context.Background()
 
-	exporter, err := NewJaegerExporterAddress("http://link.zhubaoe.cn:14268/api/traces")
+	var cfg Config
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/tracing.yaml", &cfg)
+
+	exporter, err := NewJaegerExporter(&cfg)
 	if err != nil {
 		t.Error(err)
 	}

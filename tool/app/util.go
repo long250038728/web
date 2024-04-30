@@ -39,12 +39,27 @@ var u *Util
 
 func NewUtil() *Util {
 	once.Do(func() {
-		wd, _ := os.Getwd()
-		util, err := NewUtilPath(filepath.Join(wd, "configurator"))
-		if err != nil {
-			panic("util init error" + err.Error())
+		var cfgPaths = []func() string{
+			func() string {
+				wd, _ := os.Getwd()
+				return filepath.Join(wd, "config") //获取当前路径下的config文件夹
+			},
+			func() string {
+				return os.Getenv("CONFIG_PATH") //获取环境变量CONFIG_PATH
+			},
 		}
-		u = util
+
+		for _, configPath := range cfgPaths {
+			if file, err := os.Stat(configPath()); err == nil && file.IsDir() {
+				util, err := NewUtilPath(configPath())
+				if err != nil {
+					panic("util init error" + err.Error())
+				}
+				u = util
+				return
+			}
+		}
+		panic("util init error")
 	})
 	return u
 }

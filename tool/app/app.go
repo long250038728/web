@@ -26,7 +26,7 @@ type App struct {
 
 	servers  []server.Server
 	register register.Register
-	trace    *opentelemetry.Trace
+	trace    opentelemetry.Tracer
 }
 
 func NewApp(opts ...Option) (Application, error) {
@@ -64,15 +64,13 @@ func (app *App) Start() error {
 
 		//启动服务
 		group.Go(func() error {
-			err := svc.Start() //此时阻塞，其中有一个报错则 ctx.Done触发
-			return err
+			return svc.Start() //此时阻塞，其中有一个报错则 ctx.Done触发
 		})
 
 		//关闭服务
 		group.Go(func() error {
 			<-app.ctx.Done() //此时阻塞，等待 ctx.Done触发 ，去关闭服务
-			err := svc.Stop()
-			return err
+			return svc.Stop()
 		})
 
 		//服务注册 && 取消

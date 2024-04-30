@@ -9,7 +9,7 @@ import (
 )
 
 func initDB() (*orm.Gorm, error) {
-	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/application/user/configurator")
+	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/config")
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +40,32 @@ func TestModels_Gen(t *testing.T) {
 
 	//write file
 	if err := os.WriteFile("./demo.go", b, os.ModePerm); err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log("ok")
+}
+
+func TestModels_GenProto(t *testing.T) {
+	var err error
+	var db *orm.Gorm
+	var b []byte
+
+	//db
+	if db, err = initDB(); err != nil {
+		t.Error(err)
+		return
+	}
+
+	//gen
+	if b, err = NewModelsGen(db).GenProto("zhubaoe", []string{"zby_customer", "zby_user", "zby_sale_order_goods"}); err != nil {
+		t.Error(err)
+		return
+	}
+
+	//write file
+	if err := os.WriteFile("./demo.proto", b, os.ModePerm); err != nil {
 		t.Error(err)
 		return
 	}

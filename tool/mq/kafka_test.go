@@ -14,8 +14,7 @@ var client *Kafka
 
 func init() {
 	var conf Config
-	yaml := configurator.NewYaml()
-	_ = yaml.Load("", &conf)
+	configurator.NewYaml().Load("/Users/linlong/Desktop/web/config/kafka.yaml", &conf)
 	client = NewKafkaMq(&conf)
 }
 

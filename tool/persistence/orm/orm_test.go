@@ -19,7 +19,7 @@ var mapModels *[]map[string]interface{}
 var config Config
 
 func init() {
-	configurator.NewYaml().Load("/Users/linlong/Desktop/web/application/user/configurator/db.yaml", &config)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/application/user/config/db.yaml", &config)
 }
 
 func TestCreateGorm(t *testing.T) {

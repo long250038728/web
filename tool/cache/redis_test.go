@@ -10,11 +10,11 @@ import (
 
 var key = "z"
 var value = "100"
-var conf Config
 var cacheClient Cache
 
 func init() {
-	_ = configurator.NewYaml().Load("/Users/linlong/Desktop/web/application/user/configurator/redis.yaml", &conf)
+	var conf Config
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
 	cacheClient = NewRedisCache(&conf)
 }
 

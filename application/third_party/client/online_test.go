@@ -13,13 +13,13 @@ func TestOnlineBuild(t *testing.T) {
 
 	var gitConfig git.Config
 	var jenkinsConfig jenkins.Config
-	_ = configLoad.Load("/Users/linlong/Desktop/web/configurator/gitee.yaml", &gitConfig)
-	_ = configLoad.Load("/Users/linlong/Desktop/web/configurator/jenkins.yaml", &jenkinsConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
 
-	var giteeClinet, _ = git.NewGiteeClient(&gitConfig)
+	var giteeClient, _ = git.NewGiteeClient(&gitConfig)
 	var jenkinsClient, _ = jenkins.NewJenkinsClient(&jenkinsConfig)
 
-	if err := NewOnlineClient(context.Background(), giteeClinet, jenkinsClient).Build("release/v3.5.57", "master", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
+	if err := NewOnlineClient(context.Background(), giteeClient, jenkinsClient).Build("hotfix/staff_20240428", "master", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")
