@@ -7,10 +7,11 @@ import (
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
+	"os/exec"
 )
 
 type requestInfo struct {
-	Type    int
+	Type    int32
 	Project string
 	Params  map[string]any
 }
@@ -21,6 +22,12 @@ type Online struct {
 	ctx      context.Context
 	services *Svc
 }
+
+const (
+	OnlineTypeGit     int32 = 1 //git
+	OnlineTypeJenkins int32 = 2 //构建
+	OnlineTypeShell   int32 = 3 //脚本
+)
 
 func NewOnlineClient(ctx context.Context, git git.Git, jenkins *jenkins.Client) *Online {
 	return &Online{
@@ -43,7 +50,13 @@ var productList = []string{
 }
 
 func (o *Online) Build(source, target, svcPath string) error {
-	list, err := o.list(source, target, svcPath)
+	if len(svcPath) > 0 {
+		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
+			return err
+		}
+	}
+
+	list, err := o.list(source, target)
 	if err != nil {
 		return err
 	}
@@ -52,15 +65,8 @@ func (o *Online) Build(source, target, svcPath string) error {
 	//return o.request(list)
 }
 
-func (o *Online) list(source, target, svcPath string) ([]*requestInfo, error) {
+func (o *Online) list(source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
-
-	if len(svcPath) > 0 {
-		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
-			return address, err
-		}
-	}
-
 	for _, addr := range productList {
 		list, err := o.git.GetPR(o.ctx, addr, source, target)
 		if err != nil || len(list) != 1 {
@@ -74,32 +80,34 @@ func (o *Online) list(source, target, svcPath string) ([]*requestInfo, error) {
 		}
 
 		//调用合并分支
-		address = append(address, &requestInfo{Type: 1, Project: addr, Params: map[string]any{"num": list[0].Number}})
+		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
 
 		//两台服务器
 		if addr == "zhubaoe-go/kobe" {
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "./change_tag.sh kobe", Params: nil})
 			for _, svc := range o.services.Kobe {
-				address = append(address, &requestInfo{Type: 2, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
-				address = append(address, &requestInfo{Type: 2, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
 			}
 		}
 
 		// 一台服务器
 		if addr == "zhubaoe/marx" {
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "./change_tag.sh marx", Params: nil})
 			for _, svc := range o.services.Marx {
-				address = append(address, &requestInfo{Type: 2, Project: svc})
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
 			}
 		}
 
 		if addr == "zhubaoe/plato" {
-			address = append(address, &requestInfo{Type: 2, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
 		}
 
 		// 三个服务
 		if addr == "zhubaoe-go/locke" {
-			address = append(address, &requestInfo{Type: 2, Project: "locke-prod_32"})
-			address = append(address, &requestInfo{Type: 2, Project: "locke-prod_64"})
-			address = append(address, &requestInfo{Type: 2, Project: "locke-hot-prod-64"})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
 		}
 	}
 	return address, nil
@@ -108,12 +116,19 @@ func (o *Online) list(source, target, svcPath string) ([]*requestInfo, error) {
 func (o *Online) request(requestList []*requestInfo) error {
 	for _, request := range requestList {
 		switch request.Type {
-		case 1:
+		case OnlineTypeGit: //合并
 			err := o.git.Merge(o.ctx, request.Project, request.Params["num"].(int32))
 			if err != nil {
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
 			}
-		case 2:
+		case OnlineTypeShell: //shell
+			out, err := exec.Command("sh", "-c", request.Project).Output()
+			if err != nil {
+				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
+			}
+			// 输出命令执行结果
+			fmt.Println("Command output:", string(out))
+		case OnlineTypeJenkins: //jenkins
 			err := o.jenkins.BlockBuild(o.ctx, request.Project, request.Params)
 			if err != nil {
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))

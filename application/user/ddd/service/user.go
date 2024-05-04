@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/ddd/domain"
 	user "github.com/long250038728/web/application/user/protoc"
+	"github.com/long250038728/web/tool/server/rpc"
 )
 
 type UserService struct {
 	user.UnimplementedUserServer
+	rpc.GrpcHealth
 	domain *domain.UserDomain
 }
 

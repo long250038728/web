@@ -45,18 +45,12 @@ func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	}
 
 	svc := &Server{
-		server:  grpc.NewServer(opts...),
-		address: address,
-		port:    port,
+		server:      grpc.NewServer(opts...),
+		address:     address,
+		port:        port,
+		svcInstance: register.NewServiceInstance(serverName, address, port, "GRPC"),
 	}
 
-	svc.svcInstance = &register.ServiceInstance{
-		Name:    register.GrpcServerName(serverName),
-		ID:      register.GrpcServerId(serverName),
-		Address: svc.address,
-		Port:    svc.port,
-		Type:    "GRPC",
-	}
 	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
 	handlerFunc(svc.server)
 	return svc

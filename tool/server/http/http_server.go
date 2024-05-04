@@ -24,21 +24,13 @@ type Server struct {
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	handler := gin.Default()
-	//gin.SetMode(gin.ReleaseMode)
 
 	svc := &Server{
-		server:  &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
-		handler: handler,
-		address: address,
-		port:    port,
-	}
-
-	svc.svcInstance = &register.ServiceInstance{
-		Name:    register.HttpServerName(serverName),
-		ID:      register.HttpServerId(serverName),
-		Address: svc.address,
-		Port:    svc.port,
-		Type:    "HTTP",
+		server:      &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
+		handler:     handler,
+		address:     address,
+		port:        port,
+		svcInstance: register.NewServiceInstance(serverName, address, port, "HTTP"),
 	}
 
 	handler.Use(func(c *gin.Context) {

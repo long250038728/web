@@ -1,4 +1,4 @@
 server_name: "kobe-new"
-grpc_port: 9001
-http_port: 8001
+grpc_port: 9002
+http_port: 8002
 

@@ -2,6 +2,7 @@ package consul
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/long250038728/web/tool/register"
 )
@@ -43,13 +44,23 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Port:    serviceInstance.Port,
 	}
 
-	//check := api.AgentServiceCheck{}
-	//check.Timeout = "5s"
-	//check.Interval = "5s"
-	//check.DeregisterCriticalServiceAfter = "30s"
-	//check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Project, serviceInstance.Port)
-	//registration.Check = &check
+	if serviceInstance.Type == "HTTP" {
+		check := api.AgentServiceCheck{}
+		check.Timeout = "5s"
+		check.Interval = "5s"
+		check.DeregisterCriticalServiceAfter = "30s"
+		check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Address, serviceInstance.Port)
+		registration.Check = &check
+	}
 
+	if serviceInstance.Type == "GRPC" {
+		check := api.AgentServiceCheck{}
+		check.Timeout = "5s"
+		check.Interval = "5s"
+		check.DeregisterCriticalServiceAfter = "30s"
+		check.GRPC = fmt.Sprintf("%s:%d", serviceInstance.Address, serviceInstance.Port)
+		registration.Check = &check
+	}
 	return r.client.Agent().ServiceRegister(&registration)
 }
 
@@ -60,7 +71,6 @@ func (r *Register) DeRegister(ctx context.Context, serviceInstance *register.Ser
 		return ctx.Err()
 	default:
 	}
-
 	return r.client.Agent().ServiceDeregister(serviceInstance.ID)
 }
 
