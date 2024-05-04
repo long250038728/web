@@ -21,6 +21,25 @@ type ServiceInstance struct {
 	Type    string
 }
 
+func NewServiceInstance(serverName, address string, port int, instanceType string) *ServiceInstance {
+	instance := &ServiceInstance{
+		Address: address,
+		Port:    port,
+		Type:    instanceType,
+	}
+	instance.Name = instance.serverName(serverName)
+	instance.ID = instance.serverId(serverName)
+	return instance
+}
+
+func (i *ServiceInstance) serverName(serverName string) string {
+	return fmt.Sprintf("%v-%v", serverName, i.Type)
+}
+
+func (i *ServiceInstance) serverId(serverName string) string {
+	return fmt.Sprintf("%v-%v-%d", serverName, i.Type, rand.Uint64()%10000)
+}
+
 func HttpServerName(serverName string) string {
 	return fmt.Sprintf("%v-%v", serverName, "HTTP")
 }

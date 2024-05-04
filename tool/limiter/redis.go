@@ -7,21 +7,21 @@ import (
 	"time"
 )
 
-type Redis struct {
+type cacheLimiter struct {
 	client     cache.Cache
 	expiration time.Duration
 	times      int64
 }
 
-func NewRedisLimiter(client cache.Cache, expiration time.Duration, times int64) Limiter {
-	return &Redis{
+func NewCacheLimiter(client cache.Cache, expiration time.Duration, times int64) Limiter {
+	return &cacheLimiter{
 		client:     client,
 		expiration: expiration,
 		times:      times,
 	}
 }
 
-func (l *Redis) Allow(ctx context.Context, key string) error {
+func (l *cacheLimiter) Allow(ctx context.Context, key string) error {
 	script := `
 		if (redis.call("SETNX",KEYS[1],ARGV[1]) == 1) then
 			redis.call("PEXPIRE",KEYS[1],ARGV[2]);

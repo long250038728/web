@@ -6,7 +6,6 @@ import (
 	"github.com/long250038728/web/application/user/ddd/domain"
 	"github.com/long250038728/web/application/user/ddd/repository"
 	"github.com/long250038728/web/application/user/ddd/service"
-	user "github.com/long250038728/web/application/user/protoc"
 	"github.com/long250038728/web/application/user/router"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -29,10 +28,10 @@ func Run() error {
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
-				router.RegisterUserServer(engine, userService)
+				router.RegisterHTTPServer(engine, userService)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
-				user.RegisterUserServer(engine, userService)
+				router.RegisterGRPCServer(engine, userService)
 			}),
 		),
 		app.Register(util.Register()),                      //服务注册 && 发现

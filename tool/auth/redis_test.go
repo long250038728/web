@@ -16,7 +16,7 @@ func init() {
 }
 
 var authToken = "12345678910"
-var at = &UserToken{AuthList: []string{"/ok", "/true", "/1"}}
+var at = &TokenInfo{AuthList: []string{"/ok", "/true", "/1"}}
 var whiteList = []string{"/"}
 
 func TestRedis_Set(t *testing.T) {
@@ -26,7 +26,7 @@ func TestRedis_Set(t *testing.T) {
 	}
 	type args struct {
 		ctx       context.Context
-		userToken *UserToken
+		userToken *TokenInfo
 		token     string
 	}
 
@@ -52,7 +52,7 @@ func TestRedis_Set(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewRedisAuth(tt.fields.cache)
+			p := NewCacheAuth(tt.fields.cache)
 			if err := p.Set(tt.args.ctx, tt.args.userToken, tt.args.token); (err != nil) != tt.wantErr {
 				t.Errorf("Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -71,8 +71,7 @@ func TestRedis_Auth(t *testing.T) {
 		path       string
 	}
 
-	u := &UserClaims{}
-	u.SetAuthToken(authToken)
+	u := &UserClaims{AuthToken: authToken}
 
 	tests := []struct {
 		name    string
@@ -107,7 +106,7 @@ func TestRedis_Auth(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Redis{
+			p := &cacheAuth{
 				cache:     tt.fields.cache,
 				whiteList: tt.fields.whiteList,
 			}

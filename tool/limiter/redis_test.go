@@ -60,7 +60,7 @@ func TestLimiter_Allow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			l := &Redis{
+			l := &cacheLimiter{
 				client:     tt.fields.client,
 				expiration: tt.fields.expiration,
 				times:      tt.fields.times,
@@ -73,7 +73,7 @@ func TestLimiter_Allow(t *testing.T) {
 }
 
 func TestLimiterTimes_Allow(t *testing.T) {
-	limiter := &Redis{
+	limiter := &cacheLimiter{
 		client:     cacheClient,
 		expiration: time.Second,
 		times:      10,

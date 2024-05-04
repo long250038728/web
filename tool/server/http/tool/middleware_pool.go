@@ -68,6 +68,8 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 			middleware.WriteJSON(nil, err)
 			return
 		}
+
+		ctx = auth.SetClaims(ctx, userClaims)
 	}
 
 	//基础处理 （bind绑定  及链路 处理）

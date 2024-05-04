@@ -9,6 +9,8 @@ import (
 	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/server/http/tool"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	_ "net/http/pprof"
 	"time"
 )
@@ -17,18 +19,20 @@ import (
 //	log.Println(http.ListenAndServe("localhost:6060", nil))  //"net/http/pprof"
 //}()
 
-func RegisterUserServer(engine *gin.Engine, srv *service.UserService) {
-	util := app.NewUtil()
-
-	//设置错误
-	//设置限流
-	//设置权限
+func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	opts := []tool.MiddlewareOpt{
-		tool.Limiter(limiter.NewRedisLimiter(util.Cache(), time.Second, 10)),
-		tool.Auth(auth.NewRedisAuth(util.Cache(), auth.WhiteList([]string{"/", "/hello"}))),
-		tool.Error([]tool.MiddleErr{}),
-	}
+		tool.Limiter( //设置限流
+			limiter.NewCacheLimiter(app.NewUtil().Cache(), time.Second, 10),
+		),
 
+		tool.Auth( //设置权限
+			auth.NewCacheAuth(app.NewUtil().Cache(), auth.WhiteList([]string{"/", "/hello"})),
+		),
+
+		tool.Error( //设置错误
+			[]tool.MiddleErr{}, //可以通过数据库处理
+		),
+	}
 	middleware := tool.NewMiddlewarePool(opts...)
 
 	engine.GET("/", func(gin *gin.Context) {
@@ -51,4 +55,9 @@ func RegisterUserServer(engine *gin.Engine, srv *service.UserService) {
 			return srv.SayHello(ctx, &request)
 		})
 	})
+}
+
+func RegisterGRPCServer(engine *grpc.Server, srv *service.UserService) {
+	user.RegisterUserServer(engine, srv)
+	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

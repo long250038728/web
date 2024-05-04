@@ -14,13 +14,21 @@ import (
 
 //匹配到则代表有权限
 
-type Redis struct {
+type cacheAuth struct {
 	cache     cache.Cache
 	whiteList []string
 }
 
-func NewRedisAuth(cache cache.Cache, opts ...Opt) *Redis {
-	r := &Redis{
+type Opt func(r *cacheAuth)
+
+func WhiteList(list []string) Opt {
+	return func(r *cacheAuth) {
+		r.whiteList = list
+	}
+}
+
+func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
+	r := &cacheAuth{
 		cache: cache,
 	}
 	for _, opt := range opts {
@@ -34,16 +42,8 @@ func NewRedisAuth(cache cache.Cache, opts ...Opt) *Redis {
 	return r
 }
 
-type Opt func(r *Redis)
-
-func WhiteList(list []string) Opt {
-	return func(r *Redis) {
-		r.whiteList = list
-	}
-}
-
 // Set 用户内部信息生产token
-func (p *Redis) Set(ctx context.Context, userToken *UserToken, token string) error {
+func (p *cacheAuth) Set(ctx context.Context, userToken *TokenInfo, token string) error {
 	if len(token) == 0 {
 		return errors.New("token str is err")
 	}
@@ -64,7 +64,7 @@ func (p *Redis) Set(ctx context.Context, userToken *UserToken, token string) err
 }
 
 // Auth 判断是否有权限
-func (p *Redis) Auth(ctx context.Context, userClaims *UserClaims, path string) error {
+func (p *cacheAuth) Auth(ctx context.Context, userClaims *UserClaims, path string) error {
 	//转换为小写
 	path = strings.ToLower(path)
 
@@ -73,16 +73,17 @@ func (p *Redis) Auth(ctx context.Context, userClaims *UserClaims, path string) e
 		return nil
 	}
 
-	if userClaims.AuthToken() == "" {
+	//检查authToken
+	if userClaims.AuthToken == "" {
 		return errors.New("token is empty")
 	}
 
-	token, err := p.cache.Get(ctx, userClaims.AuthToken())
+	token, err := p.cache.Get(ctx, userClaims.AuthToken)
 	if err != nil {
 		return err
 	}
 
-	var UserToken UserToken
+	var UserToken TokenInfo
 	err = json.Unmarshal([]byte(token), &UserToken)
 	if err != nil {
 		return err
@@ -99,7 +100,7 @@ func (p *Redis) Auth(ctx context.Context, userClaims *UserClaims, path string) e
 }
 
 // whitePath path是否为白名单
-func (p *Redis) whitePath(path string) bool {
+func (p *cacheAuth) whitePath(path string) bool {
 	for _, whitePath := range p.whiteList {
 		if whitePath == path {
 			return true
