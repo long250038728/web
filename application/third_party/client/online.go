@@ -2,11 +2,13 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
+	"os"
 	"os/exec"
 )
 
@@ -60,9 +62,18 @@ func (o *Online) Build(source, target, svcPath string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(list)
+
+	b, err := json.Marshal(list)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile("./onlineList.md", b, os.ModePerm)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
 	return nil
-	//return o.request(list)
+	//return o.Request(list)
 }
 
 func (o *Online) list(source, target string) ([]*requestInfo, error) {
@@ -113,7 +124,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 	return address, nil
 }
 
-func (o *Online) request(requestList []*requestInfo) error {
+func (o *Online) Request(requestList []*requestInfo) error {
 	for _, request := range requestList {
 
 		fmt.Printf("=================== %s ===============", request.Project)
