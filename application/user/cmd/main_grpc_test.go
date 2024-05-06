@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/long250038728/web/application/user/protoc"
+	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/rpc"
 	"testing"
@@ -30,9 +30,11 @@ func userGrpcClientTest() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	//请求数据
 	rpcClient := user.NewUserClient(conn)
-	return rpcClient.SayHello(ctx, &user.RequestHello{Name: "long"})
+	return rpcClient.SayHello(ctx, &user.RequestHello{Name: "long"}), nil
 }

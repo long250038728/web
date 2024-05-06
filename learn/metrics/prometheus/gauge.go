@@ -66,5 +66,5 @@ func (g *Gauge) do() {
 
 func (g *Gauge) http() {
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":8081", nil)
+	_ = http.ListenAndServe(":8081", nil)
 }
