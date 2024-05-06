@@ -26,7 +26,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 		),
 
 		tool.Auth( //设置权限
-			auth.NewCacheAuth(app.NewUtil().Cache(), auth.WhiteList([]string{"/", "/hello"})),
+			auth.NewCacheAuth(app.NewUtil().Cache(), auth.WhiteList([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"})),
 		),
 
 		tool.Error( //设置错误
@@ -42,14 +42,35 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 		})
 	})
 
-	engine.POST("/hello", func(gin *gin.Context) {
+	engine.GET("/user/", func(gin *gin.Context) {
 		var request user.RequestHello
 		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
 			return srv.SayHello(ctx, &request)
 		})
 	})
 
-	engine.POST("/xls", func(gin *gin.Context) {
+	engine.GET("/user/hello", func(gin *gin.Context) {
+		var request user.RequestHello
+		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
+		})
+	})
+
+	engine.GET("/user/hello2", func(gin *gin.Context) {
+		var request user.RequestHello
+		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
+		})
+	})
+
+	engine.GET("/user/hello3", func(gin *gin.Context) {
+		var request user.RequestHello
+		middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SayHello(ctx, &request)
+		})
+	})
+
+	engine.POST("/user/xls", func(gin *gin.Context) {
 		var request user.RequestHello
 		middleware.File(gin, &request, func(ctx context.Context) (interface{}, error) {
 			return srv.SayHello(ctx, &request)

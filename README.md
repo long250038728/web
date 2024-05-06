@@ -15,27 +15,38 @@
 
 暴露端口
     1.consul 8500 为了可以观察服务注册发现相关的信息
-    2.kong 通过网关入口可以访问到后端web服务
+    2.kong 8000 通过网关入口可以访问到后端web服务
+    3.konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
     
 
 
+### docker运行
+1.docker network 创建
+```
+docker network create my-network
+docker network create --driver bridge --subnet 172.22.0.0/24 my-service-network
+```
 
-通过docker network 内部集群演示（由于演示内存会设置较小。`--memory`或`-m`参数内存限制的设置）：
-    1.docker network 创建
-        docker network create my-network
-    2.consul 创建
-        docker pull consul:1.15
-        docker run --name=consul -d -p 8500:8500 -m 128m consul:1.15 agent -dev -ui -client='0.0.0.0'
-    3.kong 创建
-            
-    4.web服务应用
-        docker pull golang:1.20 
-        docker run --name=app -d-v /Users/linlong/Desktop/web:/app  -m 128m golang:1.20 
+2.consul 创建
+```
+docker pull consul:1.15
+docker run --name=consul \
+--ip=172.22.0.2 \
+--network=my-service-network \
+-d -p 8500:8500  \
+consul:1.15 agent -dev -ui -client='0.0.0.0'
+```
 
+3.kong 创建
+```
+docker pull postgres
+docker pull kong
+docker pull pantsel/konga
 
-
+#这里指定ip是因为kong需要用到，同时还需要暴露给consul的dns使用
 docker run -d --name kong-database \
---network=my-network \
+--ip=172.22.0.3 \
+--network=my-service-network \
 -p 5432:5432 \
 -e "POSTGRES_USER=kong" \
 -e "POSTGRES_DB=kong" \
@@ -43,7 +54,7 @@ docker run -d --name kong-database \
 postgres
 
 docker run --rm \
---network=my-network \
+--network=my-service-network \
 -e "KONG_DATABASE=postgres" \
 -e "KONG_PG_HOST=kong-database" \
 -e "KONG_PG_USER=kong" \
@@ -51,17 +62,20 @@ docker run --rm \
 -e "KONG_CASSANDRA_CONTACT_POINTS=kong-database" \
 kong kong migrations bootstrap
 
-
+#这里KONG_DNS_RESOLVER是为了可以通过consul的dns使用到服务注册与发现（不用手动维护服务列表）
 docker run -d --name kong \
---network=my-network \
+--ip=172.22.0.4 \
+--network=my-service-network \
 -e "KONG_DATABASE=postgres" \
--e "KONG_PG_HOST=kong-database" \
+-e "KONG_PG_HOST=172.22.0.3" \
 -e "KONG_PG_USER=kong" \
 -e "KONG_PG_PASSWORD=kong" \
 -e "KONG_PROXY_ACCESS_LOG=/dev/stdout" \
 -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout" \
 -e "KONG_PROXY_ERROR_LOG=/dev/stderr" \
 -e "KONG_ADMIN_ERROR_LOG=/dev/stderr" \
+-e "KONG_DNS_RESOLVER=172.22.0.2:8600" \
+-e "KONG_DNS_ORDER=SRV,LAST,A,CNAME" \
 -e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
 -e "KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl" \
 -p 8000:8000 \
@@ -71,8 +85,33 @@ docker run -d --name kong \
 -p 8444:8444 \
 kong
 
-
 docker run -d --name konga \
+--ip=172.22.0.5 \
+--network=my-service-network \
 -p 1337:1337 \
---network my-network \
 pantsel/konga
+```
+
+4.web服务应用
+```
+docker pull golang:1.20 
+docker run --network=my-service-network --name=app -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+export GOPROXY=https://goproxy.cn,direct
+cd /app
+go run application/user/cmd/main.go
+```
+
+### konga配置 127.0.0.1:1337
+创建
+    admin api: 172.22.0.4:8001
+
+创建service配置信息
+    Protocol: http                          //指定发送http请求
+    Host: xxxx.service.consul               //注册到consul的服务名.service.consul
+    Port: 8002                              //服务暴露的端口号
+
+创建router配置信息
+    Paths: /user                            //指定某个路径调用那个服务(记得回车确认)
+    Strip Path: false                       //从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
+        true:   http://127.0.0.1:8000/user/hello  =>  后端path "/hello"
+        false:  http://127.0.0.1:8000/user/hello  =>  后端path "/user/hello"
