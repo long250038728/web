@@ -17,8 +17,8 @@ import (
 type ipType int32
 
 const (
-	TypeLocalIP = iota
-	TypeEnvIP
+	localIP = iota
+	envIP
 )
 
 type Config struct {
@@ -26,7 +26,7 @@ type Config struct {
 	HttpPort   int    `json:"http_port" yaml:"http_port"`
 	GrpcPort   int    `json:"grpc_port" yaml:"grpc_port"`
 	Type       ipType `json:"type" yaml:"type"`
-	IP         string `json:"ip" yaml:"ip"`
+	IP         string `json:"IP" yaml:"IP"`
 
 	dbConfig       *orm.Config
 	esConfig       *es.Config
@@ -38,42 +38,37 @@ type Config struct {
 
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath string) (config *Config, err error) {
+	conf := Config{}
+	configs := map[string]any{
+		"config.yaml":   &conf,
+		"db.yaml":       &conf.dbConfig,
+		"redis.yaml":    &conf.redisConfig,
+		"kafka.yaml":    &conf.kafkaConfig,
+		"es.yaml":       &conf.esConfig,
+		"register.yaml": &conf.registerConfig,
+		"tracing.yaml":  &conf.tracingConfig,
+	}
 	configLoad := configurator.NewYaml()
-
-	var conf Config
-	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
-		return nil, err
+	for key, val := range configs {
+		if err := configLoad.Load(filepath.Join(rootPath, key), &val); err != nil {
+			return nil, err
+		}
 	}
-	if err := configLoad.Load(filepath.Join(rootPath, "db.yaml"), &conf.dbConfig); err != nil {
-		return nil, err
-	}
-	if err := configLoad.Load(filepath.Join(rootPath, "redis.yaml"), &conf.redisConfig); err != nil {
-		return nil, err
-	}
-	if err := configLoad.Load(filepath.Join(rootPath, "kafka.yaml"), &conf.kafkaConfig); err != nil {
-		return nil, err
-	}
-	if err := configLoad.Load(filepath.Join(rootPath, "es.yaml"), &conf.esConfig); err != nil {
-		return nil, err
-	}
-	if err := configLoad.Load(filepath.Join(rootPath, "register.yaml"), &conf.registerConfig); err != nil {
-		return nil, err
-	}
-	if err := configLoad.Load(filepath.Join(rootPath, "tracing.yaml"), &conf.tracingConfig); err != nil {
-		return nil, err
-	}
-
-	conf.IP, err = conf.ip()
-
+	conf.IP, err = conf.getIP()
 	return &conf, nil
 }
 
 // getIP 获取ip地址
-func (info *Config) ip() (string, error) {
+func (info *Config) getIP() (string, error) {
+	//如果配置有读取配置
+	if len(info.IP) > 0 {
+		return info.IP, nil
+	}
+
 	switch info.Type {
-	case TypeLocalIP:
+	case localIP: //读取本地
 		return info.getLocalIP()
-	case TypeEnvIP:
+	case envIP: //读取ENV APP_IP
 		return info.getEnvIP()
 	default:
 		return "", errors.New("IP / Project Not Find")

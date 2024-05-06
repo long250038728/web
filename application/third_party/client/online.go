@@ -115,15 +115,20 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 func (o *Online) request(requestList []*requestInfo) error {
 	for _, request := range requestList {
+
+		fmt.Printf("=================== %s ===============", request.Project)
+
 		switch request.Type {
 		case OnlineTypeGit: //合并
 			err := o.git.Merge(o.ctx, request.Project, request.Params["num"].(int32))
 			if err != nil {
+				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
 			}
 		case OnlineTypeShell: //shell
 			out, err := exec.Command("sh", "-c", request.Project).Output()
 			if err != nil {
+				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
 			}
 			// 输出命令执行结果
@@ -131,11 +136,14 @@ func (o *Online) request(requestList []*requestInfo) error {
 		case OnlineTypeJenkins: //jenkins
 			err := o.jenkins.BlockBuild(o.ctx, request.Project, request.Params)
 			if err != nil {
+				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
 			}
 		default:
 			return errors.New("type is err")
 		}
+
+		fmt.Printf("=================== %s  ok ===============", request.Project)
 	}
 
 	return nil

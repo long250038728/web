@@ -41,7 +41,9 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	topicConfigs := []kafka.TopicConfig{
 		{
@@ -70,7 +72,9 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 	return conn.DeleteTopics(topic)
 }
 
@@ -106,7 +110,9 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 		RequiredAcks:           1,     //0:无需主节点写入成功  1:需要主节点写入成功  -1:所有的ISR节点写入成功
 		AllowAutoTopicCreation: false, //主题不存在不自动创建主题
 	}
-	defer w.Close()
+	defer func() {
+		_ = w.Close()
+	}()
 	return w.WriteMessages(ctx, list...)
 }
 
@@ -123,7 +129,9 @@ func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup strin
 
 	// 创建Kafka消费者
 	reader := kafka.NewReader(config)
-	defer reader.Close()
+	defer func() {
+		_ = reader.Close()
+	}()
 
 	// 循环读取消息
 	for {

@@ -70,5 +70,5 @@ func (g *Histogram) do() {
 
 func (g *Histogram) http() {
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":8082", nil)
+	_ = http.ListenAndServe(":8082", nil)
 }

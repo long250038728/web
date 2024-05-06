@@ -59,5 +59,5 @@ func (g *Count) do() {
 
 func (g *Count) http() {
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":8082", nil)
+	_ = http.ListenAndServe(":8082", nil)
 }

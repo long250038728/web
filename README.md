@@ -17,7 +17,12 @@
     1.consul 8500 为了可以观察服务注册发现相关的信息
     2.kong 8000 通过网关入口可以访问到后端web服务
     3.konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
-    
+
+固定ip
+    172.22.0.2 consul
+    172.22.0.3 kong-database
+    172.22.0.4 kong
+    172.22.0.4 konga
 
 
 ### docker运行

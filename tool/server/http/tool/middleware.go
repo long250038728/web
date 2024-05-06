@@ -103,7 +103,7 @@ func (m *Middleware) WriteFile(fileName string, data []byte) {
 	ginContext := m.ginContext
 	ginContext.Header("Content-Type", "application/octet-stream")
 	ginContext.Header("Content-Disposition", "attachment; filename=\""+fileName+"\"")
-	ginContext.Writer.Write(data)
+	_, _ = ginContext.Writer.Write(data)
 
 	m.span.AddEvent("file is write ok")
 }

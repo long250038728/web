@@ -4,6 +4,7 @@ mkdir app
 cp -R ./../application  app/application
 cp -R ./../config  app/config
 cp -R ./../tool  app/tool
+cp -R ./../protoc  app/protoc
 cp -R ./../go*  app/
 
 #打包成镜像
@@ -13,7 +14,7 @@ docker build -t   ccr.ccs.tencentyun.com/zhubaoe/user:latest .
 rm -rf  app
 
 # 上传到hub
-#docker push  ccr.ccs.tencentyun.com/zhubaoe/user_a:latest
+#docker push  ccr.ccs.tencentyun.com/zhubaoe/kobe-new:latest
 
 
-docker run -it --name user --network my-network ccr.ccs.tencentyun.com/zhubaoe/user:latest
+docker run -it --name user --network my-service-network ccr.ccs.tencentyun.com/zhubaoe/kobe-new:latest
