@@ -61,7 +61,7 @@ func main() {
 	rootCmd.AddCommand(branch())
 	rootCmd.AddCommand(pr())
 	rootCmd.AddCommand(list())
-	rootCmd.AddCommand(onlineCheck())
+	rootCmd.AddCommand(online())
 	rootCmd.AddCommand(request())
 
 	if err := rootCmd.Execute(); err != nil {
@@ -166,8 +166,8 @@ func list() *cobra.Command {
 	}
 }
 
-// onlineCheck
-func onlineCheck() *cobra.Command {
+// online
+func online() *cobra.Command {
 	return &cobra.Command{
 		Use:   "online [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
 		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
@@ -216,12 +216,12 @@ func onlineCheck() *cobra.Command {
 				return
 			}
 
-			err = os.WriteFile("./onlineCheck.md", b, os.ModePerm)
+			err = os.WriteFile("./online.md", b, os.ModePerm)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
 			}
-			fmt.Println("文件生成./onlineCheck.md")
+			fmt.Println("文件生成./online.md")
 			fmt.Println(string(b))
 		},
 	}
