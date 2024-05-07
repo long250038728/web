@@ -100,7 +100,7 @@ func (g *Client) Merge(ctx context.Context, repos string, num int32) error {
 		"merge_method": "merge",
 	}
 
-	res, _, err := g.client.Get(ctx, url, data)
+	res, _, err := g.client.Put(ctx, url, data)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%s: %s", repos, err.Error()))
 	}

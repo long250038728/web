@@ -16,6 +16,7 @@ type requestInfo struct {
 	Type    int32
 	Project string
 	Params  map[string]any
+	Num     int32
 }
 
 type Online struct {
@@ -72,8 +73,7 @@ func (o *Online) Build(source, target, svcPath string) error {
 		fmt.Println(err.Error())
 		return err
 	}
-	return nil
-	//return o.Request(list)
+	return o.Request(list)
 }
 
 func (o *Online) list(source, target string) ([]*requestInfo, error) {
@@ -91,11 +91,11 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 		}
 
 		//调用合并分支
-		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
+		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
 
 		//两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "./change_tag.sh kobe", Params: nil})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh kobe", Params: nil})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
@@ -104,7 +104,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 		// 一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "./change_tag.sh marx", Params: nil})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh marx", Params: nil})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
 			}
@@ -125,13 +125,12 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 }
 
 func (o *Online) Request(requestList []*requestInfo) error {
-	for _, request := range requestList {
-
-		fmt.Printf("=================== %s ===============", request.Project)
+	for index, request := range requestList {
+		fmt.Printf("=================== %d: %s ===============", index, request.Project)
 
 		switch request.Type {
 		case OnlineTypeGit: //合并
-			err := o.git.Merge(o.ctx, request.Project, request.Params["num"].(int32))
+			err := o.git.Merge(o.ctx, request.Project, request.Num)
 			if err != nil {
 				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
@@ -154,7 +153,7 @@ func (o *Online) Request(requestList []*requestInfo) error {
 			return errors.New("type is err")
 		}
 
-		fmt.Printf("=================== %s  ok ===============", request.Project)
+		fmt.Println("ok")
 	}
 
 	return nil
