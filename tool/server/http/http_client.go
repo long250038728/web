@@ -61,6 +61,14 @@ func NewClient(opts ...Opt) *Client {
 	return client
 }
 
+func (c *Client) Put(ctx context.Context, address string, data map[string]any) ([]byte, int, error) {
+	jsonBody, err := json.Marshal(data)
+	if err != nil {
+		return nil, 0, err
+	}
+	return c.do(ctx, http.MethodPut, address, jsonBody)
+}
+
 func (c *Client) Post(ctx context.Context, address string, data map[string]any) ([]byte, int, error) {
 	jsonBody, err := json.Marshal(data)
 	if err != nil {

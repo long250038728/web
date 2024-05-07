@@ -37,7 +37,7 @@ type Config struct {
 }
 
 // NewAppConfig 获取app配置
-func NewAppConfig(rootPath string) (config *Config, err error) {
+func NewAppConfig(rootPath string, yaml ...string) (config *Config, err error) {
 	conf := Config{}
 	configs := map[string]any{
 		"config.yaml":   &conf,
@@ -48,10 +48,17 @@ func NewAppConfig(rootPath string) (config *Config, err error) {
 		"register.yaml": &conf.registerConfig,
 		"tracing.yaml":  &conf.tracingConfig,
 	}
+
+	if len(yaml) == 0 {
+		yaml = []string{"config.yaml", "db.yaml", "redis.yaml", "kafka.yaml", "es.yaml", "register.yaml", "tracing.yaml"}
+	}
+
 	configLoad := configurator.NewYaml()
-	for key, val := range configs {
-		if err := configLoad.Load(filepath.Join(rootPath, key), &val); err != nil {
-			return nil, err
+	for _, fileName := range yaml {
+		if val, ok := configs[fileName]; ok {
+			if err := configLoad.Load(filepath.Join(rootPath, fileName), val); err != nil {
+				return nil, err
+			}
 		}
 	}
 	conf.IP, err = conf.getIP()

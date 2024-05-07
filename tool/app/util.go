@@ -65,8 +65,8 @@ func NewUtil() *Util {
 }
 
 // NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root string) (*Util, error) {
-	conf, err := NewAppConfig(root)
+func NewUtilPath(root string, yaml ...string) (*Util, error) {
+	conf, err := NewAppConfig(root, yaml...)
 	if err != nil {
 		return nil, err
 	}
