@@ -83,38 +83,38 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	var err error
 
 	//创建db客户端
-	if config.dbConfig != nil {
+	if config.dbConfig != nil && len(config.dbConfig.Address) > 0 {
 		if util.db, err = orm.NewGorm(config.dbConfig); err != nil {
 			return nil, err
 		}
 	}
 
 	//创建redis && locker
-	if config.redisConfig != nil {
+	if config.redisConfig != nil && len(config.redisConfig.Address) > 0 {
 		util.cache = cache.NewRedisCache(config.redisConfig)
 	}
 
 	//创建mq
-	if config.kafkaConfig != nil {
+	if config.kafkaConfig != nil && len(config.kafkaConfig.Address) > 0 && len(config.kafkaConfig.Address[0]) > 0 {
 		util.mq = mq.NewKafkaMq(config.kafkaConfig)
 	}
 
 	//创建es
-	if config.esConfig != nil {
+	if config.esConfig != nil && len(config.esConfig.Address) > 0 {
 		if util.es, err = es.NewEs(config.esConfig); err != nil {
 			return nil, err
 		}
 	}
 
 	//创建consul客户端
-	if config.registerConfig != nil {
+	if config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
 		if util.register, err = consul.NewConsulRegister(config.registerConfig); err != nil {
 			return nil, err
 		}
 	}
 
 	//创建链路
-	if config.tracingConfig != nil {
+	if config.tracingConfig != nil && len(config.tracingConfig.Address) > 0 {
 		if util.exporter, err = opentelemetry.NewJaegerExporter(config.tracingConfig); err != nil {
 			return nil, err
 		}

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/tool/auth"
-	"github.com/long250038728/web/tool/limiter"
 	"sync"
 )
 
@@ -16,23 +14,15 @@ type FileInterface interface {
 }
 
 type MiddlewarePool struct {
-	error   map[error]MiddleErr
-	pool    sync.Pool
-	auth    auth.Auth
-	limiter limiter.Limiter
+	pool sync.Pool
 }
 
 func NewMiddlewarePool(opts ...MiddlewareOpt) *MiddlewarePool {
-	middleTool := &MiddlewarePool{}
-	for _, opt := range opts {
-		opt(middleTool)
+	middleTool := &MiddlewarePool{
+		pool: sync.Pool{New: func() any {
+			return NewMiddleware(opts...)
+		}},
 	}
-	if middleTool.error == nil {
-		middleTool.error = map[error]MiddleErr{}
-	}
-	middleTool.pool = sync.Pool{New: func() any {
-		return NewMiddleware(middleTool.error)
-	}}
 	return middleTool
 }
 
@@ -45,31 +35,10 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 	}()
 
 	middleware.Set(gin)
-	ctx := middleware.Context()
-
-	//限流
-	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
-	}
-
-	//授权
-	if m.auth != nil {
-		//获取Claims对象
-		userClaims, err := auth.Parse(gin.GetHeader("Authorization"))
-		if err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
-
-		if err = m.auth.Auth(ctx, userClaims, gin.Request.URL.Path); err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
-
-		ctx = auth.SetClaims(ctx, userClaims)
+	ctx, err := middleware.Context()
+	if err != nil {
+		middleware.WriteJSON(nil, err)
+		return
 	}
 
 	//基础处理 （bind绑定  及链路 处理）
@@ -91,29 +60,11 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 		m.pool.Put(middleware)
 	}()
 
-	ctx := middleware.Set(gin).Context()
-
-	//限流
-	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
-	}
-
-	//授权
-	if m.auth != nil {
-		//获取Claims对象
-		userClaims, err := auth.Parse(gin.GetHeader("Authorization"))
-		if err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
-
-		if err = m.auth.Auth(ctx, userClaims, gin.Request.URL.Path); err != nil {
-			middleware.WriteJSON(nil, err)
-			return
-		}
+	middleware.Set(gin)
+	ctx, err := middleware.Context()
+	if err != nil {
+		middleware.WriteJSON(nil, err)
+		return
 	}
 
 	//基础处理 （bind绑定  及链路 处理）

@@ -27,7 +27,7 @@ func TestOnlineBuild(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := NewOnlineClient(context.Background(), giteeClient, jenkinsClient).Build("release/v3.5.61", "check", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
+	if err := NewOnlineClient(context.Background(), giteeClient, jenkinsClient).Build("release/v3.5.61", "master", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")
@@ -50,7 +50,7 @@ func TestOnlineRequest(t *testing.T) {
 		t.Error(err)
 	}
 
-	b, err := os.ReadFile("./onlineList.md")
+	b, err := os.ReadFile("/Users/linlong/Desktop/online/project_list.md")
 	if err != nil {
 		t.Error(err)
 	}

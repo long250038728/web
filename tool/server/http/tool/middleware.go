@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -13,15 +15,23 @@ import (
 
 type Middleware struct {
 	ginContext *gin.Context
-	error      map[error]MiddleErr
 	span       *opentelemetry.Span
 	ctx        context.Context
+
+	auth    auth.Auth
+	limiter limiter.Limiter
+	error   map[error]MiddleErr
 }
 
-func NewMiddleware(error map[error]MiddleErr) *Middleware {
-	return &Middleware{
-		error: error,
+func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
+	middleware := &Middleware{
+		error: map[error]MiddleErr{},
+		ctx:   context.Background(),
 	}
+	for _, opt := range opts {
+		opt(middleware)
+	}
+	return middleware
 }
 
 func (m *Middleware) Set(ginContext *gin.Context) *Middleware {
@@ -66,8 +76,33 @@ func (m *Middleware) bind(request any) error {
 	return err
 }
 
-func (m *Middleware) Context() context.Context {
-	return m.ctx
+func (m *Middleware) Context() (context.Context, error) {
+	ctx := m.ctx
+
+	//限流
+	if m.limiter != nil {
+		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
+			return m.ctx, err
+		}
+	}
+
+	//授权
+	if m.auth != nil {
+		//获取Claims对象
+		userClaims, userSession, err := m.auth.Parse(ctx, m.ginContext.GetHeader("Authorization"))
+		if err != nil {
+			return m.ctx, err
+		}
+
+		if err = m.auth.Auth(ctx, m.ginContext.Request.URL.Path); err != nil {
+			return m.ctx, err
+		}
+
+		ctx = auth.SetClaims(ctx, userClaims)
+		ctx = auth.SetSession(ctx, userSession)
+		m.ctx = ctx
+	}
+	return m.ctx, nil
 }
 
 func (m *Middleware) Reset() {
@@ -76,6 +111,7 @@ func (m *Middleware) Reset() {
 	}
 	if m.span != nil {
 		m.span.Close()
+		m.span = nil
 	}
 }
 

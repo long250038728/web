@@ -13,7 +13,7 @@ var conf cache.Config
 var cacheClient cache.Cache
 
 func init() {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/application/user/config/redis.yaml", &conf)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/redis.yaml", &conf)
 	cacheClient = cache.NewRedisCache(&conf)
 }
 
