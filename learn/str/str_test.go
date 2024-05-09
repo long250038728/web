@@ -1,6 +1,8 @@
 package str
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_read(t *testing.T) {
 	read()

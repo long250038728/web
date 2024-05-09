@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-const AA = "aa"
+const SearchLogInfo = "aa"
 
 type Customer struct {
 		Id   int32  

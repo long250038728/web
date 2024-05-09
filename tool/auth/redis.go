@@ -2,24 +2,33 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/golang-jwt/jwt"
 	"github.com/long250038728/web/tool/cache"
+	"github.com/long250038728/web/tool/struct_map"
 	"strings"
+	"time"
 )
 
-//通过token字符串获取授权信息
-
-//根据传入的地址及参数与授权信息继续匹配
-
-//匹配到则代表有权限
+type Opt func(r *cacheAuth)
 
 type cacheAuth struct {
-	cache     cache.Cache
-	whiteList []string
+	cache       cache.Cache
+	secretKey   []byte
+	whiteList   []string
+	userClaims  *UserClaims
+	userSession *UserSession
 }
 
-type Opt func(r *cacheAuth)
+func SecretKey(secretKey []byte) Opt {
+	return func(r *cacheAuth) {
+		r.secretKey = secretKey
+	}
+}
 
 func WhiteList(list []string) Opt {
 	return func(r *cacheAuth) {
@@ -29,7 +38,10 @@ func WhiteList(list []string) Opt {
 
 func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
 	r := &cacheAuth{
-		cache: cache,
+		cache:       cache,
+		userClaims:  &UserClaims{},
+		userSession: &UserSession{},
+		secretKey:   []byte("secret_key"),
 	}
 	for _, opt := range opts {
 		opt(r)
@@ -42,29 +54,36 @@ func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
 	return r
 }
 
-// Set 用户内部信息生产token
-func (p *cacheAuth) Set(ctx context.Context, userToken *TokenInfo, token string) error {
-	if len(token) == 0 {
-		return errors.New("token str is err")
+// Parse 解析 signed
+func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error) {
+	if len(accessToken) == 0 {
+		return p.userClaims, p.userSession, nil
 	}
 
-	b, err := json.Marshal(userToken)
+	//获取Claims对象
+	userClaims, err := p.Claims(accessToken)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	ok, err := p.cache.Set(ctx, token, string(b))
+	//获取Session对象
+	userSession, err := p.Session(ctx, userClaims.AuthToken)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	if !ok {
-		return errors.New("auth to token is err")
-	}
-	return nil
+	p.userClaims = userClaims
+	p.userSession = userSession
+	return p.userClaims, p.userSession, nil
 }
 
 // Auth 判断是否有权限
-func (p *cacheAuth) Auth(ctx context.Context, userClaims *UserClaims, path string) error {
+func (p *cacheAuth) Auth(ctx context.Context, path string) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	//转换为小写
 	path = strings.ToLower(path)
 
@@ -73,30 +92,52 @@ func (p *cacheAuth) Auth(ctx context.Context, userClaims *UserClaims, path strin
 		return nil
 	}
 
-	//检查authToken
-	if userClaims.AuthToken == "" {
-		return errors.New("token is empty")
-	}
-
-	token, err := p.cache.Get(ctx, userClaims.AuthToken)
-	if err != nil {
-		return err
-	}
-
-	var UserToken TokenInfo
-	err = json.Unmarshal([]byte(token), &UserToken)
-	if err != nil {
-		return err
-	}
-
 	//匹配
-	for _, authPath := range UserToken.AuthList {
+	for _, authPath := range p.userSession.AuthList {
 		if authPath == path {
 			return nil
 		}
 	}
-
 	return errors.New("no match path")
+}
+
+func (p *cacheAuth) Claims(signedString string) (*UserClaims, error) {
+	userClaims := &UserClaims{}
+
+	// 解析JWT字符串
+	token, err := jwt.ParseWithClaims(signedString, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return p.secretKey, nil // 这里你需要提供用于签名的密钥
+	})
+	if err != nil {
+		if validationErr, ok := err.(*jwt.ValidationError); ok && validationErr.Errors == jwt.ValidationErrorExpired {
+			err = errors.New("token is Disabled")
+		}
+		return nil, err
+	}
+
+	//获取Claims对象
+	claims := token.Claims.(*jwtClaims)
+	err = struct_map.Map(claims.UserClaims, userClaims) //带有jwt.StandardClaims 的对象 转换为 外部不带有 jwt.StandardClaims 的对象
+	if err != nil {
+		return nil, err
+	}
+	return userClaims, nil
+}
+
+func (p *cacheAuth) Session(ctx context.Context, token string) (session *UserSession, err error) {
+	//检查authToken
+	if token == "" {
+		return nil, errors.New("token is empty")
+	}
+	sessionStr, err := p.cache.Get(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sessionStr) == 0 {
+		return nil, errors.New("token is empty")
+	}
+	return session, json.Unmarshal([]byte(sessionStr), &session)
 }
 
 // whitePath path是否为白名单
@@ -107,4 +148,35 @@ func (p *cacheAuth) whitePath(path string) bool {
 		}
 	}
 	return false
+}
+
+// Set 用户内部信息生产token
+func (p *cacheAuth) Set(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error) {
+	b, err := json.Marshal(userSession)
+	if err != nil {
+		return "", err
+	}
+
+	if len(userClaims.AuthToken) == 0 {
+		hash := sha256.New()
+		hash.Write([]byte(fmt.Sprintf("%d", userClaims.Id))) // 向哈希计算对象中写入字符串数据
+		userClaims.AuthToken = hex.EncodeToString(hash.Sum(nil))
+	}
+
+	ok, err := p.cache.Set(ctx, userClaims.AuthToken, string(b))
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", errors.New("session setting is err")
+	}
+
+	claims := &jwtClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(1800 * time.Minute).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		UserClaims: userClaims,
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(p.secretKey)
 }

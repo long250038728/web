@@ -13,10 +13,10 @@ import (
 )
 
 type requestInfo struct {
-	Type    int32
-	Project string
-	Params  map[string]any
-	Num     int32
+	Type    int32          `json:"type"`
+	Project string         `json:"project"`
+	Params  map[string]any `json:"params"`
+	Num     int32          `json:"num"`
 }
 
 type Online struct {
@@ -30,6 +30,7 @@ const (
 	OnlineTypeGit     int32 = 1 //git
 	OnlineTypeJenkins int32 = 2 //构建
 	OnlineTypeShell   int32 = 3 //脚本
+	OnlineTypeSql     int32 = 4 //数据库
 )
 
 func NewOnlineClient(ctx context.Context, git git.Git, jenkins *jenkins.Client) *Online {
@@ -64,16 +65,17 @@ func (o *Online) Build(source, target, svcPath string) error {
 		return err
 	}
 
-	b, err := json.Marshal(list)
+	b, err := json.MarshalIndent(list, "", "	")
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("./onlineList.md", b, os.ModePerm)
+	err = os.WriteFile("/Users/linlong/Desktop/online/project_list.md", b, os.ModePerm)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
-	return o.Request(list)
+	return nil
+	//return o.Request(list)
 }
 
 func (o *Online) list(source, target string) ([]*requestInfo, error) {
@@ -95,7 +97,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 		//两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh kobe", Params: nil})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh", Params: map[string]any{"project": "kobe"}})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
@@ -104,7 +106,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 		// 一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh marx", Params: nil})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh", Params: map[string]any{"project": "marx"}})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
 			}
@@ -136,13 +138,15 @@ func (o *Online) Request(requestList []*requestInfo) error {
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
 			}
 		case OnlineTypeShell: //shell
-			out, err := exec.Command("sh", "-c", request.Project).Output()
+			project, ok := request.Params["project"].(string)
+			if !ok {
+				return errors.New(fmt.Sprintf("%s %s", request.Project, "get project name is err"))
+			}
+			err := exec.Command("sh", request.Project, project).Run()
 			if err != nil {
 				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
 			}
-			// 输出命令执行结果
-			fmt.Println("Command output:", string(out))
 		case OnlineTypeJenkins: //jenkins
 			err := o.jenkins.BlockBuild(o.ctx, request.Project, request.Params)
 			if err != nil {
@@ -152,8 +156,6 @@ func (o *Online) Request(requestList []*requestInfo) error {
 		default:
 			return errors.New("type is err")
 		}
-
-		fmt.Println("ok")
 	}
 
 	return nil

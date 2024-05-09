@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/olivere/elastic/v7"
+
 	"strings"
 	"testing"
 )
@@ -268,6 +269,19 @@ func TestIndexSearchNested(t *testing.T) {
 
 	// text: Term精确查询  match模糊匹配单词  match_phrase模糊匹配短语
 	query := elastic.NewBoolQuery()
+
+	////filter 不计算相关性
+	query.Filter(
+		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_age", 10)),
+		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_name", "other doc name")),
+		//elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_name", "other doc2 name")),
+		//当查询时字段中有多个条件子条件，Nested的作用跟Object不同
+		//		Object是只要在整个文档存在就可以查询，不把字段列表当成一个整体
+		//  	Nested需要同时存在同一个对象中，把字段列表当成一个整体
+	)
+
+	////must no_must should   计算相关性
+	query = elastic.NewBoolQuery()
 	query.Must(
 		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_age", 10)),
 		elastic.NewNestedQuery("other", elastic.NewTermsQuery("other.other_name", "other doc name")),
@@ -307,23 +321,20 @@ func TestIndexSearch(t *testing.T) {
 
 	//// text: Term精确查询  match模糊匹配单词  match_phrase模糊匹配短语
 	query.Must(
-		elastic.NewTermQuery("merchant_id", 168),
-		elastic.NewTermQuery("merchant_shop_id", 628),
-		elastic.NewRangeQuery("gold_weight").Gte(0).Lte(1000),
-		elastic.NewMatchQuery("admin_user_name", "吴亦凡"),
-		//elastic.NewMatchPhraseQuery("merchant_shop_name", "店"),
+		elastic.NewTermQuery("merchant_id", 240),
+		elastic.NewTermQuery("merchant_shop_id", 867),
+		elastic.NewRangeQuery("gold_weight").Gte(0).Lte(10000),
+		elastic.NewMatchQuery("admin_user_name", "小刘"),
+		elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
 	)
-	source, _ := query.Source() //es对应的查询语句
-	j, _ := json.Marshal(source)
-	t.Log(string(j))
 
 	data, err := persistence.Search("sale_order_record_report").
 		Query(query).
 		Sort("update_date", true).
 		From(40).
 		Size(10).
-		//FetchSourceContext(elastic.NewFetchSourceContext(true).Include("record_id").Exclude("name")). //显示/不显示 哪些字段
-		TrackTotalHits(true). //获取total数量（默认为false，如果数量超过10000则显示10000）
+		FetchSourceContext(elastic.NewFetchSourceContext(true).Include("record_id").Exclude("name")). //显示/不显示 哪些字段
+		TrackTotalHits(true).                                                                         //获取total数量（默认为false，如果数量超过10000则显示10000）
 		Do(context.Background())
 	if data.Hits.TotalHits.Value <= 0 {
 		t.Log("找不到")
@@ -400,7 +411,7 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 }
 
 func TestUpdateByQuery(t *testing.T) {
-	//query := elastic.NewBoolQuery().Must(
+	//Query := elastic.NewBoolQuery().Must(
 	//	elastic.NewTermsQuery("type", 1),
 	//	elastic.NewExistsQuery("hello"),
 	//)
@@ -408,7 +419,7 @@ func TestUpdateByQuery(t *testing.T) {
 	//对es进行添加script操作，新增一个字段值为field
 	do, err := persistence.UpdateByQuery().
 		Index(indexName).
-		//Query(query).
+		//Query(Query).
 		Script(elastic.NewScript("ctx._source.address = ctx._source.name")).
 		Do(context.Background())
 	if err != nil {

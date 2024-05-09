@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/server/http"
 )
 
@@ -22,6 +24,14 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	//d, _ := json.Marshal(md)
 	//fmt.Println(string(d))
 	//opentelemetry.NewSpan(ctx, "hello")
+
+	if claims, err := auth.GetClaims(ctx); err == nil {
+		fmt.Println(claims.Name)
+	}
+
+	if session, err := auth.GetSession(ctx); err == nil {
+		fmt.Println(session.AuthList)
+	}
 
 	type customer struct {
 		Name string `json:"name"`
