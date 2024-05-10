@@ -1,0 +1,18 @@
+kobe:
+#- kobe-goods
+- kobe-order
+#- kobe-stock
+#- kobe-report
+#- kobe-message
+#- kobe-customer
+# - kobe-merchant
+#- kobe-foundation
+# - kobe-reportcenter
+marx:
+#- marx-http-prod
+# - marx-sync_bill-prod
+#- marx-sync_customer-prod
+#- marx-sync_goods_stock-prod
+#- marx-sync_sale-prod
+#- marx-sync_stock_record-prod
+#- marx-sync_stock_today-prod

@@ -94,17 +94,32 @@ func (g *Client) GetPR(ctx context.Context, repos, source, target string) ([]*In
 }
 
 func (g *Client) Merge(ctx context.Context, repos string, num int32) error {
+	type response struct {
+		Merged  bool   `json:"merged"`
+		Message string `json:"message"`
+	}
+
 	url := fmt.Sprintf("%s/api/v5/repos/%s/pulls/%d/merge", g.address, repos, num)
 	data := map[string]any{
 		"access_token": g.token,
 		"merge_method": "merge",
 	}
 
-	res, _, err := g.client.Put(ctx, url, data)
+	resp, _, err := g.client.Put(ctx, url, data)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%s: %s", repos, err.Error()))
 	}
-	println(string(res))
+
+	var res response
+	if err := json.Unmarshal(resp, &res); err != nil {
+		return nil
+	}
+
+	if !res.Merged {
+		return errors.New(res.Message)
+	}
+	fmt.Println(string(resp))
+	fmt.Printf("%v", res)
 	return nil
 }
 

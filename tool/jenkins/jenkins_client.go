@@ -86,7 +86,8 @@ func (j *Client) GetLastNumber(ctx context.Context, job string) (int32, error) {
 // Block 阻塞获取是否构建完成
 func (j *Client) Block(ctx context.Context, job string) error {
 	type queueBuild struct {
-		Result string `json:"result"`
+		Result   string `json:"result"`
+		Building bool   `json:"building"`
 	}
 
 	number, err := j.GetLastNumber(ctx, job)
@@ -110,13 +111,15 @@ func (j *Client) Block(ctx context.Context, job string) error {
 		if resp, _, err = j.client.Get(ctx, fmt.Sprintf("%s/job/%s/%d/api/json?tree=result,building,displayName,duration", j.address, job, number), nil); err != nil {
 			return err
 		}
+		fmt.Println(string(resp))
+		fmt.Println("for check num:", index)
+
 		if err := json.Unmarshal(resp, &q); err != nil {
 			return err
 		}
 		if q.Result == "SUCCESS" {
 			return nil
 		}
-		fmt.Println("for check num:", index)
 		index += 1
 		time.Sleep(10 * time.Second)
 	}

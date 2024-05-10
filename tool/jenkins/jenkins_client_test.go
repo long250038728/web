@@ -24,7 +24,7 @@ func TestJenkinsClient_Build(t *testing.T) {
 func TestJenkinsClient_BuildBlock(t *testing.T) {
 	var job = "kobe-service-common"
 	var data = map[string]any{
-		"BRANCH":      "feature/sm0413",
+		"BRANCH":      "feature/test",
 		"SERVICENAME": "order",
 		"ENV":         "dev",
 	}

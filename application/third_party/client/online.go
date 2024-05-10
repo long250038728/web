@@ -69,13 +69,12 @@ func (o *Online) Build(source, target, svcPath string) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("/Users/linlong/Desktop/online/project_list.md", b, os.ModePerm)
+	err = os.WriteFile("/Users/linlong/Desktop/web/application/third_party/client/project_list.md", b, os.ModePerm)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
 	}
 	return nil
-	//return o.Request(list)
 }
 
 func (o *Online) list(source, target string) ([]*requestInfo, error) {
@@ -97,7 +96,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 		//两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh", Params: map[string]any{"project": "kobe"}})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/web/application/third_party/client/change_tag.sh", Params: map[string]any{"project": "kobe"}})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
@@ -106,7 +105,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 
 		// 一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/online/change_tag.sh", Params: map[string]any{"project": "marx"}})
+			address = append(address, &requestInfo{Type: OnlineTypeShell, Project: "/Users/linlong/Desktop/web/application/third_party/client/change_tag.sh", Params: map[string]any{"project": "marx"}})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
 			}
@@ -117,7 +116,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 		}
 
 		// 三个服务
-		if addr == "zhubaoe-go/locke" {
+		if addr == "zhubaoe/locke" {
 			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
 			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
 			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
