@@ -22,7 +22,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-执行git pull以更新本地仓库
+# 执行git pull以更新本地仓库
 git pull 
 git checkout master
 git pull
