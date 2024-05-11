@@ -142,6 +142,7 @@ OAuth2.0
                 authorizer_refresh_token	string	是	刷新令牌，获取授权信息时得到
 ```
 微信第三方授权流程总结：
+
     1. 获取第三方相关的每个接口都需要带上component_access_token、component_appid参数
     2. 第1，2第三方应用前准备工作     第3,4为授权前的准备工作   第5，6是获取authorizer_access_token及更新authorizer_refresh_token
     3. component中 component_verify_ticket在回调获取，component_access_token两个小时有效接口获取一次
