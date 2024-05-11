@@ -106,14 +106,14 @@ OAuth2.0
 4. 第三方拿到授权码去申请访问令牌，淘宝/抖音会校验授权码跟第三方的信息，他们一致我才会颁发授权令牌
 
 其他：
-
-    1. 第三方需要提前在淘宝/抖音进行注册（回调域名，获取权限列表），获取app_id及app_secret
-    2. 淘宝/抖音授权页需要带上几个信息 app_id, open_id,回调地址，获取权限范围，通过生成code
-        * app_id及回调地址是为了验证第三方是否合法
-        * open_id获取客户信息
-    3. 第三方通过code，app_id及app_secret 去获取访问令牌，会校验上面的三个值，然后获取code内容生成，同时生成刷新令牌
-    4. 刷新令牌refresh_token是为了访问令牌一般过期时间为10分钟，超过后如果再次让客户授权不合理则可以通过刷新令牌再次获取
-    5. 刷新令牌使用后是否有效，是否有有效期，超过有效期是续还是重新授权这个是根据不同平台的规则
+1. 第三方需要提前在淘宝/抖音进行注册（回调域名，获取权限列表），获取app_id及app_secret
+2. 淘宝/抖音授权页需要带上几个信息 app_id, open_id,回调地址，获取权限范围，通过生成code
+    * app_id及回调地址是为了验证第三方是否合法
+    * open_id获取客户信息
+3. 第三方通过code，app_id及app_secret 去获取访问令牌，会校验上面的三个值，然后获取code内容生成，同时生成刷新令牌
+4. 刷新令牌refresh_token是为了访问令牌一般过期时间为10分钟，超过后如果再次让客户授权不合理则可以通过刷新令牌再次获取
+5. 刷新令牌使用后是否有效，是否有有效期，超过有效期是续还是重新授权这个是根据不同平台的规则
+    
 
 
 
@@ -149,13 +149,12 @@ OAuth2.0
                 authorizer_refresh_token	string	是	刷新令牌，获取授权信息时得到
 ```
 微信第三方授权流程总结：
-
-    1. 获取第三方相关的每个接口都需要带上component_access_token、component_appid参数
-    2. 第1，2第三方应用前准备工作     第3,4为授权前的准备工作   第5，6是获取authorizer_access_token及更新authorizer_refresh_token
-    3. component中 component_verify_ticket在回调获取，component_access_token两个小时有效接口获取一次
-    4. authorizer中 authorizer_refresh_token不会过期,authorizer_access_token两个小时有效接口获取一次
-    component_access_token， 过期通过component_verify_ticket请求接口获取 （第一次通过也是component_verify_ticket请求接口获取）
-    authorizer_access_token，过期通过authorizer_refresh_token请求接口获取 （第一次通过authorization_code获取）
+1. 获取第三方相关的每个接口都需要带上component_access_token、component_appid参数
+2. 第1，2第三方应用前准备工作     第3,4为授权前的准备工作   第5，6是获取authorizer_access_token及更新authorizer_refresh_token
+3. component中 component_verify_ticket在回调获取，component_access_token两个小时有效接口获取一次
+4. authorizer中 authorizer_refresh_token不会过期,authorizer_access_token两个小时有效接口获取一次
+>component_access_token， 过期通过component_verify_ticket请求接口获取 （第一次通过也是component_verify_ticket请求接口获取）
+authorizer_access_token，过期通过authorizer_refresh_token请求接口获取 （第一次通过authorization_code获取）
 
 
 
