@@ -126,9 +126,7 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 }
 
 func (o *Online) Request(requestList []*requestInfo) error {
-	for index, request := range requestList {
-		fmt.Printf("=================== %d: %s ===============", index, request.Project)
-
+	for _, request := range requestList {
 		switch request.Type {
 		case OnlineTypeGit: //合并
 			err := o.git.Merge(o.ctx, request.Project, request.Num)

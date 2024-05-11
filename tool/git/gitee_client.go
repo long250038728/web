@@ -118,8 +118,8 @@ func (g *Client) Merge(ctx context.Context, repos string, num int32) error {
 	if !res.Merged {
 		return errors.New(res.Message)
 	}
+	fmt.Println("")
 	fmt.Println(string(resp))
-	fmt.Printf("%v", res)
 	return nil
 }
 

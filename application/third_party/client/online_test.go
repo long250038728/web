@@ -27,7 +27,7 @@ func TestOnlineBuild(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := NewOnlineClient(context.Background(), giteeClient, jenkinsClient).Build("release/v3.5.62", "master", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
+	if err := NewOnlineClient(context.Background(), giteeClient, jenkinsClient).Build("hotfix/sql_20240511", "master", "/Users/linlong/Desktop/online/linl.yaml"); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")
