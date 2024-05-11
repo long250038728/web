@@ -75,9 +75,9 @@ OAuth2.0
 
     第三次交互： （第三方、淘宝/抖音的交互）
     淘宝/抖音-->第三方  :  这是授权码，我发给你，你拿这个授权码去申请访问令牌 （回调单向）[96973a6f5637fb3d1049f6d456702932.webp](..%2F..%2F..%2F96973a6f5637fb3d1049f6d456702932.webp)
-    第三方-->淘宝/抖音 :   这是给我的授权码，我现在需要申请访问令牌
-    淘宝/抖音-->第三方 :   好的没问题，这个访问令牌个给你
-    第三方-->客户      :   已经完成了授权
+    第三方-->淘宝/抖音  :   这是给我的授权码，我现在需要申请访问令牌
+    淘宝/抖音-->第三方  :   好的没问题，这个访问令牌个给你
+    第三方-->客户       :   已经完成了授权
 
 ```
 
@@ -87,25 +87,67 @@ OAuth2.0
         2. 第三方的信息(身份证号是xxxxx)
         3. 授权后回调的地址（不直接http响应是为了验证地址是否第三方注册时提供的合法不）
     * 第二次交互:  
-        1. 客户确定授权给第三方前端（为了让前端知道已经返回成功）
+        1. 客户确定授权
     * 第三次交互
-        1. 第三方前端发起请求。拿到授权码
+        1. 第三方前端通过回调拿到授权码
         2. 第三方把授权码去淘宝/抖音获取访问令牌
         3. 淘宝/抖音返回给第三方，第三方告诉客户申请通过
 
 目的:
-    1.授权的发起及同意是在客户手上决定的（第三方只是提供了授权页面，第三方信息及回调地址）
-    2.返回授权码给第三方不直接返回访问令牌是为了需要让第三方主动的获取。从安全的方面考虑（只认第三方主动调的，以后也是第三方调用，同时令牌不应该暴露在浏览器）
-    3.第三方拿到授权码去申请访问令牌，淘宝/抖音会校验授权码跟第三方的信息，他们一致我才会颁发授权令牌
+    1. 授权的发起及同意是在客户手上决定的（第三方只是提供了授权页面，第三方信息及回调地址）
+    2. 为什么需要回调地址（当客户在授权页面点击授权后，如果没有回调重定向的话就一直停留在这个页面。如果只是返回上一页也不合理）所以重定向顺便带上授权码
+    2. 返回授权码给第三方不直接返回访问令牌是为了需要让第三方主动的获取。从安全的方面考虑（只认第三方主动调的，以后也是第三方调用，同时令牌不应该暴露在浏览器）
+    3. 第三方拿到授权码去申请访问令牌，淘宝/抖音会校验授权码跟第三方的信息，他们一致我才会颁发授权令牌
+
+其他：
+    1. 第三方需要提前在淘宝/抖音进行注册（回调域名，获取权限列表），获取app_id及app_secret
+    2. 淘宝/抖音授权页需要带上几个信息 app_id, open_id,回调地址，获取权限范围，通过生成code
+        * app_id及回调地址是为了验证第三方是否合法
+        * open_id获取客户信息
+    3. 第三方通过code，app_id及app_secret 去获取访问令牌，会校验上面的三个值，然后获取code内容生成，同时生成刷新令牌
+    4. 刷新令牌refresh_token是为了访问令牌一般过期时间为10分钟，超过后如果再次让客户授权不合理则可以通过刷新令牌再次获取
+    5. 刷新令牌使用后是否有效，是否有有效期，超过有效期是续还是重新授权这个是根据不同平台的规则
 
 
 
-
-
-
-
-
-
+微信第三方授权流程：
+```
+    1. 获取component_verify_ticket（通过创建应用时的回到地址，每10分钟会主动推送，有效期12h）
+    2. 获取component_access_token （有效期2h）
+        POST https://api.weixin.qq.com/cgi-bin/component/api_component_token
+            component_appid	string	是	第三方平台 appid
+            component_appsecret	string	是	第三方平台 appsecret
+            component_verify_ticket	string	是	微信后台推送的 ticket
+    3. 获取pre_auth_code （获取生成授权码获连接需要pre_auth_code）及前端/应用跳到微信授权页参数
+            POST https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=COMPONENT_ACCESS_TOKEN
+                component_access_token	string	是	第三方平台component_access_token，不是authorizer_access_token
+                component_appid	string	是	第三方平台 appid
+    4. 生成微信授权页参数返回到前端（或前端自己拼装url）
+            component_appid	是	第三方平台方 appid
+            pre_auth_code	是	预授权码
+            redirect_uri	是	- 授权回调 URI(填写格式为https://xxx)。（插件版无该参数）
+            auth_type	    是	- 要授权的账号类型，即商家点击授权链接或者扫了授权码之后，展示在用户手机端的授权账号类型。（小程序/微信公众号等）
+            biz_appid	    否	- 指定授权唯一的小程序或公众号 。
+            category_id_list	否	- 指定的权限集id列表，如果不指定，则默认拉取当前第三方账号已经全网发布的权限集列表。
+    5. 用户点击授权后会回调传递authorization_code参数，通过authorization_code换authorizer_access_token/authorizer_refresh_token
+            POST https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token=COMPONENT_ACCESS_TOKEN
+                component_access_token	string	是	第三方平台component_access_token，不是authorizer_access_token
+                component_appid	string	是	第三方平台 appid
+                authorization_code	string	是	授权码, 会在授权成功时返回给第三方平台，详见第三方平台授权流程说明
+    6. 当authorizer_access_token过期需要authorizer_refresh_token获取最新的authorizer_access_token
+            POST https://api.weixin.qq.com/cgi-bin/component/api_authorizer_token?component_access_token=COMPONENT_ACCESS_TOKEN
+                component_access_token	string	是	第三方平台component_access_token
+                component_appid	string	是	第三方平台 appid
+                authorizer_appid	string	是	授权方 appid
+                authorizer_refresh_token	string	是	刷新令牌，获取授权信息时得到
+```
+微信第三方授权流程总结：
+    1. 获取第三方相关的每个接口都需要带上component_access_token、component_appid参数
+    2. 第1，2第三方应用前准备工作     第3,4为授权前的准备工作   第5，6是获取authorizer_access_token及更新authorizer_refresh_token
+    3. component中 component_verify_ticket在回调获取，component_access_token两个小时有效接口获取一次
+    4. authorizer中 authorizer_refresh_token不会过期,authorizer_access_token两个小时有效接口获取一次
+    component_access_token， 过期通过component_verify_ticket请求接口获取 （第一次通过也是component_verify_ticket请求接口获取）
+    authorizer_access_token，过期通过authorizer_refresh_token请求接口获取 （第一次通过authorization_code获取）
 
 
 
