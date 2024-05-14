@@ -18,7 +18,7 @@ func init() {
 func TestSet(t *testing.T) {
 	auth := NewCacheAuth(c)
 	t.Log(auth.Set(context.Background(),
-		&UserClaims{Id: 123456, Name: "john", Other: map[string]string{"size": "11111"}},
+		&UserClaims{Id: 123456, Name: "john"},
 		&UserSession{AuthList: []string{"123", "456", "789"}},
 	))
 }

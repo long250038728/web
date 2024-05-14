@@ -2,11 +2,8 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/struct_map"
@@ -67,7 +64,7 @@ func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (*UserClaims,
 	}
 
 	//获取Session对象
-	userSession, err := p.Session(ctx, userClaims.AuthToken)
+	userSession, err := p.Session(ctx, userClaims.AuthToken())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -157,13 +154,7 @@ func (p *cacheAuth) Set(ctx context.Context, userClaims *UserClaims, userSession
 		return "", err
 	}
 
-	if len(userClaims.AuthToken) == 0 {
-		hash := sha256.New()
-		hash.Write([]byte(fmt.Sprintf("%d", userClaims.Id))) // 向哈希计算对象中写入字符串数据
-		userClaims.AuthToken = hex.EncodeToString(hash.Sum(nil))
-	}
-
-	ok, err := p.cache.Set(ctx, userClaims.AuthToken, string(b))
+	ok, err := p.cache.Set(ctx, userClaims.AuthToken(), string(b))
 	if err != nil {
 		return "", err
 	}

@@ -2,7 +2,10 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -13,10 +16,14 @@ type jwtClaims struct {
 
 // UserClaims 外部使用的信息
 type UserClaims struct {
-	Id        int32
-	Name      string
-	Other     map[string]string
-	AuthToken string
+	Id   int32  `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"`
+}
+
+func (c *UserClaims) AuthToken() string {
+	hash := sha256.New()
+	hash.Write([]byte(fmt.Sprintf("%d", c.Id))) // 向哈希计算对象中写入字符串数据
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // UserSession 内部使用的信息

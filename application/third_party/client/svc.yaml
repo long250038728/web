@@ -5,7 +5,7 @@ kobe:
 #- kobe-report
 #- kobe-message
 #- kobe-customer
-# - kobe-merchant
+- kobe-merchant
 #- kobe-foundation
 # - kobe-reportcenter
 marx:
