@@ -8,12 +8,12 @@ fi
 
 # 从参数中获取项目名称
 project_name="$1"
-project_dir="/Users/linlong/Desktop/online/${project_name}"  # 使用项目名称构建kobe目录的相对路径
+project_dir="/Users/linlong/Desktop/online/${project_name}"  # 使用项目名称构建目录的相对路径
 tag_file="./tag"
 
 
 
-# 切换到kobe目录
+# 切换到目录
 cd "$project_dir"
 
 # 检查是否成功切换目录

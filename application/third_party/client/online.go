@@ -8,8 +8,10 @@ import (
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
+	"github.com/long250038728/web/tool/persistence/orm"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type requestInfo struct {
@@ -20,10 +22,13 @@ type requestInfo struct {
 }
 
 type Online struct {
-	git      git.Git
-	jenkins  *jenkins.Client
+	git     git.Git
+	jenkins *jenkins.Client
+	orm     *orm.Gorm
+
 	ctx      context.Context
 	services *Svc
+	sql      string
 }
 
 const (
@@ -33,12 +38,14 @@ const (
 	OnlineTypeSql     int32 = 4 //数据库
 )
 
-func NewOnlineClient(ctx context.Context, git git.Git, jenkins *jenkins.Client) *Online {
+func NewOnlineClient(ctx context.Context, git git.Git, jenkins *jenkins.Client, orm *orm.Gorm) *Online {
 	return &Online{
 		ctx:      ctx,
 		git:      git,
 		jenkins:  jenkins,
+		orm:      orm,
 		services: &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
+		sql:      "",
 	}
 }
 
@@ -53,11 +60,19 @@ var productList = []string{
 	"zhubaoe/marx",
 }
 
-func (o *Online) Build(source, target, svcPath string) error {
+func (o *Online) Build(source, target, svcPath, sqlPath string) error {
 	if len(svcPath) > 0 {
 		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
 			return err
 		}
+	}
+
+	if len(sqlPath) > 0 {
+		b, err := os.ReadFile(sqlPath)
+		if err != nil {
+			return err
+		}
+		o.sql = string(b)
 	}
 
 	list, err := o.list(source, target)
@@ -79,6 +94,13 @@ func (o *Online) Build(source, target, svcPath string) error {
 
 func (o *Online) list(source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
+
+	if len(o.sql) > 0 {
+		for _, sql := range strings.Split(o.sql, ";") {
+			address = append(address, &requestInfo{Type: OnlineTypeSql, Project: strings.Replace(sql, "\n", " ", -1)})
+		}
+	}
+
 	for _, addr := range productList {
 		list, err := o.git.GetPR(o.ctx, addr, source, target)
 		if err != nil || len(list) != 1 {
@@ -149,6 +171,12 @@ func (o *Online) Request(requestList []*requestInfo) error {
 			if err != nil {
 				fmt.Printf("=================== %s  err ===============", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
+			}
+		case OnlineTypeSql: //sql
+			err := o.orm.Exec(request.Project).Error
+			if err != nil {
+				fmt.Printf("=================== %s  err ===============", err)
+				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "sql build", err))
 			}
 		default:
 			return errors.New("type is err")
