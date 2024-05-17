@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "/order";
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+
+service Order{
+   rpc OrderDetail(OrderDetailRequest) returns (OrderDetailResponse);
+}
+
+message OrderDetailRequest {
+  int32 id = 1  [(gogoproto.moretags) = 'form:"id"', (gogoproto.jsontag) = 'id'];
+}
+message OrderDetailResponse {
+  int32 id = 1  [(gogoproto.moretags) = 'form:"id"', (gogoproto.jsontag) = 'id'];
+  string order_sn = 2  [(gogoproto.moretags) = 'form:"order_sn"', (gogoproto.jsontag) = 'order_sn'];
+}

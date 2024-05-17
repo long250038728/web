@@ -79,6 +79,10 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 	svcInstance := c.balancer.Balancer(c.svcInstances)
 
 	//创建socket 连接
-	address := fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port)
-	return grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(clientParameters)) //rpc.WithResolvers() 服务发现
+	return grpc.Dial(
+		fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(clientParameters),
+		//rpc.WithResolvers() 服务发现
+	)
 }

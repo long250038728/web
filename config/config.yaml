@@ -1,4 +1,6 @@
-server_name: "kobe-new"
-grpc_port: 9002
-http_port: 8002
-
+kobe-new-user:
+    http_port: 8001
+    grpc_port: 9001
+kobe-new-order:
+    http_port: 8002
+    grpc_port: 9002

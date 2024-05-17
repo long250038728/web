@@ -2,11 +2,10 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/server/http"
+	"github.com/olivere/elastic/v7"
 )
 
 type UserRepository struct {
@@ -20,25 +19,12 @@ func NewUserRepository(util *app.Util) *UserRepository {
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
-	//md, _ := metadata.FromOutgoingContext(ctx)
-	//d, _ := json.Marshal(md)
-	//fmt.Println(string(d))
-	//opentelemetry.NewSpan(ctx, "hello")
-
-	if claims, err := auth.GetClaims(ctx); err == nil {
-		fmt.Println(claims.Name)
-	}
-
-	if session, err := auth.GetSession(ctx); err == nil {
-		fmt.Println(session.AuthList)
-	}
-
 	type customer struct {
 		Name string `json:"name"`
 	}
 	c := &customer{}
 	//orm
-	r.util.Db(ctx).Where("id = ?", 1).Find(c)
+	r.util.Db(ctx).Select("name").Where("id = ?", 1).Find(c)
 
 	////mq
 	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
@@ -55,26 +41,32 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 	//_ = lock.Lock(ctx)
 	//_ = lock.UnLock(ctx)
 
-	////es
-	//query := elastic.NewBoolQuery().Must(
-	//	elastic.NewTermQuery("merchant_id", 168),
-	//	elastic.NewRangeQuery("age").Gt(10).Lte(20),
-	//)
-	//res, _ := r.util.Es.Search("hello").Query(query).From(0).Size(100).Do(ctx)
-	//for _, data := range res.Hits.Hits {
-	//	fmt.Println(data.Source)
-	//}
+	//es
+	query := elastic.NewBoolQuery().Must(
+		elastic.NewTermQuery("merchant_id", 240),
+		elastic.NewTermQuery("merchant_shop_id", 867),
+		elastic.NewRangeQuery("gold_weight").Gte(0).Lte(10000),
+		elastic.NewMatchQuery("admin_user_name", "小刘"),
+		elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
+	)
+	_, _ = r.util.Es().Search("sale_order_record_report").Query(query).From(0).Size(100).Do(ctx)
 
-	data := map[string]any{
+	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
 		"start_date":       "2023-12-01",
 		"end_date":         "2023-12-01",
 		"field":            "goods_type_id",
 		"client_name":      "app",
-	}
-
-	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
+	})
+	_, _, _ = http.NewClient().Post(ctx, "http://test.zhubaoe.cn:9999/", map[string]any{
+		"a": "Login",
+		"m": "Admin",
+		"p": "1",
+		"r": "{\"merchant_code\":\"ab190735\",\"user_name\":\"yzt\",\"password\":\"123456\",\"last_admin_id\":\"\",\"last_admin_name\":\"\",\"shift_status\":\"1\"}",
+		"t": "00000",
+		"v": "2.4.4",
+	})
 
 	return "hello:" + request.Name + " " + c.Name, nil
 }

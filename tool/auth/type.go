@@ -32,12 +32,15 @@ type UserSession struct {
 }
 
 type Auth interface {
-	// Parse 生成accessToken
-	Parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error)
-	// Auth 判断是否有权限
+	// Parse 解析accessToken
+	// 生成Claims Session存放到ctx中 通过 GetClaims GetSession 获取
+	Parse(ctx context.Context, accessToken string) (context.Context, error)
+
+	// Auth 判断是否有权限 判断path是否在GetSession中
 	Auth(ctx context.Context, path string) error
-	// Set 生成accessToken  refreshToken
-	Set(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error)
+
+	// Signed 生成accessToken
+	Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error)
 }
 
 type claims struct{}

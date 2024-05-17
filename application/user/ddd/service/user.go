@@ -21,7 +21,7 @@ func SetUserDomain(domain *domain.UserDomain) UserServerOpt {
 	}
 }
 
-func NewUserService(opts ...UserServerOpt) *UserService {
+func NewService(opts ...UserServerOpt) *UserService {
 	s := &UserService{}
 	for _, opt := range opts {
 		opt(s)

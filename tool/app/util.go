@@ -11,7 +11,6 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"go.opentelemetry.io/otel/exporters/jaeger"
 	"golang.org/x/sync/singleflight"
 	"os"
 	"path/filepath"
@@ -26,7 +25,7 @@ type Util struct {
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
 	db       *orm.Gorm
 	es       *es.ES
-	exporter *jaeger.Exporter
+	exporter opentelemetry.SpanExporter
 
 	//cache mq 主要是一些通用的东西，可以用接口代替
 	cache    cache.Cache
@@ -37,21 +36,47 @@ type Util struct {
 var once sync.Once
 var u *Util
 
+var path = ""
+var name = ""
+
+func InitInfo(configPath, serviceName string) {
+	path = configPath
+	name = serviceName
+}
+
 func NewUtil() *Util {
 	once.Do(func() {
+		if len(name) == 0 {
+			name = os.Getenv("SERVICE_NAME")
+		}
+		if len(name) == 0 {
+			panic("serviceName is null")
+		}
+
+		//获取配置
 		var cfgPaths = []func() string{
 			func() string {
-				wd, _ := os.Getwd()
-				return filepath.Join(wd, "config") //获取当前路径下的config文件夹
+				return path //init的参数变量
 			},
 			func() string {
 				return os.Getenv("CONFIG_PATH") //获取环境变量CONFIG_PATH
 			},
+			func() string {
+				wd, _ := os.Getwd()
+				return filepath.Join(wd, "config") //获取当前路径下的config文件夹
+			},
 		}
 
+		//加载配置 && 生成util工具
 		for _, configPath := range cfgPaths {
-			if file, err := os.Stat(configPath()); err == nil && file.IsDir() {
-				util, err := NewUtilPath(configPath())
+			root := configPath()
+
+			if len(root) == 0 {
+				continue
+			}
+
+			if file, err := os.Stat(root); err == nil && file.IsDir() {
+				util, err := NewUtilPath(root, name)
 				if err != nil {
 					panic("util init error" + err.Error())
 				}
@@ -65,8 +90,8 @@ func NewUtil() *Util {
 }
 
 // NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root string, yaml ...string) (*Util, error) {
-	conf, err := NewAppConfig(root, yaml...)
+func NewUtilPath(root, serviceName string, yaml ...string) (*Util, error) {
+	conf, err := NewAppConfig(root, serviceName, yaml...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +175,6 @@ func (u *Util) Register() register.Register {
 	return u.register
 }
 
-func (u *Util) Exporter() *jaeger.Exporter {
+func (u *Util) Exporter() opentelemetry.SpanExporter {
 	return u.exporter
 }

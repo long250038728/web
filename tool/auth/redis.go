@@ -51,8 +51,21 @@ func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
 	return r
 }
 
+// Parse 解析accessToken
+//Parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error)
+
+func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (context.Context, error) {
+	userClaims, userSession, err := p.parse(ctx, accessToken)
+	if err != nil {
+		return nil, err
+	}
+	ctx = SetClaims(ctx, userClaims)
+	ctx = SetSession(ctx, userSession)
+	return ctx, nil
+}
+
 // Parse 解析 signed
-func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error) {
+func (p *cacheAuth) parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error) {
 	if len(accessToken) == 0 {
 		return p.userClaims, p.userSession, nil
 	}
@@ -147,8 +160,8 @@ func (p *cacheAuth) whitePath(path string) bool {
 	return false
 }
 
-// Set 用户内部信息生产token
-func (p *cacheAuth) Set(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error) {
+// Signed 用户内部信息生产token
+func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error) {
 	b, err := json.Marshal(userSession)
 	if err != nil {
 		return "", err

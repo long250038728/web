@@ -37,10 +37,22 @@ type Config struct {
 }
 
 // NewAppConfig 获取app配置
-func NewAppConfig(rootPath string, yaml ...string) (config *Config, err error) {
-	conf := Config{}
+func NewAppConfig(rootPath, serviceName string, yaml ...string) (config *Config, err error) {
+	configLoad := configurator.NewYaml()
+
+	//获取服务配置
+	var services map[string]*Config
+	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &services); err != nil {
+		return nil, err
+	}
+	conf, ok := services[serviceName]
+	if !ok {
+		return nil, errors.New("svc name not find")
+	}
+	conf.ServerName = serviceName
+
+	//获取第三方中间件配置
 	configs := map[string]any{
-		"config.yaml":   &conf,
 		"db.yaml":       &conf.dbConfig,
 		"redis.yaml":    &conf.redisConfig,
 		"kafka.yaml":    &conf.kafkaConfig,
@@ -48,12 +60,10 @@ func NewAppConfig(rootPath string, yaml ...string) (config *Config, err error) {
 		"register.yaml": &conf.registerConfig,
 		"tracing.yaml":  &conf.tracingConfig,
 	}
-
 	if len(yaml) == 0 {
-		yaml = []string{"config.yaml", "db.yaml", "redis.yaml", "kafka.yaml", "es.yaml", "register.yaml", "tracing.yaml"}
+		yaml = []string{"db.yaml", "redis.yaml", "kafka.yaml", "es.yaml", "register.yaml", "tracing.yaml"}
 	}
 
-	configLoad := configurator.NewYaml()
 	for _, fileName := range yaml {
 		if val, ok := configs[fileName]; ok {
 			if err := configLoad.Load(filepath.Join(rootPath, fileName), val); err != nil {
@@ -62,7 +72,7 @@ func NewAppConfig(rootPath string, yaml ...string) (config *Config, err error) {
 		}
 	}
 	conf.IP, err = conf.getIP()
-	return &conf, nil
+	return conf, nil
 }
 
 // getIP 获取ip地址

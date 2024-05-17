@@ -2,8 +2,7 @@ package es
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"github.com/olivere/elastic/v7"
 	"reflect"
 )
@@ -73,38 +72,30 @@ func (s *SearchService) FetchSourceContext(fetchSourceContext *elastic.FetchSour
 
 func (s *SearchService) Do(ctx context.Context) (*elastic.SearchResult, error) {
 	data, err := s.SearchService.Do(ctx)
-	func() {
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println(err)
-			}
-		}()
+	s.addLog(ctx, data, err)
+	return data, err
+}
 
-		//参数
-		val := reflect.ValueOf(s.SearchService)
-		if val.Kind() == reflect.Ptr {
-			val = val.Elem()
-		}
-		info, err := (*elastic.SearchSource)(val.FieldByName("searchSource").UnsafePointer()).Source()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		b, err := json.Marshal(info)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(string(b))
+func (s *SearchService) addLog(ctx context.Context, data *elastic.SearchResult, err error) {
+	span := opentelemetry.NewSpan(ctx, "ES")
+	defer span.Close()
 
-		//结果
-		b, err = json.Marshal(data)
-		if err != nil {
-			fmt.Println(err)
-			return
+	defer func() {
+		if r := recover(); r != nil {
+			_ = span.Add(map[string]any{
+				"recover": r,
+			})
 		}
-		fmt.Println(string(b))
 	}()
 
-	return data, err
+	info, infoErr := (*elastic.SearchSource)(reflect.Indirect(reflect.ValueOf(s.SearchService)).FieldByName("searchSource").UnsafePointer()).Source()
+	_ = span.Add(map[string]any{
+		"request": info,
+		"error":   infoErr,
+	})
+
+	//_ = span.Add(map[string]any{
+	//	"response": data,
+	//	"error":    err,
+	//})
 }

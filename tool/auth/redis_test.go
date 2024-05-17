@@ -17,14 +17,20 @@ func init() {
 
 func TestSet(t *testing.T) {
 	auth := NewCacheAuth(c)
-	t.Log(auth.Set(context.Background(),
+	t.Log(auth.Signed(context.Background(),
 		&UserClaims{Id: 123456, Name: "john"},
 		&UserSession{AuthList: []string{"123", "456", "789"}},
 	))
 }
 
 func TestParse(t *testing.T) {
-	var accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTUyNjc0MTksImlhdCI6MTcxNTE1OTQxOSwiSWQiOjEyMzQ1NiwiTmFtZSI6ImxpbmwiLCJPdGhlciI6eyJzaXplIjoiMTExMTEifSwiQXV0aFRva2VuIjoiMTExNzgzN2IxYjFmZjExZmExN2YwZDhhNjIwOWI1M2ZlNTk2Mjk5MWZhZmQxMDczM2MxY2NkYTY0ZTg2ZTEwZSJ9.R4LqDkWvMcHHJFqg8FkiK2_8Ye0Lk01behcxFYrgCZs"
+	var accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTU5NDg4NzAsImlhdCI6MTcxNTg0MDg3MCwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.vk7CR288G1s5a8ky5gV2iUtmbzxyz1LYRT5eJSIpnqE"
 	auth := NewCacheAuth(c)
-	t.Log(auth.Parse(context.Background(), accessToken))
+	ctx, err := auth.Parse(context.Background(), accessToken)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(GetClaims(ctx))
+	t.Log(GetSession(ctx))
 }

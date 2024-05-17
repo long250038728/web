@@ -61,6 +61,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		check.GRPC = fmt.Sprintf("%s:%d", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check
 	}
+
 	return r.client.Agent().ServiceRegister(&registration)
 }
 

@@ -5,7 +5,6 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"go.opentelemetry.io/otel/sdk/trace"
 	"reflect"
 )
 
@@ -27,7 +26,7 @@ func Register(register register.Register) Option {
 	}
 }
 
-func Tracing(exporter trace.SpanExporter, serviceName string) Option {
+func Tracing(exporter opentelemetry.SpanExporter, serviceName string) Option {
 	return func(app *App) error {
 		if !IsNil(exporter) {
 			t, err := opentelemetry.NewTrace(context.Background(), exporter, serviceName)

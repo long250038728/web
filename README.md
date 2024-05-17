@@ -10,19 +10,20 @@
 
 
 所有的服务/中间件都应该在服务器集群中且不可暴露，仅提供少量的端口对外暴露(如网关入口)。保证了服务/中间件的安全不被恶意攻击且合理有效的控制内部人员的使用权限
-    1.公/私有云集群
-    2.docker network
+1. 公/私有云集群
+2. docker network
 
 暴露端口
-    1.consul 8500 为了可以观察服务注册发现相关的信息
-    2.kong 8000 通过网关入口可以访问到后端web服务
-    3.konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
+1. consul 8500 为了可以观察服务注册发现相关的信息
+2. kong 8000 通过网关入口可以访问到后端web服务
+3. konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
+
 
 固定ip
-    172.22.0.2 consul
-    172.22.0.3 kong-database
-    172.22.0.4 kong
-    172.22.0.4 konga
+1. 172.22.0.2 consul
+2. 172.22.0.3 kong-database
+3. 172.22.0.4 kong
+4. 172.22.0.4 konga
 
 
 ### docker运行
@@ -100,18 +101,31 @@ pantsel/konga
 4.web服务应用
 ```
 docker pull golang:1.20 
-docker run --network=my-service-network --name=app -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=user  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/user/cmd/main.go
+go run application/user/cmd/main.go -config /app/config
+
+
+
+docker pull golang:1.20 
+docker run --network=my-service-network --name=order  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+export GOPROXY=https://goproxy.cn,direct
+cd /app
+go run application/order/cmd/main.go -config /app/config
+
+
+curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.22.0.4:8002/
+
 ```
 
 ### DNS验证
-dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
-dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
+1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
+2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
 
 
 ### konga配置 127.0.0.1:1337
+```
 创建
     admin api: 172.22.0.4:8001
 
@@ -125,7 +139,7 @@ dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
     Strip Path: false                       //从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
         true:   http://127.0.0.1:8000/user/hello  =>  后端path "/hello"
         false:  http://127.0.0.1:8000/user/hello  =>  后端path "/user/hello"
-
+```
 
 
 ### 扩展
@@ -166,6 +180,7 @@ func main() {
 ```
 使用 dig @127.0.0.1 -p 53 user.service.consul SRV 命令进行输出
 ```
+linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul
 ; (1 server found)
 ;; global options: +cmd
 ;; Got answer:

@@ -34,8 +34,8 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 		m.pool.Put(middleware)
 	}()
 
-	middleware.Set(gin)
-	ctx, err := middleware.Context()
+	ctx, err := middleware.Context(gin)
+
 	if err != nil {
 		middleware.WriteJSON(nil, err)
 		return
@@ -60,8 +60,7 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 		m.pool.Put(middleware)
 	}()
 
-	middleware.Set(gin)
-	ctx, err := middleware.Context()
+	ctx, err := middleware.Context(gin)
 	if err != nil {
 		middleware.WriteJSON(nil, err)
 		return

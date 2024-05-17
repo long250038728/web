@@ -13,12 +13,32 @@ type cacheLimiter struct {
 	times      int64
 }
 
-func NewCacheLimiter(client cache.Cache, expiration time.Duration, times int64) Limiter {
-	return &cacheLimiter{
-		client:     client,
-		expiration: expiration,
-		times:      times,
+type Opt func(limiter *cacheLimiter)
+
+func SetExpiration(expiration time.Duration) Opt {
+	return func(limiter *cacheLimiter) {
+		limiter.expiration = expiration
 	}
+}
+
+func SetTimes(times int64) Opt {
+	return func(limiter *cacheLimiter) {
+		limiter.times = times
+	}
+}
+
+func NewCacheLimiter(client cache.Cache, opts ...Opt) Limiter {
+	limit := &cacheLimiter{
+		client:     client,
+		expiration: time.Second,
+		times:      10,
+	}
+
+	for _, opt := range opts {
+		opt(limit)
+	}
+
+	return limit
 }
 
 func (l *cacheLimiter) Allow(ctx context.Context, key string) error {

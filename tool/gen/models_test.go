@@ -1,33 +1,21 @@
 package gen
 
 import (
-	"context"
-	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"os"
 	"testing"
 )
-
-func initDB() (*orm.Gorm, error) {
-	conf, err := app.NewAppConfig("/Users/linlong/Desktop/web/config")
-	if err != nil {
-		return nil, err
-	}
-
-	util, err := app.NewUtilConfig(conf)
-	if err != nil {
-		return nil, err
-	}
-	return util.Db(context.Background()), nil
-}
 
 func TestModels_Gen(t *testing.T) {
 	var err error
 	var db *orm.Gorm
 	var b []byte
 
-	//db
-	if db, err = initDB(); err != nil {
+	var ormConfig orm.Config
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
+	db, err = orm.NewGorm(&ormConfig)
+	if err != nil {
 		t.Error(err)
 		return
 	}
@@ -52,8 +40,10 @@ func TestModels_GenProto(t *testing.T) {
 	var db *orm.Gorm
 	var b []byte
 
-	//db
-	if db, err = initDB(); err != nil {
+	var ormConfig orm.Config
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
+	db, err = orm.NewGorm(&ormConfig)
+	if err != nil {
 		t.Error(err)
 		return
 	}

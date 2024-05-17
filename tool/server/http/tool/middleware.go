@@ -34,21 +34,49 @@ func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 	return middleware
 }
 
-func (m *Middleware) Set(ginContext *gin.Context) *Middleware {
-	m.ginContext = ginContext
+func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
+	//从请求里面获取生成新的ctx
+	ctx := opentelemetry.ExtractHttp(ginContext.Request.Context(), ginContext.Request)
 
-	m.ctx = opentelemetry.ExtractHttp(m.ginContext.Request.Context(), ginContext.Request) //从请求里面获取生成新的ctx
-	m.span = opentelemetry.NewSpan(m.ctx, "HTTP Request")                                 //生成一个新的带有span的context
+	//生成一个新的带有span的context
+	span := opentelemetry.NewSpan(ctx, ginContext.Request.RequestURI) //记录请求头
+
+	ctx = span.Context()
 
 	//把链路信息生成到metadata中
 	mCarrier := map[string]string{}
-	opentelemetry.InjectMap(m.span.Context(), mCarrier) //通过span对象生成map放入metadata中（之后的grpc中获取）
-	m.ctx = metadata.NewOutgoingContext(m.span.Context(), metadata.New(mCarrier))
+	mCarrier["authorization"] = ginContext.GetHeader("Authorization")
+	opentelemetry.InjectMap(span.Context(), mCarrier) //通过span对象生成map放入metadata中（之后的grpc中获取）
 
-	//记录请求头
-	m.span.AddEvent(m.ginContext.Request.RequestURI)
+	//把基础信息写到ctx及链路中
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
+	_ = span.Add(mCarrier)
+	ginContext.Header("traceparent", mCarrier["traceparent"])
 
-	return m
+	//限流
+	if m.limiter != nil {
+		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
+			return ctx, err
+		}
+	}
+
+	//授权
+	if m.auth != nil {
+		parseCtx, err := m.auth.Parse(ctx, ginContext.GetHeader("Authorization"))
+		if err != nil {
+			return ctx, err
+		}
+		if err = m.auth.Auth(ctx, ginContext.Request.URL.Path); err != nil {
+			return ctx, err
+		}
+		ctx = parseCtx
+	}
+
+	m.ctx = ctx
+	m.span = span
+	m.ginContext = ginContext
+
+	return m.ctx, nil
 }
 
 func (m *Middleware) bind(request any) error {
@@ -74,35 +102,6 @@ func (m *Middleware) bind(request any) error {
 		m.span.AddEvent(err.Error())
 	}
 	return err
-}
-
-func (m *Middleware) Context() (context.Context, error) {
-	ctx := m.ctx
-
-	//限流
-	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
-			return m.ctx, err
-		}
-	}
-
-	//授权
-	if m.auth != nil {
-		//获取Claims对象
-		userClaims, userSession, err := m.auth.Parse(ctx, m.ginContext.GetHeader("Authorization"))
-		if err != nil {
-			return m.ctx, err
-		}
-
-		if err = m.auth.Auth(ctx, m.ginContext.Request.URL.Path); err != nil {
-			return m.ctx, err
-		}
-
-		ctx = auth.SetClaims(ctx, userClaims)
-		ctx = auth.SetSession(ctx, userSession)
-		m.ctx = ctx
-	}
-	return m.ctx, nil
 }
 
 func (m *Middleware) Reset() {

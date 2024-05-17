@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/user/ddd/domain"
-	"github.com/long250038728/web/application/user/ddd/repository"
-	"github.com/long250038728/web/application/user/ddd/service"
-	"github.com/long250038728/web/application/user/router"
+	"github.com/long250038728/web/application/order/ddd/domain"
+	"github.com/long250038728/web/application/order/ddd/repository"
+	"github.com/long250038728/web/application/order/ddd/service"
+	"github.com/long250038728/web/application/order/router"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -18,26 +18,26 @@ import (
 func main() {
 	path := flag.String("config", "", "config path")
 	flag.Parse()
-	app.InitInfo(*path, protoc.UserService)
+	app.InitInfo(*path, protoc.OrderService)
 
 	fmt.Println(Run())
 }
 
 func Run() error {
 	util := app.NewUtil()
-
-	// 定义服务
-	userService := service.NewService(
-		service.SetUserDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
+	orderService := service.NewService(
+		service.SetOrderDomain(
+			domain.NewOrderDomain(repository.NewOrderRepository(util)),
+		),
 	)
 
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
-				router.RegisterHTTPServer(engine, userService)
+				router.RegisterHTTPServer(engine, orderService)
 			}),
 			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
-				router.RegisterGRPCServer(engine, userService)
+				router.RegisterGRPCServer(engine, orderService)
 			}),
 		),
 		app.Register(util.Register()),                      //服务注册 && 发现

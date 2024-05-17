@@ -2,6 +2,7 @@ package opentelemetry
 
 import (
 	"context"
+	"encoding/json"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -23,6 +24,15 @@ func NewSpan(ctx context.Context, spanName string, opts ...trace.SpanStartOption
 func (s *Span) TraceID() string {
 	sContext := s.span.SpanContext()
 	return sContext.TraceID().String()
+}
+
+func (s *Span) Add(event any) error {
+	b, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	s.AddEvent(string(b))
+	return nil
 }
 
 func (s *Span) AddEvent(event string) {

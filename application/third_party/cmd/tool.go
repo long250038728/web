@@ -238,7 +238,7 @@ func request() *cobra.Command {
 			if len(args) == 3 {
 				conf = args[2]
 			}
-			if err := client.NewOnlineClient(context.Background(), gitClient, jenkinsClient).Build(args[0], args[1], conf); err != nil {
+			if err := client.NewOnlineClient(context.Background(), gitClient, jenkinsClient, nil).Build(args[0], args[1], conf, ""); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")

@@ -40,6 +40,7 @@ type Server struct {
 func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	opts := []grpc.ServerOption{
 		//grpc.ChainUnaryInterceptor(opentracing.Interceptor(), prometheus.Interceptor()), //中间件
+		grpc.ChainUnaryInterceptor(serverInterceptor()),
 		grpc.KeepaliveEnforcementPolicy(enforcementPolicy), //保持Keepalive
 		grpc.KeepaliveParams(serverParameters),             //保持Keepalive
 	}
