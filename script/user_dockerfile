@@ -1,7 +1,7 @@
 FROM golang:1.20 as mod
 WORKDIR /app
-COPY  ./go.mod ./
-COPY  ./go.sum ./
+COPY  ./app/go.mod ./
+COPY  ./app/go.sum ./
 ENV GOPROXY=https://goproxy.io,direct
 RUN go mod download
 
@@ -16,4 +16,4 @@ WORKDIR /opt/app
 COPY --from=builder /app/application/user/cmd/main /opt/app/main
 COPY --from=builder /app/config /opt/app/config
 EXPOSE 8001 9001
-CMD ["/opt/app/main"]
+CMD ["/opt/app/main",">>","log.txt"]
