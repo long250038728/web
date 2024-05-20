@@ -17,4 +17,4 @@ rm -rf  app
 #docker push  ccr.ccs.tencentyun.com/zhubaoe/kobe-new:latest
 
 
-docker run -it --name user --network my-service-network ccr.ccs.tencentyun.com/zhubaoe/kobe-new:latest
+docker run -it --name user --network my-service-network cr.ccs.tencentyun.com/zhubaoe/user:latest

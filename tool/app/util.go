@@ -18,6 +18,16 @@ import (
 	"time"
 )
 
+const ConfigPath = 0
+const ConfigCenter = 1
+
+var once sync.Once
+var u *Util
+
+var path = ""
+var name = ""
+var configType int32 = ConfigPath
+
 type Util struct {
 	Info *Config
 	Sf   *singleflight.Group
@@ -33,15 +43,16 @@ type Util struct {
 	register register.Register
 }
 
-var once sync.Once
-var u *Util
-
-var path = ""
-var name = ""
-
-func InitInfo(configPath, serviceName string) {
+func InitPathInfo(configPath, serviceName string) {
 	path = configPath
 	name = serviceName
+	configType = ConfigPath
+}
+
+func InitCenterInfo(configPath, serviceName string) {
+	path = configPath
+	name = serviceName
+	configType = ConfigCenter
 }
 
 func NewUtil() *Util {
@@ -70,13 +81,11 @@ func NewUtil() *Util {
 		//加载配置 && 生成util工具
 		for _, configPath := range cfgPaths {
 			root := configPath()
-
 			if len(root) == 0 {
 				continue
 			}
-
 			if file, err := os.Stat(root); err == nil && file.IsDir() {
-				util, err := NewUtilPath(root, name)
+				util, err := NewUtilPath(root, name, configType)
 				if err != nil {
 					panic("util init error" + err.Error())
 				}
@@ -90,8 +99,8 @@ func NewUtil() *Util {
 }
 
 // NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root, serviceName string, yaml ...string) (*Util, error) {
-	conf, err := NewAppConfig(root, serviceName, yaml...)
+func NewUtilPath(root, serviceName string, configType int32, yaml ...string) (*Util, error) {
+	conf, err := NewAppConfig(root, serviceName, configType, yaml...)
 	if err != nil {
 		return nil, err
 	}

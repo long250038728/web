@@ -12,6 +12,10 @@ func NewYaml() Loader {
 	return &yamlLoad{}
 }
 
+func (y *yamlLoad) LoadBytes(bytes []byte, data interface{}) error {
+	return yaml.Unmarshal(bytes, data)
+}
+
 func (y *yamlLoad) Load(path string, data interface{}) error {
 	b, err := os.ReadFile(path)
 	if err != nil {

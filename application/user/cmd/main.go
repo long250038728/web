@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	path := flag.String("config", "", "config path")
+	path := flag.String("config", "/Users/linlong/Desktop/web/config", "config path")
 	flag.Parse()
-	app.InitInfo(*path, protoc.UserService)
+	app.InitPathInfo(*path, protoc.UserService)
 
 	fmt.Println(Run())
 }
