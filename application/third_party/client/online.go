@@ -153,7 +153,7 @@ func (o *Online) Request(requestList []*requestInfo) error {
 		case OnlineTypeGit: //合并
 			err := o.git.Merge(o.ctx, request.Project, request.Num)
 			if err != nil {
-				fmt.Printf("=================== %s  err ===============", err)
+				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
 			}
 		case OnlineTypeShell: //shell
@@ -163,19 +163,19 @@ func (o *Online) Request(requestList []*requestInfo) error {
 			}
 			err := exec.Command("sh", request.Project, project).Run()
 			if err != nil {
-				fmt.Printf("=================== %s  err ===============", err)
+				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
 			}
 		case OnlineTypeJenkins: //jenkins
 			err := o.jenkins.BlockBuild(o.ctx, request.Project, request.Params)
 			if err != nil {
-				fmt.Printf("=================== %s  err ===============", err)
+				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
 			}
 		case OnlineTypeSql: //sql
 			err := o.orm.Exec(request.Project).Error
 			if err != nil {
-				fmt.Printf("=================== %s  err ===============", err)
+				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "sql build", err))
 			}
 		default:
