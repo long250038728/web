@@ -52,7 +52,7 @@ func (r *etcdCenter) Del(ctx context.Context, key string) error {
 }
 
 func (r *etcdCenter) Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error {
-	ch := r.client.Watch(ctx, key)
+	ch := r.client.Watch(ctx, key, etcdClient.WithRange(etcdClient.GetPrefixRangeEnd(key)))
 	for {
 		select {
 		case resp, ok := <-ch:
@@ -86,7 +86,7 @@ func (r *etcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string
 		}
 
 		// 上传
-		err = r.Set(ctx, fileName, string(b))
+		err = r.Set(ctx, "config-"+fileName, string(b))
 		if err != nil {
 			return err
 		}

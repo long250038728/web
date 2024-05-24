@@ -45,11 +45,29 @@ var productList = []string{
 	"zhubaoe/marx",
 }
 
-var gitToken = "5f8aaa1e024cad5e24e86fda85c57f49"
-var jenkinsToken = "admin:11fbfc1aab366147522f497f6c7d48b2ca"
-var gitClient, _ = git.NewGiteeClient(&git.Config{Token: gitToken})
+var gitConfig git.Config
+var jenkinsConfig jenkins.Config
 
-var jenkinsClient, _ = jenkins.NewJenkinsClient(&jenkins.Config{Address: "http://111.230.143.16:8081", Username: "admin", Password: "11fbfc1aab366147522f497f6c7d48b2ca"})
+var gitClient git.Git
+var jenkinsClient *jenkins.Client
+
+func init() {
+	configLoad := configurator.NewYaml()
+	var err error
+
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
+
+	gitClient, err = git.NewGiteeClient(&gitConfig)
+	if err != nil {
+		panic(err)
+	}
+	jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig)
+	if err != nil {
+		panic(err)
+	}
+}
+
 var ctx = context.Background()
 
 func main() {
@@ -62,7 +80,9 @@ func main() {
 	rootCmd.AddCommand(pr())
 	rootCmd.AddCommand(list())
 	rootCmd.AddCommand(online())
-	rootCmd.AddCommand(request())
+
+	rootCmd.AddCommand(json())
+	rootCmd.AddCommand(action())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err.Error())
@@ -210,7 +230,7 @@ func online() *cobra.Command {
 				address = append(address, list[0].Url)
 			}
 
-			b, err := client.NewPrGen(gitToken, jenkinsToken).GenMerge(address, services)
+			b, err := client.NewPrGen(gitConfig.Token, fmt.Sprintf("%s:%s", jenkinsConfig.Username, jenkinsConfig.Password)).GenMerge(address, services)
 			if err != nil {
 				fmt.Println(err.Error())
 				return
@@ -227,18 +247,41 @@ func online() *cobra.Command {
 	}
 }
 
-func request() *cobra.Command {
+func json() *cobra.Command {
 	return &cobra.Command{
-		Use:   "request [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
+		Use:   "json [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
 		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
 		Long:  "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			conf := ""
+			ctx := context.Background()
+			source := args[0]
+			target := args[1]
+			svcPath := ""
+
 			if len(args) == 3 {
-				conf = args[2]
+				svcPath = args[2]
 			}
-			if err := client.NewOnlineClient(context.Background(), gitClient, jenkinsClient, nil).Build(args[0], args[1], conf, ""); err != nil {
+
+			if err := client.NewOnlineClient(gitClient, jenkinsClient, nil).
+				Build(ctx, source, target, svcPath); err != nil {
+				fmt.Println("error :", err)
+			}
+			fmt.Println("ok")
+		},
+	}
+}
+
+func action() *cobra.Command {
+	return &cobra.Command{
+		Use:   "action",
+		Short: "请求操作",
+		Long:  "请求操作",
+		Args:  cobra.MinimumNArgs(0),
+		Run: func(cmd *cobra.Command, args []string) {
+			ctx := context.Background()
+			if err := client.NewOnlineClient(gitClient, jenkinsClient, nil).
+				Request(ctx); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")

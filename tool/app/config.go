@@ -110,7 +110,7 @@ func NewAppConfig(rootPath, serviceName string, configType int32, yaml ...string
 				}
 			}
 
-			confStr, err := client.Get(ctx, fileName)
+			confStr, err := client.Get(ctx, "config-"+fileName)
 			if err != nil {
 				return nil, err
 			}

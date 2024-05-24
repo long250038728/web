@@ -113,7 +113,6 @@ func NewUtilConfig(config *Config) (*Util, error) {
 		Info: config,
 		Sf:   &singleflight.Group{},
 	}
-
 	var err error
 
 	//创建db客户端

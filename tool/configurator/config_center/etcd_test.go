@@ -49,10 +49,10 @@ func TestRegister_Watch(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1000)
 	defer cancel()
 
-	t.Log(client.Watch(ctx, "hello", func(changeKey, changeVal []byte) {
+	t.Log(client.Watch(ctx, "config", func(changeKey, changeVal []byte) {
 		fmt.Println(string(changeKey), string(changeVal))
 	}))
 }

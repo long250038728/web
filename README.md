@@ -17,6 +17,7 @@
 1. consul 8500 为了可以观察服务注册发现相关的信息
 2. kong 8000 通过网关入口可以访问到后端web服务
 3. konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
+4. mysql 3306 外部mysql数据访问
 
 
 固定ip
@@ -25,6 +26,7 @@
 3. 172.40.0.4 kong
 4. 172.40.0.5 konga
 5. 172.40.0.6 etcd
+6. 172.40.0.7 mysql
 
 
 ### docker运行
@@ -45,6 +47,9 @@ consul:1.15 agent -dev -ui -client='0.0.0.0'
 ```
 
 3.kong 创建
+### DNS验证
+1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
+2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
 ```
 docker pull postgres
 docker pull kong
@@ -113,7 +118,45 @@ docker run -d \
   bitnami/etcd:latest
 ```
 
-5.web服务应用
+5.mysql 创建
+```
+docker run --name mysql \
+ --ip=172.40.0.7 \
+ --network=my-service-network \
+ -e MYSQL_ROOT_PASSWORD=root123456 \
+ -p 3306:3306 -itd \
+ mysql:8.0
+```
+
+6.canal 创建
+>https://github.com/alibaba/canal/wiki/Docker-QuickStart
+https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
+```
+docker pull canal/canal-server:latest
+docker run -d \
+  --name canal-server \
+  --network=my-service-network \
+  -p 11111:11111 \
+  canal/canal-server:latest
+  
+ 
+vi conf/example/instance.properties
+//mysql 设置
+canal.instance.master.address=192.168.1.20:3306
+canal.instance.dbUsername = canal
+canal.instance.dbPassword = canal
+//mq 主题名称
+canal.mq.topic=canal
+
+
+vi /usr/local/canal/conf/canal.properties 
+//设置mq为kafka  格式为json格式  kafka地址
+canal.serverMode = kafka
+canal.mq.flatMessage = true
+kafka.bootstrap.servers = 127.0.0.1:6667
+```
+
+web服务应用
 ```
 docker pull golang:1.20 
 docker run --network=my-service-network --name=user  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
@@ -133,11 +176,6 @@ go run application/order/cmd/main.go -config /app/config
 curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
 
 ```
-
-### DNS验证
-1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
-2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
-
 
 ### konga配置 127.0.0.1:1337
 ```
@@ -220,36 +258,4 @@ linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul SRV
 ; (1 server found)
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
-```
-
-
-
-
-https://github.com/alibaba/canal/wiki/Docker-QuickStart
-https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
-```
-docker pull canal/canal-server:latest
-
-docker run -d \
-  --name canal-server \
-  canal/canal-server:latest
-
-159.75.1.200:9093
-
-
-canalAdmin
-canalAdminzhubaoeQAZ441
-
-
-
-docker run -d \
-  --name canal-server \
-  -e canal.instance.master.address=gz-cdb-9tvaefsf.sql.tencentcdb.com:3306 \
-  -e canal.instance.dbUsername=canalAdmin \
-  -e canal.instance.dbPassword=canalAdminzhubaoeQAZ441 \
-  -e canal.kafka.server=159.75.1.200:9093 \
-  --network host \
-  -p 11111:11111 \
-  canal/canal-server:latest
-
 ```
