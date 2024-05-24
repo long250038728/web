@@ -221,3 +221,35 @@ linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul SRV
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
 ```
+
+
+
+
+https://github.com/alibaba/canal/wiki/Docker-QuickStart
+https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
+```
+docker pull canal/canal-server:latest
+
+docker run -d \
+  --name canal-server \
+  canal/canal-server:latest
+
+159.75.1.200:9093
+
+
+canalAdmin
+canalAdminzhubaoeQAZ441
+
+
+
+docker run -d \
+  --name canal-server \
+  -e canal.instance.master.address=gz-cdb-9tvaefsf.sql.tencentcdb.com:3306 \
+  -e canal.instance.dbUsername=canalAdmin \
+  -e canal.instance.dbPassword=canalAdminzhubaoeQAZ441 \
+  -e canal.kafka.server=159.75.1.200:9093 \
+  --network host \
+  -p 11111:11111 \
+  canal/canal-server:latest
+
+```

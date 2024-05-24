@@ -56,7 +56,7 @@ func initConfig(rootPath string, serviceName string) (config *Config, err error)
 	return conf, nil
 }
 
-func initConfigCenter(rootPath string) (*config_center.ConfigCenter, error) {
+func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
 	var centerConfig config_center.Config
 	if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func initConfigCenter(rootPath string) (*config_center.ConfigCenter, error) {
 
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath, serviceName string, configType int32, yaml ...string) (config *Config, err error) {
-	var client *config_center.ConfigCenter
+	var client config_center.ConfigCenter
 	ctx := context.Background()
 
 	//获取服务配置
