@@ -17,33 +17,39 @@
 1. consul 8500 为了可以观察服务注册发现相关的信息
 2. kong 8000 通过网关入口可以访问到后端web服务
 3. konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
+4. mysql 3306 外部mysql数据访问
 
 
 固定ip
-1. 172.22.0.2 consul
-2. 172.22.0.3 kong-database
-3. 172.22.0.4 kong
-4. 172.22.0.4 konga
+1. 172.40.0.2 consul
+2. 172.40.0.3 kong-database
+3. 172.40.0.4 kong
+4. 172.40.0.5 konga
+5. 172.40.0.6 etcd
+6. 172.40.0.7 mysql
 
 
 ### docker运行
 1.docker network 创建
 ```
 docker network create my-network
-docker network create --driver bridge --subnet 172.22.0.0/24 my-service-network
+docker network create --driver bridge --subnet 172.40.0.0/24 my-service-network
 ```
 
 2.consul 创建
 ```
 docker pull consul:1.15
 docker run --name=consul \
---ip=172.22.0.2 \
+--ip=172.40.0.2 \
 --network=my-service-network \
 -d -p 8500:8500  \
 consul:1.15 agent -dev -ui -client='0.0.0.0'
 ```
 
 3.kong 创建
+### DNS验证
+1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
+2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
 ```
 docker pull postgres
 docker pull kong
@@ -51,7 +57,7 @@ docker pull pantsel/konga
 
 #这里指定ip是因为kong需要用到，同时还需要暴露给consul的dns使用
 docker run -d --name kong-database \
---ip=172.22.0.3 \
+--ip=172.40.0.3 \
 --network=my-service-network \
 -p 5432:5432 \
 -e "POSTGRES_USER=kong" \
@@ -70,17 +76,17 @@ kong kong migrations bootstrap
 
 #这里KONG_DNS_RESOLVER是为了可以通过consul的dns使用到服务注册与发现（不用手动维护服务列表）
 docker run -d --name kong \
---ip=172.22.0.4 \
+--ip=172.40.0.4 \
 --network=my-service-network \
 -e "KONG_DATABASE=postgres" \
--e "KONG_PG_HOST=172.22.0.3" \
+-e "KONG_PG_HOST=172.40.0.3" \
 -e "KONG_PG_USER=kong" \
 -e "KONG_PG_PASSWORD=kong" \
 -e "KONG_PROXY_ACCESS_LOG=/dev/stdout" \
 -e "KONG_ADMIN_ACCESS_LOG=/dev/stdout" \
 -e "KONG_PROXY_ERROR_LOG=/dev/stderr" \
 -e "KONG_ADMIN_ERROR_LOG=/dev/stderr" \
--e "KONG_DNS_RESOLVER=172.22.0.2:8600" \
+-e "KONG_DNS_RESOLVER=172.40.0.2:8600" \
 -e "KONG_DNS_ORDER=SRV,LAST,A,CNAME" \
 -e "KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl" \
 -e "KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl" \
@@ -92,13 +98,65 @@ docker run -d --name kong \
 kong
 
 docker run -d --name konga \
---ip=172.22.0.5 \
+--ip=172.40.0.5 \
 --network=my-service-network \
 -p 1337:1337 \
 pantsel/konga
 ```
 
-4.web服务应用
+4.etcd 创建
+```
+docker pull bitnami/etcd:latest
+docker run -d \
+  --ip=172.40.0.6 \
+  --network=my-service-network \
+  --name etcd \
+  --restart always \
+  -p 2379:2379 \
+  -p 2380:2380 \
+  -e ALLOW_NONE_AUTHENTICATION=yes \
+  bitnami/etcd:latest
+```
+
+5.mysql 创建
+```
+docker run --name mysql \
+ --ip=172.40.0.7 \
+ --network=my-service-network \
+ -e MYSQL_ROOT_PASSWORD=root123456 \
+ -p 3306:3306 -itd \
+ mysql:8.0
+```
+
+6.canal 创建
+>https://github.com/alibaba/canal/wiki/Docker-QuickStart
+https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
+```
+docker pull canal/canal-server:latest
+docker run -d \
+  --name canal-server \
+  --network=my-service-network \
+  -p 11111:11111 \
+  canal/canal-server:latest
+  
+ 
+vi conf/example/instance.properties
+//mysql 设置
+canal.instance.master.address=192.168.1.20:3306
+canal.instance.dbUsername = canal
+canal.instance.dbPassword = canal
+//mq 主题名称
+canal.mq.topic=canal
+
+
+vi /usr/local/canal/conf/canal.properties 
+//设置mq为kafka  格式为json格式  kafka地址
+canal.serverMode = kafka
+canal.mq.flatMessage = true
+kafka.bootstrap.servers = 127.0.0.1:6667
+```
+
+web服务应用
 ```
 docker pull golang:1.20 
 docker run --network=my-service-network --name=user  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
@@ -115,19 +173,14 @@ cd /app
 go run application/order/cmd/main.go -config /app/config
 
 
-curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.22.0.4:8002/
+curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
 
 ```
-
-### DNS验证
-1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
-2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
-
 
 ### konga配置 127.0.0.1:1337
 ```
 创建
-    admin api: 172.22.0.4:8001
+    admin api: 172.40.0.4:8001
 
 创建service配置信息
     Protocol: http                          //指定发送http请求

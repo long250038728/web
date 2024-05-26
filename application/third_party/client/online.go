@@ -11,7 +11,6 @@ import (
 	"github.com/long250038728/web/tool/persistence/orm"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 type requestInfo struct {
@@ -22,13 +21,14 @@ type requestInfo struct {
 }
 
 type Online struct {
+	outPath     string
+	outFileName string
+
+	services *Svc
+
 	git     git.Git
 	jenkins *jenkins.Client
 	orm     *orm.Gorm
-
-	ctx      context.Context
-	services *Svc
-	sql      string
 }
 
 const (
@@ -38,15 +38,34 @@ const (
 	OnlineTypeSql     int32 = 4 //数据库
 )
 
-func NewOnlineClient(ctx context.Context, git git.Git, jenkins *jenkins.Client, orm *orm.Gorm) *Online {
-	return &Online{
-		ctx:      ctx,
-		git:      git,
-		jenkins:  jenkins,
-		orm:      orm,
-		services: &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
-		sql:      "",
+type Opts func(o *Online)
+
+func SetOutPath(path string) Opts {
+	return func(o *Online) {
+		o.outPath = path
 	}
+}
+
+func SetFileName(fileName string) Opts {
+	return func(o *Online) {
+		o.outFileName = fileName
+	}
+}
+
+func NewOnlineClient(git git.Git, jenkins *jenkins.Client, orm *orm.Gorm, opts ...Opts) *Online {
+	o := &Online{
+		outPath:     "./",
+		outFileName: "json.json",
+		services:    &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
+		git:         git,
+		jenkins:     jenkins,
+		orm:         orm,
+	}
+
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
 }
 
 var productList = []string{
@@ -60,22 +79,14 @@ var productList = []string{
 	"zhubaoe/marx",
 }
 
-func (o *Online) Build(source, target, svcPath, sqlPath string) error {
+func (o *Online) Build(ctx context.Context, source, target, svcPath string) error {
 	if len(svcPath) > 0 {
 		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
 			return err
 		}
 	}
 
-	if len(sqlPath) > 0 {
-		b, err := os.ReadFile(sqlPath)
-		if err != nil {
-			return err
-		}
-		o.sql = string(b)
-	}
-
-	list, err := o.list(source, target)
+	list, err := o.list(ctx, source, target)
 	if err != nil {
 		return err
 	}
@@ -84,7 +95,8 @@ func (o *Online) Build(source, target, svcPath, sqlPath string) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile("/Users/linlong/Desktop/web/application/third_party/client/project_list.md", b, os.ModePerm)
+
+	err = os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
@@ -92,17 +104,11 @@ func (o *Online) Build(source, target, svcPath, sqlPath string) error {
 	return nil
 }
 
-func (o *Online) list(source, target string) ([]*requestInfo, error) {
+func (o *Online) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
 
-	if len(o.sql) > 0 {
-		for _, sql := range strings.Split(o.sql, ";") {
-			address = append(address, &requestInfo{Type: OnlineTypeSql, Project: strings.Replace(sql, "\n", " ", -1)})
-		}
-	}
-
 	for _, addr := range productList {
-		list, err := o.git.GetPR(o.ctx, addr, source, target)
+		list, err := o.git.GetPR(ctx, addr, source, target)
 		if err != nil || len(list) != 1 {
 			continue
 		}
@@ -147,11 +153,21 @@ func (o *Online) list(source, target string) ([]*requestInfo, error) {
 	return address, nil
 }
 
-func (o *Online) Request(requestList []*requestInfo) error {
+func (o *Online) Request(ctx context.Context) error {
+	b, err := os.ReadFile(o.outPath + o.outFileName)
+	if err != nil {
+		return err
+	}
+
+	var requestList []*requestInfo
+	if err = json.Unmarshal(b, &requestList); err != nil {
+		return err
+	}
+
 	for _, request := range requestList {
 		switch request.Type {
 		case OnlineTypeGit: //合并
-			err := o.git.Merge(o.ctx, request.Project, request.Num)
+			err := o.git.Merge(ctx, request.Project, request.Num)
 			if err != nil {
 				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
@@ -167,7 +183,7 @@ func (o *Online) Request(requestList []*requestInfo) error {
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
 			}
 		case OnlineTypeJenkins: //jenkins
-			err := o.jenkins.BlockBuild(o.ctx, request.Project, request.Params)
+			err := o.jenkins.BlockBuild(ctx, request.Project, request.Params)
 			if err != nil {
 				fmt.Printf("=================== %s  err ===============\n", err)
 				return errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))

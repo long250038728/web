@@ -1,9 +1,11 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/configurator"
+	"github.com/long250038728/web/tool/configurator/config_center"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
@@ -36,10 +38,11 @@ type Config struct {
 	tracingConfig  *opentelemetry.Config
 }
 
-// NewAppConfig 获取app配置
-func NewAppConfig(rootPath, serviceName string, yaml ...string) (config *Config, err error) {
-	configLoad := configurator.NewYaml()
+var configLoad = configurator.NewYaml()
+var defaultConfigs = []string{"db", "redis", "kafka", "es", "register", "tracing"}
 
+// initConfig 获取config基本信息
+func initConfig(rootPath string, serviceName string) (config *Config, err error) {
 	//获取服务配置
 	var services map[string]*Config
 	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &services); err != nil {
@@ -50,27 +53,76 @@ func NewAppConfig(rootPath, serviceName string, yaml ...string) (config *Config,
 		return nil, errors.New("svc name not find")
 	}
 	conf.ServerName = serviceName
+	return conf, nil
+}
+
+func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
+	var centerConfig config_center.Config
+	if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
+		return nil, err
+	}
+	return config_center.NewEtcdConfigCenter(&centerConfig)
+}
+
+// NewAppConfig 获取app配置
+func NewAppConfig(rootPath, serviceName string, configType int32, yaml ...string) (config *Config, err error) {
+	var client config_center.ConfigCenter
+	ctx := context.Background()
+
+	//获取服务配置
+	conf, err := initConfig(rootPath, serviceName)
+	if err != nil {
+		return nil, err
+	}
 
 	//获取第三方中间件配置
 	configs := map[string]any{
-		"db.yaml":       &conf.dbConfig,
-		"redis.yaml":    &conf.redisConfig,
-		"kafka.yaml":    &conf.kafkaConfig,
-		"es.yaml":       &conf.esConfig,
-		"register.yaml": &conf.registerConfig,
-		"tracing.yaml":  &conf.tracingConfig,
+		"db":       &conf.dbConfig,
+		"redis":    &conf.redisConfig,
+		"kafka":    &conf.kafkaConfig,
+		"es":       &conf.esConfig,
+		"register": &conf.registerConfig,
+		"tracing":  &conf.tracingConfig,
 	}
+
 	if len(yaml) == 0 {
-		yaml = []string{"db.yaml", "redis.yaml", "kafka.yaml", "es.yaml", "register.yaml", "tracing.yaml"}
+		yaml = defaultConfigs
 	}
 
 	for _, fileName := range yaml {
-		if val, ok := configs[fileName]; ok {
-			if err := configLoad.Load(filepath.Join(rootPath, fileName), val); err != nil {
+		val, ok := configs[fileName]
+		if !ok {
+			return nil, errors.New(fileName + "is not bind object")
+		}
+
+		//配置文件
+		if configType == ConfigPath {
+			if err := configLoad.Load(filepath.Join(rootPath, fileName+".yaml"), val); err != nil {
+				return nil, err
+			}
+		}
+
+		//配置中心
+		if configType == ConfigCenter {
+			if client == nil {
+				if client, err = initConfigCenter(rootPath); err != nil {
+					return nil, err
+				}
+			}
+
+			confStr, err := client.Get(ctx, "config-"+fileName)
+			if err != nil {
+				return nil, err
+			}
+			if len(confStr) == 0 {
+				return nil, errors.New(fileName + "content is null")
+			}
+			if err := configLoad.LoadBytes([]byte(confStr), val); err != nil {
 				return nil, err
 			}
 		}
 	}
+
 	conf.IP, err = conf.getIP()
 	return conf, nil
 }

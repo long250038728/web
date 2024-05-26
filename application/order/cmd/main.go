@@ -18,7 +18,7 @@ import (
 func main() {
 	path := flag.String("config", "", "config path")
 	flag.Parse()
-	app.InitInfo(*path, protoc.OrderService)
+	app.InitCenterInfo(*path, protoc.OrderService)
 
 	fmt.Println(Run())
 }

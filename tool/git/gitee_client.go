@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/server/http"
+	"time"
 )
 
 type Client struct {
@@ -26,7 +27,7 @@ func NewGiteeClient(config *Config) (Git, error) {
 	client := &Client{
 		address: "https://gitee.com",
 		token:   config.Token,
-		client:  http.NewClient(),
+		client:  http.NewClient(http.SetTimeout(time.Second * 10)),
 	}
 	return client, nil
 }
@@ -59,6 +60,8 @@ func (g *Client) CreatePR(ctx context.Context, repos, source, target string) (*I
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("%s %s", repos, err.Error()))
 	}
+	defer fmt.Println(string(b))
+
 	//获取地址
 	var item *Info
 	err = json.Unmarshal(b, &item)
