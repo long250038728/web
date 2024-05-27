@@ -37,6 +37,9 @@ func NewGorm(config *Config) (*Gorm, error) {
 		},
 	}
 
+	// 注: parseTime=true时
+	// 数据库datetime值为2019-01-25 09:59:44会变成2019-01-25T09:59:44+08:00 时间转换
+	// 所以设置为false
 	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=false&loc=Local", config.User, config.Password, config.Address, config.Port, config.Database)), cnf)
 	if err != nil {
 		return nil, err

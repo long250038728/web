@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/consul/api"
+	"github.com/hashicorp/consul/api/watch"
 	"github.com/long250038728/web/tool/register"
 )
 
 type Register struct {
-	client *api.Client
+	client  *api.Client
+	address string
 }
 
 type Config struct {
@@ -25,7 +27,7 @@ func NewConsulRegister(conf *Config) (*Register, error) {
 		return nil, err
 	}
 
-	return &Register{client: client}, nil
+	return &Register{client: client, address: conf.Address}, nil
 }
 
 // Register 服务注册
@@ -104,6 +106,28 @@ func (r *Register) List(ctx context.Context, serviceName string) ([]*register.Se
 
 // Subscribe 监听服务变化
 func (r *Register) Subscribe(ctx context.Context, serviceName string) (<-chan *register.ServiceInstance, error) {
-	//TODO implement me
-	panic("implement me")
+	wp, err := watch.Parse(map[string]interface{}{
+		"type":    "service",
+		"service": serviceName,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 定义service变化后所执行的程序(函数)handler
+	wp.Handler = func(idx uint64, data interface{}) {
+		switch d := data.(type) {
+		case []*api.ServiceEntry:
+			for _, i := range d {
+				// 这里是单个service变化时需要做的逻辑，可以自己添加，或在外部写一个类似handler的函数传进来
+				fmt.Printf("service %s 已变化", i.Service.Service)
+				// 打印service的状态
+				fmt.Println("service status: ", i.Checks.AggregatedStatus())
+			}
+		}
+	}
+	// 启动监控
+	go wp.Run(r.address)
+
+	return nil, nil
 }
