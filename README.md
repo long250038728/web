@@ -1,14 +1,6 @@
+![图片](./microservices.png)
+
 # web
-
-
-// GMP 还有 饥饿模式，正常模式 （第九周最后一节课加餐没听，第十周第一节）
-// 服务治理总结没听  ， 可观测性可以再粗略看一下
-
-// GC学习一下
-
-
-
-
 所有的服务/中间件都应该在服务器集群中且不可暴露，仅提供少量的端口对外暴露(如网关入口)。保证了服务/中间件的安全不被恶意攻击且合理有效的控制内部人员的使用权限
 1. 公/私有云集群
 2. docker network
@@ -27,9 +19,10 @@
 4. 172.40.0.5 konga
 5. 172.40.0.6 etcd
 6. 172.40.0.7 mysql
+7. 172.40.0.8 canal
 
 
-### docker运行
+## docker运行
 1.docker network 创建
 ```
 docker network create my-network
@@ -39,6 +32,7 @@ docker network create --driver bridge --subnet 172.40.0.0/24 my-service-network
 2.consul 创建
 ```
 docker pull consul:1.15
+
 docker run --name=consul \
 --ip=172.40.0.2 \
 --network=my-service-network \
@@ -47,9 +41,6 @@ consul:1.15 agent -dev -ui -client='0.0.0.0'
 ```
 
 3.kong 创建
-### DNS验证
-1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
-2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
 ```
 docker pull postgres
 docker pull kong
@@ -102,11 +93,18 @@ docker run -d --name konga \
 --network=my-service-network \
 -p 1337:1337 \
 pantsel/konga
+
+
+DNS验证
+1. dig @127.0.0.1 -p 8600 user.service.consul  SRV          //在consul服务器上
+2. dig $KONG_DNS_RESOLVER -p 8600 user.service.consul  SRV  //在kong服务器上
 ```
+
 
 4.etcd 创建
 ```
 docker pull bitnami/etcd:latest
+
 docker run -d \
   --ip=172.40.0.6 \
   --network=my-service-network \
@@ -133,18 +131,27 @@ docker run --name mysql \
 https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
 ```
 docker pull canal/canal-server:latest
-docker run -d \
+
+docker run -itd \
+  --ip=172.40.0.8 \
   --name canal-server \
   --network=my-service-network \
   -p 11111:11111 \
+  -e canal.instance.master.address=172.40.0.7:3306 \
+  -e canal.instance.dbUsername=root \
+  -e canal.instance.dbPassword=root123456 \
+  -e canal.mq.topic=canal \
+  -e canal.serverMode=kafka \
+  -e canal.mq.flatMessage=true \
+  -e kafka.bootstrap.servers=159.75.1.200:9093 \
   canal/canal-server:latest
   
- 
+或是通过配置文件指定参数
 vi conf/example/instance.properties
 //mysql 设置
-canal.instance.master.address=192.168.1.20:3306
-canal.instance.dbUsername = canal
-canal.instance.dbPassword = canal
+canal.instance.master.address=172.40.0.7:3306
+canal.instance.dbUsername = root
+canal.instance.dbPassword = root123456
 //mq 主题名称
 canal.mq.topic=canal
 
@@ -153,31 +160,28 @@ vi /usr/local/canal/conf/canal.properties
 //设置mq为kafka  格式为json格式  kafka地址
 canal.serverMode = kafka
 canal.mq.flatMessage = true
-kafka.bootstrap.servers = 127.0.0.1:6667
+kafka.bootstrap.servers = 159.75.1.200:9093
 ```
 
 web服务应用
 ```
 docker pull golang:1.20 
+
 docker run --network=my-service-network --name=user  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/user/cmd/main.go -config /app/config
 
 
-
-docker pull golang:1.20 
-docker run --network=my-service-network --name=order  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=order -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/order/cmd/main.go -config /app/config
 
-
 curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
-
 ```
 
-### konga配置 127.0.0.1:1337
+## konga配置 127.0.0.1:1337
 ```
 创建
     admin api: 172.40.0.4:8001
@@ -194,9 +198,10 @@ curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQx
         false:  http://127.0.0.1:8000/user/hello  =>  后端path "/user/hello"
 ```
 
+---
 
-### 扩展
-创建一个DNS解析器
+## 扩展
+### 创建一个DNS解析器
 ```
 import (
 	"fmt"
@@ -259,3 +264,79 @@ linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul SRV
 ;; global options: +cmd
 ;; connection timed out; no servers could be reached
 ```
+
+---
+
+### go项目依赖生成图
+安装dot 工具 && 安装godepgraph 工具  && 图生成
+```
+brew install graphviz
+go install github.com/kisielk/godepgraph@latest
+godepgraph -s  ./application/user/cmd/ | dot -Tpng -o godepgraph.png
+```
+
+---
+
+###  是否数据竞争
+go run -race main.go
+
+
+---
+
+### 分析
+代码中加入 pprof包，启动6060端口的访问，然后执行 go tool pprof http://localhost:6060/debug/pprof/profile
+```
+import (
+    _ "net/http/pprof"
+    "net/http"
+    "log"
+)
+
+// 启动 HTTP 服务器以便访问 pprof 数据
+go func() {
+    log.Println(http.ListenAndServe("localhost:6060", nil))
+}()
+```
+1. 执行 go tool pprof http://localhost:6060/debug/pprof/profile  //获取 CPU 性能分析数据。具体来说，它会收集程序在一段时间内的 CPU 使用情况，包括函数调用的频率和耗时
+2. 执行 go tool pprof http://localhost:6060/debug/pprof/heap     //获取堆内存的使用情况。它会收集当前程序的堆内存分配数据，包括哪些对象占用了多少内存
+3. 访问 web  http://localhost:6060/debug/pprof/
+   * http.HandleFunc("/debug/pprof/", Index)
+   * http.HandleFunc("/debug/pprof/cmdline", Cmdline)
+   * http.HandleFunc("/debug/pprof/profile", Profile)
+   * http.HandleFunc("/debug/pprof/symbol", Symbol)
+   * http.HandleFunc("/debug/pprof/trace", Trace)
+
+---
+
+### 查看内存逃逸
+go build -gcflags "-m" main.go 返回结果如下
+1. inlining call    内联优化（将函数调用替换为函数实际代码，减少调用函数的开销，减少栈空间的使用）
+2. does not escape  没有逃逸到堆，意味着它被分配在栈上
+3. escapes to heap  逃逸到堆
+```
+这三个并不矛盾分别描述了内联优化和逃逸分析的结果
+
+./main.go:35:14: inlining call to app.Servers
+./main.go:35:14: func literal does not escape
+./main.go:35:14: ... argument escapes to heap
+
+1. 对app.servers进行内联优化,
+2. 同时函数内的变量在栈上分配
+3. 然后在函数外使用了...arg此时arg变量才逃逸到堆上
+```
+
+
+
+
+
+
+
+
+---
+
+
+
+// GMP 还有 饥饿模式，正常模式 （第九周最后一节课加餐没听，第十周第一节）
+// 服务治理总结没听  ， 可观测性可以再粗略看一下
+
+// GC学习一下

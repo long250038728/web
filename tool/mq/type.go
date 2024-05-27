@@ -42,5 +42,5 @@ type Mq interface {
 	Send(ctx context.Context, topic string, key string, message *Message) error
 	BulkSend(ctx context.Context, topic string, key string, message []*Message) error
 
-	Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(c *Message, err error) error)
+	Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error)
 }

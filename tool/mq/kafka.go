@@ -57,7 +57,6 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 
 // DeleteTopic 删除主题
 func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
-	//如果外部关闭了就不退出循环
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -119,28 +118,33 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 //======================================================================================================================
 
 // Subscribe 消费者
-func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup string, callback func(c *Message, err error) error) {
-	// 设置Kafka消费者配置
-	config := kafka.ReaderConfig{
+func (m *Kafka) Subscribe(subscribeCtx context.Context, topic string, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) {
+	// 创建Kafka消费者
+	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: m.config.Address, // Kafka broker地址
 		Topic:   topic,            // 消费的主题
 		GroupID: consumerGroup,    // 消费者组
-	}
-
-	// 创建Kafka消费者
-	reader := kafka.NewReader(config)
+	})
 	defer func() {
 		_ = reader.Close()
 	}()
 
 	// 循环读取消息
 	for {
-		//如果外部关闭了就不退出循环
+		ctx := context.Background()
+
+		//如果外部关闭退出循环
+		select {
+		case <-subscribeCtx.Done():
+			_ = callback(ctx, nil, subscribeCtx.Err())
+			return
+		default:
+		}
 
 		// 读取消息
-		kafkaMessage, err := reader.FetchMessage(ctx)
+		kafkaMessage, err := reader.FetchMessage(subscribeCtx)
 		if err != nil {
-			_ = callback(nil, err)
+			_ = callback(ctx, nil, err)
 			continue
 		}
 
@@ -151,7 +155,7 @@ func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup strin
 			headers = append(headers, Header{Key: header.Key, Value: header.Value})
 		}
 		message := &Message{Data: kafkaMessage.Value, Headers: headers}
-		err = callback(message, nil)
+		err = callback(ctx, message, nil)
 
 		// 成功才提交
 		if err == nil {
@@ -160,7 +164,7 @@ func (m *Kafka) Subscribe(ctx context.Context, topic string, consumerGroup strin
 
 			//提交失败重试次数
 			for {
-				commitErr := reader.CommitMessages(ctx, kafkaMessage)
+				commitErr := reader.CommitMessages(subscribeCtx, kafkaMessage)
 				if commitErr == nil || ErrRetryNum >= MaxRetryNum {
 					break
 				}

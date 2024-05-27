@@ -23,7 +23,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # 执行git pull以更新本地仓库
-git pull 
+git pull
 git checkout master
 git pull
 
@@ -58,4 +58,4 @@ echo "$new_tag" > "$tag_file"
 # 将新版本的tag文件添加到git的staging area
 git add "$tag_file"
 git commit -m "tag update"
-git push 
+git push
