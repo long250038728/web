@@ -1,4 +1,6 @@
 package protoc
 
-const UserService = "kobe-new-user"
-const OrderService = "kobe-new-order"
+const (
+	UserService  = "server-user"
+	OrderService = "server-order"
+)

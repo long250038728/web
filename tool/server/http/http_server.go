@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -45,9 +44,9 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
 	handlerFunc(handler)
 
-	go func() {
-		log.Println(http.ListenAndServe(fmt.Sprintf("%s:6060", svc.svcInstance.Address), nil)) //"net/http/pprof"
-	}()
+	//go func() {
+	//	log.Println(http.ListenAndServe(fmt.Sprintf("%s:6060", svc.svcInstance.Address), nil)) //"net/http/pprof"
+	//}()
 
 	return svc
 }

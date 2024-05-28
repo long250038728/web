@@ -48,8 +48,8 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 
 	if serviceInstance.Type == "HTTP" {
 		check := api.AgentServiceCheck{}
-		check.Timeout = "5s"
-		check.Interval = "5s"
+		check.Timeout = "30s"
+		check.Interval = "30s"
 		check.DeregisterCriticalServiceAfter = "30s"
 		check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check
@@ -57,8 +57,8 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 
 	if serviceInstance.Type == "GRPC" {
 		check := api.AgentServiceCheck{}
-		check.Timeout = "5s"
-		check.Interval = "5s"
+		check.Timeout = "30s"
+		check.Interval = "30s"
 		check.DeregisterCriticalServiceAfter = "30s"
 		check.GRPC = fmt.Sprintf("%s:%d", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check

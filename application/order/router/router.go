@@ -3,7 +3,7 @@ package router
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/order/ddd/service"
+	"github.com/long250038728/web/application/order/internal/service"
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/auth"

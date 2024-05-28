@@ -151,6 +151,7 @@ func branch() *cobra.Command {
 					fmt.Println("生成失败:" + err.Error())
 					continue
 				}
+				fmt.Println(product + ": branch ok")
 			}
 			fmt.Println("全部执行完成")
 			return
@@ -275,8 +276,8 @@ func json() *cobra.Command {
 func action() *cobra.Command {
 	return &cobra.Command{
 		Use:   "action",
-		Short: "请求操作",
-		Long:  "请求操作",
+		Short: "上线操作",
+		Long:  "上线操作",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()

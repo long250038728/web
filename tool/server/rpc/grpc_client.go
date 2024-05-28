@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server/rpc/tool"
@@ -10,6 +9,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/resolver"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type Client struct {
 	register     register.Register
 	svcInstances []*register.ServiceInstance
 	balancer     tool.Balancer
+	once         sync.Once
 }
 
 var clientParameters = keepalive.ClientParameters{
@@ -60,47 +62,30 @@ func NewClient(opts ...ClientOpt) *Client {
 	return c
 }
 
-// Dial1 创建conn连接
-func (c *Client) Dial1(ctx context.Context) (*grpc.ClientConn, error) {
-	//如果注册中心，那在注册中心获取列表信息
-	if c.serverName != "" && c.register != nil {
-		svcInstances, err := c.register.List(ctx, register.GrpcServerName(c.serverName))
-		if err != nil {
-			return nil, err
-		}
-		c.svcInstances = svcInstances
-	}
+func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
+	c.once.Do(func() {
+		resolver.Register(&MyResolversBuild{})
+	})
 
-	//找不到有任何服务器实例
-	if c.svcInstances == nil || len(c.svcInstances) == 0 {
-		return nil, errors.New("svcInstances is null")
-	}
+	//服务注册与发现
+	target := fmt.Sprintf("%s:///%s", Scheme, c.serverName)
 
-	// 负载均衡
-	svcInstance := c.balancer.Balancer(c.svcInstances)
+	//指定服务实例
+	if len(c.svcInstances) > 0 {
+		svcInstance := c.balancer.Balancer(c.svcInstances)
+		target = fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port)
+	}
 
 	//创建socket 连接
 	return grpc.Dial(
-		fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(clientParameters),
-		grpc.WithResolvers(&MyResolversBuild{}), //服务发现
-	)
-}
-
-//=============================
-
-func (c *Client) DialGRPC(ctx context.Context) (*grpc.ClientConn, error) {
-	//创建socket 连接
-	return grpc.Dial(
-		fmt.Sprintf("%s:///%s", Scheme, c.serverName),
+		target,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
 		grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: c.register}), //服务发现
 	)
 }
 
-const Scheme = "myScheme"
+const Scheme = "svc"
 
 // 1. 创建一个resolver.Builder的一个对象
 //	  1.1 连接时遍历所有的Builder对象,判断scheme与Builder.Scheme()匹配,找出对应的Builder对象
@@ -145,17 +130,48 @@ type MyResolver struct {
 }
 
 func (r *MyResolver) ResolveNow(options resolver.ResolveNowOptions) {
-	svcInstances, err := r.register.List(r.ctx, register.GrpcServerName(r.target.URL.Path))
+	svcInstances, err := r.register.List(r.ctx, register.GrpcServerName(strings.Replace(r.target.URL.Path, "/", "", 1)))
 	if err != nil {
 		return
 	}
 
 	adders := make([]resolver.Address, 0, len(svcInstances))
 	for _, instance := range svcInstances {
-		adders = append(adders, resolver.Address{Addr: fmt.Sprintf("%s:%d", instance.Address, &instance.Port)})
+		adders = append(adders, resolver.Address{Addr: fmt.Sprintf("%s:%d", instance.Address, instance.Port)})
 	}
 	_ = r.cc.UpdateState(resolver.State{Addresses: adders})
 }
 
 // Close 当resolver不再被使用时，需要调用这个方法来关闭resolver，释放任何它持有的资源
-func (r *MyResolver) Close() {}
+func (r *MyResolver) Close() {
+}
+
+//// Dial1 创建conn连接
+//func (c *Client) Dial1(ctx context.Context) (*grpc.ClientConn, error) {
+//	//如果注册中心，那在注册中心获取列表信息
+//	if c.serverName != "" && c.register != nil {
+//		svcInstances, err := c.register.List(ctx, register.GrpcServerName(c.serverName))
+//		if err != nil {
+//			return nil, err
+//		}
+//		c.svcInstances = svcInstances
+//	}
+//
+//	//找不到有任何服务器实例
+//	if c.svcInstances == nil || len(c.svcInstances) == 0 {
+//		return nil, errors.New("svcInstances is null")
+//	}
+//
+//	// 负载均衡
+//	svcInstance := c.balancer.Balancer(c.svcInstances)
+//
+//	//创建socket 连接
+//	return grpc.Dial(
+//		fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port),
+//		grpc.WithTransportCredentials(insecure.NewCredentials()),
+//		grpc.WithKeepaliveParams(clientParameters),
+//		//grpc.WithResolvers(), //服务发现
+//	)
+//}
+
+// =============================

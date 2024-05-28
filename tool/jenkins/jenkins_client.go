@@ -117,6 +117,10 @@ func (j *Client) Block(ctx context.Context, job string) error {
 		if err := json.Unmarshal(resp, &q); err != nil {
 			return err
 		}
+		if q.Result == "FAILURE" {
+			return errors.New(string(resp))
+		}
+
 		if q.Result == "SUCCESS" {
 			return nil
 		}

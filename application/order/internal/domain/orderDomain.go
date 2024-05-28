@@ -2,7 +2,7 @@ package domain
 
 import (
 	"context"
-	"github.com/long250038728/web/application/order/ddd/repository"
+	"github.com/long250038728/web/application/order/internal/repository"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/protoc/user"
@@ -21,10 +21,9 @@ func NewOrderDomain(userRepository *repository.OrderRepository) *OrderDomain {
 }
 
 func (d *OrderDomain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
-	util := app.NewUtil()
-
 	// 创建consul客户端
-	conn, err := rpc.NewClient(rpc.Register(protoc.UserService, util.Register())).Dial(ctx)
+	//conn, err := rpc.NewClient(rpc.LocalIP("172.40.0.3", 9001)).Dial(ctx)
+	conn, err := rpc.NewClient(rpc.Register(protoc.UserService, app.NewUtil().Register())).Dial(ctx)
 	if err != nil {
 		return nil, err
 	}

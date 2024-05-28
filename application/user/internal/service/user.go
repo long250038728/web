@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/long250038728/web/application/user/ddd/domain"
+	"github.com/long250038728/web/application/user/internal/domain"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/server/rpc"
 )
