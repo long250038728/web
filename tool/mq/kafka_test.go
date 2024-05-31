@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/long250038728/web/tool/configurator"
 	"testing"
-	"time"
 )
 
 var topic = "bonus_message_queue_kafka"
@@ -61,10 +60,7 @@ func TestMqBulkSend(t *testing.T) {
 }
 
 func TestMqSubscribe(t *testing.T) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
-
-	client.Subscribe(ctx, topic, consumerGroup, func(ctx context.Context, message *Message, err error) error {
+	client.Subscribe(ctx, "canal", consumerGroup, func(ctx context.Context, message *Message, err error) error {
 		// 是否错误 （程序退出 或 reader报错）
 		if err != nil {
 			t.Log(err)
