@@ -67,7 +67,7 @@ func (r *UserRepository) getUserResponse(ctx context.Context, userInfo *model.Us
 
 	//基本参数
 	claims := &auth.UserClaims{Id: userInfo.Id, Name: userInfo.Name}
-	session := &auth.UserSession{AuthList: permissionsPath}
+	session := &auth.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
 	accessToken, refreshToken, err := auth.NewCacheAuth(r.util.Cache()).Signed(ctx, claims, session)
 	if err != nil {
 		return nil, err
@@ -87,11 +87,9 @@ func (r *UserRepository) GetUser(ctx context.Context, id int32, name, password s
 	if id > 0 {
 		db = db.Where("id = ?", id)
 	}
-
 	if len(name) > 0 && len(password) > 0 {
 		db = db.Where("name = ?", name).Where("password = ?", password)
 	}
-
 	return userInfo, db.Find(userInfo).Error
 }
 

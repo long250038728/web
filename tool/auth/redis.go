@@ -54,7 +54,7 @@ func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
 func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (context.Context, error) {
 	userClaims, userSession, err := p.parse(ctx, accessToken)
 	if err != nil {
-		return nil, err
+		return ctx, err
 	}
 	ctx = SetClaims(ctx, userClaims)
 	ctx = SetSession(ctx, userSession)
@@ -74,7 +74,7 @@ func (p *cacheAuth) parse(ctx context.Context, accessToken string) (*UserClaims,
 	}
 
 	//获取Session对象
-	userSession, err := p.Session(ctx, userClaims.AuthToken())
+	userSession, err := p.Session(ctx, authToken(userClaims.Id))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,10 +89,8 @@ func (p *cacheAuth) Refresh(ctx context.Context, refreshToken string) (*RefreshC
 		return nil, errors.New("refresh token is null")
 	}
 
-	cla := &RefreshClaims{}
-
 	// 解析JWT字符串
-	token, err := jwt.ParseWithClaims(refreshToken, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return p.secretKey, nil // 这里你需要提供用于签名的密钥
 	})
 	if err != nil {
@@ -103,17 +101,12 @@ func (p *cacheAuth) Refresh(ctx context.Context, refreshToken string) (*RefreshC
 	}
 
 	//获取Claims对象
-	claims := token.Claims.(*jwtClaims)
-	err = struct_map.Map(claims.UserClaims, cla) //带有jwt.StandardClaims 的对象 转换为 外部不带有 jwt.StandardClaims 的对象
-	if err != nil {
-		return nil, err
-	}
-
-	if cla.Md5 != "1234567890" {
+	claims := token.Claims.(*RefreshClaims)
+	if claims.Md5 != authToken(claims.Id) {
 		return nil, errors.New("refresh token invalid")
 	}
 
-	return cla, nil
+	return claims, nil
 }
 
 // Auth 判断是否有权限
@@ -197,7 +190,7 @@ func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSess
 		return "", "", err
 	}
 
-	ok, err := p.cache.Set(ctx, userClaims.AuthToken(), string(b))
+	ok, err := p.cache.Set(ctx, authToken(userClaims.Id), string(b))
 	if err != nil {
 		return "", "", err
 	}
@@ -219,7 +212,7 @@ func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSess
 			IssuedAt:  time.Now().Unix(),
 		},
 		Id:  userClaims.Id,
-		Md5: "1234567890",
+		Md5: authToken(userClaims.Id),
 	}
 
 	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(p.secretKey)
