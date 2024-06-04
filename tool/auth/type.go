@@ -14,6 +14,12 @@ type jwtClaims struct {
 	*UserClaims
 }
 
+type RefreshClaims struct {
+	jwt.StandardClaims
+	Id  int32  `json:"id" yaml:"id"`
+	Md5 string `json:"md5" yaml:"md5"`
+}
+
 // UserClaims 外部使用的信息
 type UserClaims struct {
 	Id   int32  `json:"id" yaml:"id"`
@@ -23,7 +29,7 @@ type UserClaims struct {
 func (c *UserClaims) AuthToken() string {
 	hash := sha256.New()
 	hash.Write([]byte(fmt.Sprintf("%d", c.Id))) // 向哈希计算对象中写入字符串数据
-	return hex.EncodeToString(hash.Sum(nil))
+	return "id:" + hex.EncodeToString(hash.Sum(nil))
 }
 
 // UserSession 内部使用的信息
@@ -39,8 +45,10 @@ type Auth interface {
 	// Auth 判断是否有权限 判断path是否在GetSession中
 	Auth(ctx context.Context, path string) error
 
-	// Signed 生成accessToken
-	Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error)
+	// Signed 生成accessToken refreshToken
+	Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, string, error)
+
+	Refresh(ctx context.Context, refreshToken string) (*RefreshClaims, error)
 }
 
 type claims struct{}

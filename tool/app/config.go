@@ -49,6 +49,7 @@ func initConfig(rootPath string, serviceName string) (config *Config, err error)
 		return nil, err
 	}
 	conf, ok := services[serviceName]
+
 	if !ok {
 		return nil, errors.New("svc name not find")
 	}

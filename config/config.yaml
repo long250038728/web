@@ -1,6 +1,6 @@
-kobe-new-user:
+server-user:
     http_port: 8001
     grpc_port: 9001
-kobe-new-order:
+server-order:
     http_port: 8002
     grpc_port: 9002

@@ -29,6 +29,14 @@ func NewService(opts ...UserServerOpt) *UserService {
 	return s
 }
 
+func (s *UserService) Login(ctx context.Context, request *user.LoginRequest) (*user.UserResponse, error) {
+	return s.domain.Login(ctx, request)
+}
+
 func (s *UserService) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {
 	return s.domain.SayHello(ctx, request)
+}
+
+func (s *UserService) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan string, error) {
+	return s.domain.SendSSE(ctx, request)
 }

@@ -51,9 +51,6 @@ func NewCacheAuth(cache cache.Cache, opts ...Opt) Auth {
 	return r
 }
 
-// Parse 解析accessToken
-//Parse(ctx context.Context, accessToken string) (*UserClaims, *UserSession, error)
-
 func (p *cacheAuth) Parse(ctx context.Context, accessToken string) (context.Context, error) {
 	userClaims, userSession, err := p.parse(ctx, accessToken)
 	if err != nil {
@@ -84,6 +81,39 @@ func (p *cacheAuth) parse(ctx context.Context, accessToken string) (*UserClaims,
 	p.userClaims = userClaims
 	p.userSession = userSession
 	return p.userClaims, p.userSession, nil
+}
+
+// Refresh 续
+func (p *cacheAuth) Refresh(ctx context.Context, refreshToken string) (*RefreshClaims, error) {
+	if len(refreshToken) == 0 {
+		return nil, errors.New("refresh token is null")
+	}
+
+	cla := &RefreshClaims{}
+
+	// 解析JWT字符串
+	token, err := jwt.ParseWithClaims(refreshToken, &jwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return p.secretKey, nil // 这里你需要提供用于签名的密钥
+	})
+	if err != nil {
+		if validationErr, ok := err.(*jwt.ValidationError); ok && validationErr.Errors == jwt.ValidationErrorExpired {
+			err = errors.New("token is Disabled")
+		}
+		return nil, err
+	}
+
+	//获取Claims对象
+	claims := token.Claims.(*jwtClaims)
+	err = struct_map.Map(claims.UserClaims, cla) //带有jwt.StandardClaims 的对象 转换为 外部不带有 jwt.StandardClaims 的对象
+	if err != nil {
+		return nil, err
+	}
+
+	if cla.Md5 != "1234567890" {
+		return nil, errors.New("refresh token invalid")
+	}
+
+	return cla, nil
 }
 
 // Auth 判断是否有权限
@@ -161,18 +191,18 @@ func (p *cacheAuth) whitePath(path string) bool {
 }
 
 // Signed 用户内部信息生产token
-func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, error) {
+func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, string, error) {
 	b, err := json.Marshal(userSession)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	ok, err := p.cache.Set(ctx, userClaims.AuthToken(), string(b))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if !ok {
-		return "", errors.New("session setting is err")
+		return "", "", errors.New("session setting is err")
 	}
 
 	claims := &jwtClaims{
@@ -182,5 +212,25 @@ func (p *cacheAuth) Signed(ctx context.Context, userClaims *UserClaims, userSess
 		},
 		UserClaims: userClaims,
 	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(p.secretKey)
+
+	refreshClaims := &RefreshClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(1800 * time.Minute).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+		Id:  userClaims.Id,
+		Md5: "1234567890",
+	}
+
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(p.secretKey)
+	if err != nil {
+		return "", "", nil
+	}
+
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString(p.secretKey)
+	if err != nil {
+		return "", "", nil
+	}
+
+	return accessToken, refreshToken, nil
 }

@@ -13,7 +13,7 @@ func TestModels_Gen(t *testing.T) {
 	var b []byte
 
 	var ormConfig orm.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db_local.yaml", &ormConfig)
 	db, err = orm.NewGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)
@@ -21,7 +21,7 @@ func TestModels_Gen(t *testing.T) {
 	}
 
 	//gen
-	if b, err = NewModelsGen(db).Gen("zhubaoe", []string{"zby_customer", "zby_user", "zby_sale_order_goods"}); err != nil {
+	if b, err = NewModelsGen(db).Gen("project", []string{"admin_user", "admin_role", "admin_permission", "admin_user_role", "admin_role_permission"}); err != nil {
 		t.Error(err)
 		return
 	}

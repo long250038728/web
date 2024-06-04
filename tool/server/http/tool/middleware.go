@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/auth"
 	"github.com/long250038728/web/tool/limiter"
@@ -114,6 +115,8 @@ func (m *Middleware) Reset() {
 	}
 }
 
+//========================================================================
+
 func (m *Middleware) WriteJSON(data interface{}, err error) {
 	ginContext := m.ginContext
 	res := m.response(data, err)
@@ -133,6 +136,8 @@ func (m *Middleware) WriteJSON(data interface{}, err error) {
 	_, _ = ginContext.Writer.Write(marshalByte)
 }
 
+//========================================================================
+
 func (m *Middleware) WriteFile(fileName string, data []byte) {
 	fileName = url.QueryEscape(fileName) // 防止中文乱码
 	ginContext := m.ginContext
@@ -142,6 +147,33 @@ func (m *Middleware) WriteFile(fileName string, data []byte) {
 
 	m.span.AddEvent("file is write ok")
 }
+
+// ========================================================================
+
+func (m *Middleware) CheckSupportSEE() error {
+	if _, ok := m.ginContext.Writer.(http.Flusher); !ok {
+		return errors.New("streaming unsupported")
+	}
+	return nil
+}
+
+func (m *Middleware) WriteSSE(ch <-chan string) {
+	ginContext := m.ginContext
+	ginContext.Header("Content-Type", "text/event-stream")
+	ginContext.Header("Cache-Control", "no-cache")
+	ginContext.Header("Connection", "keep-alive")
+
+	w := ginContext.Writer
+	f, _ := w.(http.Flusher)
+
+	for message := range ch {
+		_, _ = fmt.Fprintf(w, message)
+		f.Flush()
+	}
+	m.span.AddEvent("sse send ok")
+}
+
+//========================================================================
 
 func (m *Middleware) response(data interface{}, err error) (res *Response) {
 	res = &Response{Code: "000000", Message: "success"}

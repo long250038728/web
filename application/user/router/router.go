@@ -32,7 +32,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 		tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
 			auth.NewCacheAuth(
 				app.NewUtil().Cache(),
-				auth.WhiteList([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}),
+				auth.WhiteList([]string{"/", "/user/", "/user/sse"}),
 			),
 		),
 
@@ -60,6 +60,13 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 		var request user.RequestHello
 		middleware.File(gin, &request, func(ctx context.Context) (interface{}, error) {
 			return srv.SayHello(ctx, &request)
+		})
+	})
+
+	engine.GET("/user/sse", func(gin *gin.Context) {
+		var request user.RequestHello
+		middleware.SSE(gin, &request, func(ctx context.Context) (interface{}, error) {
+			return srv.SendSSE(ctx, &request)
 		})
 	})
 }

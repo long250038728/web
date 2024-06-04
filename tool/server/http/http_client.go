@@ -21,6 +21,7 @@ type Client struct {
 	isTracing          bool
 	username, password string
 	contentType        string
+	transport          http.RoundTripper
 }
 
 type Opt func(c *Client)
@@ -36,6 +37,7 @@ func SetIsTracing(isTracing bool) Opt {
 		c.isTracing = isTracing
 	}
 }
+
 func SetBasicAuth(username, password string) Opt {
 	return func(c *Client) {
 		c.username = username
@@ -49,11 +51,18 @@ func SetContentType(contentType string) Opt {
 	}
 }
 
+func SetTransport(transport http.RoundTripper) Opt {
+	return func(c *Client) {
+		c.transport = transport
+	}
+}
+
 func NewClient(opts ...Opt) *Client {
 	client := &Client{
-		timeout:     time.Second * 3,    //默认3s超时
-		isTracing:   true,               //默认记录链路
-		contentType: "application/json", //默认json
+		timeout:     time.Second * 3,      //默认3s超时
+		isTracing:   true,                 //默认记录链路
+		contentType: "application/json",   //默认json
+		transport:   NewCustomTransport(), //默认的transport
 	}
 	for _, opt := range opts {
 		opt(client)
@@ -132,7 +141,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 }
 
 func (c *Client) request(request *http.Request) ([]byte, int, error) {
-	res, err := (&http.Client{}).Do(request)
+	res, err := (&http.Client{Transport: c.transport}).Do(request)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -140,6 +149,14 @@ func (c *Client) request(request *http.Request) ([]byte, int, error) {
 		_ = res.Body.Close()
 	}()
 	b, err := io.ReadAll(res.Body)
+
+	//scanner := bufio.NewScanner(res.Body)
+	//for scanner.Scan() {
+	//	fmt.Println(scanner.Text())
+	//}
+	//if err := scanner.Err(); err != nil {
+	//	fmt.Println(err)
+	//}
 
 	return b, res.StatusCode, err
 }

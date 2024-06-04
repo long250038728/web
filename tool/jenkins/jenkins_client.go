@@ -32,6 +32,7 @@ func NewJenkinsClient(config *Config) (*Client, error) {
 	if len(config.Username) > 0 && len(config.Password) > 0 {
 		opts = append(opts, http.SetBasicAuth(config.Username, config.Password))
 	}
+	opts = append(opts, http.SetTransport(http.NewCustomTransport()))
 
 	return &Client{
 		address: config.Address,

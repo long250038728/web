@@ -34,7 +34,7 @@ func TestClient_Post(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Millisecond), SetIsTracing(true))
+	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(true))
 	data := map[string]any{
 		"a": "Login",
 		"m": "Admin",
@@ -63,7 +63,7 @@ func TestClient_Get(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Millisecond), SetIsTracing(true), SetContentType("application/json"))
+	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(true), SetContentType("application/json"))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
@@ -96,18 +96,4 @@ func TestClient_GoGet(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-}
-
-func TestClient_TGet(t *testing.T) {
-	data := map[string]any{"name": "linl"}
-	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
-	res, code, err := httpClient.Get(ctx, "http://192.168.0.30:8001/", data)
-	t.Log(err, code, string(res))
-}
-
-func TestClient_TPost(t *testing.T) {
-	data := map[string]any{"name": "lin"}
-	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
-	res, code, err := httpClient.Post(ctx, "http://192.168.0.24:8001/hello", data)
-	t.Log(err, code, string(res))
 }
