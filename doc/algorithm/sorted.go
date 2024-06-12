@@ -26,10 +26,23 @@ func bubbleSort() {
 	//    第N次确保第二大的在倒数第二
 
 	for i := 0; i < len(sortData)-1; i++ {
+		swapped := false
+
 		for j := 0; j < len(sortData)-1-i; j++ {
 			if sortData[j] > sortData[j+1] {
 				sortData[j], sortData[j+1] = sortData[j+1], sortData[j]
+				swapped = true
 			}
+		}
+
+		//从头遍历到尾巴，如果全程都无需要交换，则代表就是有序的
+		// 1 跟 2 对比发现不需要替换
+		// 2 跟 3 对比发现不需要替换
+		//  ...
+		// n-1 跟 n 对比发现不需要替换
+		// 全程有序，无需要再对比了
+		if !swapped {
+			break
 		}
 	}
 	fmt.Println(sortData)
@@ -75,24 +88,4 @@ func selectSort() {
 		}
 	}
 	fmt.Println(arr)
-}
-
-func insertSort2() {
-	for i := 1; i < len(sortData)-1; i++ {
-		//从第二位开始
-		value := sortData[i]
-		j := i - 1
-		//遍历自己左边的位置到0计数排序
-		for ; j >= 0; j-- {
-			if sortData[j] > value {
-				sortData[j+1] = sortData[j] // 数据移动
-			} else {
-				break
-			}
-		}
-
-		// j不是刚开始的而是循环后j--触发条件后的值
-		sortData[j+1] = value // 插入数据
-	}
-	fmt.Println(sortData)
 }

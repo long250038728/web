@@ -31,6 +31,8 @@ func (s *queueLink) dequeue() (int32, error) {
 		return 0, errors.New("栈数据为空")
 	}
 
+	// 时间换空间的方式 这里只有一个双向链表，所以每次需要遍历到尾然后弹出最后一个数据
+	// 可以空间换时间  加多一个tail链表
 	curr := s.head
 	for {
 		//只剩下一个元素
@@ -51,6 +53,50 @@ func (s *queueLink) dequeue() (int32, error) {
 		}
 		curr = curr.next
 	}
+}
+
+//====================双向链式队列========================
+
+type queueDoublyLink struct {
+	doubly *doublyLink
+}
+
+func (s *queueDoublyLink) enqueue(value int32) {
+	l := &doublyLink{value: value}
+
+	if s.doubly == nil {
+		s.doubly = l
+		return
+	}
+	head := s.doubly
+
+	l.next = head
+	head.prev = l
+	s.doubly = l
+}
+
+func (s *queueDoublyLink) dequeue() (int32, error) {
+	if s.doubly == nil {
+		return 0, errors.New("栈数据为空")
+	}
+
+	// 时间换空间的方式 这里只有一个双向链表，所以每次需要遍历到尾然后弹出最后一个数据
+	// 可以空间换时间  加多一个tail链表
+	curr := s.doubly
+	for {
+		if curr.next == nil {
+			val := curr.value
+
+			if curr.prev == nil {
+				s.doubly = nil
+			} else {
+				curr.prev.next = nil
+			}
+			return val, nil
+		}
+		curr = curr.next
+	}
+
 }
 
 //====================数组队列===========================

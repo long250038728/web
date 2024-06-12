@@ -1,29 +1,20 @@
 package algorithm
 
-import "fmt"
-
 type link struct {
 	value int32
 	next  *link
 }
 
-var head = &link{
-	value: 1,
-	next: &link{
-		value: 2,
-		next: &link{
-			value: 3,
-			next: &link{
-				value: 4,
-				next: &link{
-					value: 5,
-				},
-			},
-		},
-	},
+type doublyLink struct {
+	value int32
+	prev  *doublyLink
+	next  *doublyLink
 }
 
-func reverse(head *link) *link {
+func reverse2(head *link) *link {
+	// 有两个链 : 第一个是传入的链  第二个是空链
+	// 把第一个链的第一个拿出来， 放到第二个链的第一个
+
 	var prev, curr, next *link
 	curr = head
 	for curr != nil {
@@ -35,11 +26,45 @@ func reverse(head *link) *link {
 	return prev
 }
 
+func reverse(head *link) *link {
+	// 有两个链 : 第一个是传入的链  第二个新链
+	// 把第一个链的第一个拿出来， 放到第二个链的第一个
+	// 把第一个链的第一个拿出来， 放到第二个链的第一个
+	var newLink *link
+
+	for head != nil {
+		//原链
+		curr := head
+		head = head.next
+
+		//新链
+		curr.next = newLink
+		newLink = curr
+	}
+	return newLink
+}
+
+func hasCycle(head *link) bool {
+	if head == nil || head.next == nil {
+		return false
+	}
+
+	one := head
+	two := head.next
+	for two != nil && two.next != nil {
+		if one == two {
+			return true
+		}
+		one = one.next
+		two = two.next.next
+	}
+	return false
+}
+
 func printLink(head *link) {
 	if head == nil {
 		return
 	}
-	fmt.Println(head.value)
 	printLink(head.next)
 }
 
