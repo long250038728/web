@@ -1,4 +1,4 @@
-package algorithm
+package code
 
 type link struct {
 	value int32
@@ -45,6 +45,8 @@ func reverse(head *link) *link {
 }
 
 func hasCycle(head *link) bool {
+	// 采用"龟兔赛跑"的思想
+
 	if head == nil || head.next == nil {
 		return false
 	}

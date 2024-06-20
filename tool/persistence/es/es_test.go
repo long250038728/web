@@ -238,8 +238,8 @@ func TestIndexBulkInsert(t *testing.T) {
 
 	bulk := persistence.Bulk()
 	bulk.Add(
-		elastic.NewBulkCreateRequest().Index(indexName).Doc(doc1),
-		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc1),
+		elastic.NewBulkCreateRequest().Index(indexName).Doc(doc1), //type: create 如果存在则报错
+		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc1),  //type: index  如果存在更新
 		elastic.NewBulkIndexRequest().Index(indexName).Doc(doc2),
 	)
 	do, err := bulk.Do(context.Background())
@@ -248,6 +248,9 @@ func TestIndexBulkInsert(t *testing.T) {
 		t.Log(err)
 		return
 	}
+	t.Log(do.Succeeded())
+	t.Log(do.Failed())
+
 	t.Log(do.Items)
 	fmt.Println("Data bulk successfully")
 }

@@ -1,4 +1,4 @@
-![图片](./microservices.png)
+![图片](doc/microservices/microservices.png)
 
 # web
 所有的服务/中间件都应该在服务器集群中且不可暴露，仅提供少量的端口对外暴露(如网关入口)。保证了服务/中间件的安全不被恶意攻击且合理有效的控制内部人员的使用权限
