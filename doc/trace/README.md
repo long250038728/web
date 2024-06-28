@@ -3,6 +3,8 @@ go get go.opentelemetry.io/otel/sdk
 go get go.opentelemetry.io/otel/trace
 go get go.opentelemetry.io/otel/exporters/jaeger
 
+
+### 对比
 ```
     jaeger链路追踪（包含ui，client等）
     oltp类似一个agent代理（jagger自己也有个agent，但是被废弃）
@@ -13,22 +15,30 @@ go get go.opentelemetry.io/otel/exporters/jaeger
 ```
 
 
-
+### jaeger及opentelemetry搭建
 ```
 docker pull jaegertracing/all-in-one
 docker pull otel/opentelemetry-collector
 
 // 16686 Jaeger UI 端口
 // 14268 端口是 Jaeger Collector 默认的 HTTP 端口，用于接收追踪数据。（http 端口）
-// 6831 端口用于接收来自服务的 Zipkin Thrift 格式的追踪数据。（Compact 端口）
-// 6832 端口用于接收来自服务的 Jaeger Thrift 格式的追踪数据。（Compact 端口）
+// 6831 端口用于接收来自服务的 Jaeger Thrift 格式的追踪数据。
+// 6832 端口用于接收来自服务的 Jaeger Compact Thrift 格式的追踪数据。（Compact 端口）
 //
+
+// --es.index-prefix 索引前缀
+// --query.ui-config UI的配置信息
+
 docker run -d --name jaeger \
+  -e SPAN_STORAGE_TYPE=elasticsearch \
+  -e ES_SERVER_URLS=http://elasticsearch:9200 \
   -p 16686:16686 \
   -p 6831:6831/udp \
   -p 6832:6832/udp \
   -p 14268:14268 \
-  jaegertracing/all-in-one
+  jaegertracing/all-in-one \
+  --es.index-prefix=prod  \
+  --query.ui-config=etc/conf.d/prod.jaeger-ui.conf.json 
   
  
 // 4317 端口是 opentelemetry Collector 默认的 HTTP 端口，用于接收追踪数据。 
@@ -37,7 +47,6 @@ docker run -d --name otel-collector \
   -p 4317:4317 \
   otel/opentelemetry-collector --config /etc/otel-collector-config.yaml
 ```
-
 
 
 ```otel-collector-config.yaml
@@ -65,8 +74,7 @@ service:
 ```
 
 
-
-
+### go语言处理
 ```
 exporter, err := jaeger.New(jaeger.WithCollectorEndpoint("http://jaeger:14268/api/traces"))    //jaeger collector 
 exporter, err := otlp.NewExporter(otlp.WithInsecure(),otlp.WithAddress("otel-collector:4317")) //otel collector
@@ -115,4 +123,46 @@ ctx, span := otel.Tracer("").Start(ctx, spanName, opts...)
 //把链路信息保存到map中用于传递到其他系统中
 mCarrier := make(map[string]string)
 otel.GetTextMapPropagator().Inject(ctx, propagation.MapCarrier(mCarrier))
+```
+
+
+### 其他
+利用Jaeger插件进行后端存储为clickhouse
+
+
+插件配置文件
+```/etc/clickhouse-config.yaml
+   clickhouse:
+     connection:
+       database: "jaeger"
+       servers:
+         - "http://clickhouse-server:8123"
+     operations_table: "operations"
+     index_table: "index"
+     spans_table: "spans"
+     enable_tls: false
+     username: "default"
+     password: ""
+```
+
+
+获取和运行插件
+```
+wget https://github.com/jaegertracing/jaeger-clickhouse/releases/download/vX.Y.Z/jaeger-clickhouse-plugin-linux-amd64
+chmod +x jaeger-clickhouse-plugin-linux-amd64
+./jaeger-clickhouse-plugin-linux-amd64 --config-file=/etc/clickhouse-config.yaml
+```
+
+
+插件启动 Jaeger Collector
+```
+docker run -d --name jaeger \
+  -e SPAN_STORAGE_TYPE=grpc-plugin \
+  -e GRPC_STORAGE_PLUGIN_BINARY=/path/to/jaeger-clickhouse-plugin \
+  -e GRPC_STORAGE_PLUGIN_CONFIGURATION_FILE=/etc/clickhouse-config.yaml \
+  -p 16686:16686 \
+  -p 6831:6831/udp \
+  -p 6832:6832/udp \
+  -p 14268:14268 \
+  jaegertracing/all-in-one:latest
 ```
