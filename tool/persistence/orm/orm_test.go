@@ -7,8 +7,9 @@ import (
 )
 
 type User struct {
-	Name string
-	Id   int
+	MerchantId int32
+	Name       string
+	Id         int
 }
 
 var model *User

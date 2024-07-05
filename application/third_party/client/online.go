@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/qy_hook"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type requestInfo struct {
@@ -23,6 +26,7 @@ type requestInfo struct {
 type Online struct {
 	outPath     string
 	outFileName string
+	hook        string
 
 	services *Svc
 
@@ -38,6 +42,17 @@ const (
 	OnlineTypeSql     int32 = 4 //数据库
 )
 
+var OnlineTypeList = []int32{
+	OnlineTypeGit, OnlineTypeJenkins, OnlineTypeShell, OnlineTypeSql,
+}
+
+var OnlineTypeHash = map[int32]string{
+	OnlineTypeGit:     "",
+	OnlineTypeJenkins: "",
+	OnlineTypeShell:   "",
+	OnlineTypeSql:     "",
+}
+
 type Opts func(o *Online)
 
 func SetOutPath(path string) Opts {
@@ -52,14 +67,35 @@ func SetFileName(fileName string) Opts {
 	}
 }
 
-func NewOnlineClient(git git.Git, jenkins *jenkins.Client, orm *orm.Gorm, opts ...Opts) *Online {
+func SetQyHook(hook string) Opts {
+	return func(o *Online) {
+		o.hook = hook
+	}
+}
+
+func SetGit(git git.Git) Opts {
+	return func(o *Online) {
+		o.git = git
+	}
+}
+
+func SetJenkins(jenkins *jenkins.Client) Opts {
+	return func(o *Online) {
+		o.jenkins = jenkins
+	}
+}
+
+func SetOrm(orm *orm.Gorm) Opts {
+	return func(o *Online) {
+		o.orm = orm
+	}
+}
+
+func NewOnlineClient(opts ...Opts) *Online {
 	o := &Online{
 		outPath:     "./",
 		outFileName: "json.json",
 		services:    &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
-		git:         git,
-		jenkins:     jenkins,
-		orm:         orm,
 	}
 
 	for _, opt := range opts {
@@ -101,11 +137,24 @@ func (o *Online) Build(ctx context.Context, source, target, svcPath string) erro
 		fmt.Println(err.Error())
 		return err
 	}
+
+	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(list) > 0 {
+		projectNames := make([]string, 0, len(list))
+		for _, val := range list {
+			projectNames = append(projectNames, val.Project)
+		}
+		_ = client.SendHook(ctx, strings.Join(projectNames, "\n"), []string{})
+	}
+
 	return nil
 }
 
 func (o *Online) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
+
+	if o.git == nil {
+		return nil, errors.New("git client is null")
+	}
 
 	for _, addr := range productList {
 		list, err := o.git.GetPR(ctx, addr, source, target)
@@ -162,6 +211,20 @@ func (o *Online) Request(ctx context.Context) error {
 	var requestList []*requestInfo
 	if err = json.Unmarshal(b, &requestList); err != nil {
 		return err
+	}
+
+	// 查询有什么类型
+	for _, val := range requestList {
+		key := val.Type
+		if key == OnlineTypeGit && app.IsNil(o.git) {
+			return errors.New("git is null")
+		}
+		if key == OnlineTypeJenkins && app.IsNil(o.jenkins) {
+			return errors.New("jenkins is null")
+		}
+		if key == OnlineTypeSql && app.IsNil(o.orm) {
+			return errors.New("orm is null")
+		}
 	}
 
 	for _, request := range requestList {

@@ -11,7 +11,7 @@ func TestNewQyHookClient(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	err = client.sendHook(context.Background(), "this is test", nil)
+	err = client.SendHook(context.Background(), "this is test", nil)
 	if err != nil {
 		t.Error(err)
 		return

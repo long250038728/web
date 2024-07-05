@@ -1,13 +1,13 @@
-#address: "gz-cdb-9tvaefsf.sql.tencentcdb.com"
-#port: 63436
-#database: "zhubaoe"
-#table_prefix: "zby_"
-#user: "root"
-#password: "zby123456"
-
-address: "127.0.0.1"
-port: 3306
-database: "project"
-table_prefix: "admin_"
+address: "gz-cdb-9tvaefsf.sql.tencentcdb.com"
+port: 63436
+database: "zhubaoe"
+table_prefix: "zby_"
 user: "root"
-password: "root123456"
+password: "zby123456"
+
+#address: "127.0.0.1"
+#port: 3306
+#database: "project"
+#table_prefix: "admin_"
+#user: "root"
+#password: "root123456"

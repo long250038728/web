@@ -26,7 +26,7 @@ func NewQyHookClient(config *Config) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) sendHook(ctx context.Context, content string, mobileList []string) error {
+func (c *Client) SendHook(ctx context.Context, content string, mobileList []string) error {
 	text := map[string]any{
 		"content": content,
 	}

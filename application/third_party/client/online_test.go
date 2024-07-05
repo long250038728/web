@@ -37,7 +37,7 @@ func TestOnlineBuild(t *testing.T) {
 		return
 	}
 
-	if err := NewOnlineClient(giteeClient, jenkinsClient, ormClient).Build(
+	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetOrm(ormClient)).Build(
 		context.Background(),
 		"release/v3.5.63",
 		"master",
@@ -76,7 +76,7 @@ func TestOnlineRequest(t *testing.T) {
 		return
 	}
 
-	if err := NewOnlineClient(giteeClient, jenkinsClient, ormClient).Request(context.Background()); err != nil {
+	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetOrm(ormClient)).Request(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")
