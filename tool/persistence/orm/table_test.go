@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"testing"
 )
@@ -11,9 +12,22 @@ const (
 	Customer = "zby_customer"
 )
 
+func partition(partitionKey int32) int32 {
+	switch {
+	case partitionKey <= 500:
+		return 1
+	case partitionKey <= 1000:
+		return 2
+	case partitionKey <= 1500:
+		return 3
+	case partitionKey <= 2000:
+		return 4
+	default:
+		return 5
+	}
+}
 func pTableName(table string, partitionKey int32) string {
-	//分表逻辑TODO
-	return table + "_part_1"
+	return fmt.Sprintf("%s_part_%d", table, partition(partitionKey))
 }
 
 func TestCreate(t *testing.T) {
