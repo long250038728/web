@@ -31,17 +31,17 @@ func TestOnlineBuild(t *testing.T) {
 		return
 	}
 
-	ormClient, err := orm.NewGorm(&ormConfig)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	//ormClient, err := orm.NewGorm(&ormConfig)
+	//if err != nil {
+	//	t.Error(err)
+	//	return
+	//}
 
-	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetOrm(ormClient)).Build(
+	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetQyHook("bb3f6f61-04b8-4b46-a167-08a2c91d408d")).Build(
 		context.Background(),
 		"release/v3.5.63",
 		"master",
-		"/Users/linlong/Desktop/web/application/third_party/client/svc.yaml",
+		"/Users/linlong/Desktop/online/linl.yaml",
 	); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
@@ -70,13 +70,13 @@ func TestOnlineRequest(t *testing.T) {
 		return
 	}
 
-	ormClient, err := orm.NewGorm(&ormConfig)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	//ormClient, err := orm.NewGorm(&ormConfig)
+	//if err != nil {
+	//	t.Error(err)
+	//	return
+	//}
 
-	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetOrm(ormClient)).Request(context.Background()); err != nil {
+	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient)).Request(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")

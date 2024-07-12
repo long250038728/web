@@ -104,8 +104,9 @@ curl -X POST http://111.230.143.16:8081/job/{{$marx_item}}/build \
 `
 
 type Svc struct {
-	Kobe []string `json:"kobe" yaml:"kobe"`
-	Marx []string `json:"marx" yaml:"marx"`
+	Kobe  []string `json:"kobe" yaml:"kobe"`
+	Marx  []string `json:"marx" yaml:"marx"`
+	Shell string   `json:"shell" yaml:"shell"`
 }
 
 func (g *Pr) GenMerge(address []string, svc *Svc) ([]byte, error) {

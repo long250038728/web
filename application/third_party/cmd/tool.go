@@ -258,14 +258,13 @@ func json() *cobra.Command {
 			ctx := context.Background()
 			source := args[0]
 			target := args[1]
-			svcPath := ""
+			svcPath := "./linl.yaml"
 
 			if len(args) == 3 {
 				svcPath = args[2]
 			}
 
-			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).
-				Build(ctx, source, target, svcPath); err != nil {
+			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).Build(ctx, source, target, svcPath); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")
@@ -281,8 +280,7 @@ func action() *cobra.Command {
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).
-				Request(ctx); err != nil {
+			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).Request(ctx); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")
