@@ -75,7 +75,7 @@ func (g *Client) GetPR(ctx context.Context, repos, source, target string) ([]*In
 	url := fmt.Sprintf("%s/api/v5/repos/%s/pulls", g.address, repos)
 	data := map[string]any{
 		"access_token": g.token,
-		"state":        "all",
+		"state":        "open",
 		"head":         source,
 		"base":         target,
 		"sort":         "created",

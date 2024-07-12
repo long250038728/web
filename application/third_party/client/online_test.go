@@ -51,7 +51,7 @@ func TestOnlineBuild(t *testing.T) {
 		SetQyHook(hook),
 	).Build(
 		context.Background(),
-		"release/v3.5.63",
+		"release/v3.5.80",
 		"master",
 		"/Users/linlong/Desktop/online/linl.yaml",
 	); err != nil {
