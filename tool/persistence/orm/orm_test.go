@@ -155,3 +155,12 @@ func TestTempTable(t *testing.T) {
 	}
 	t.Log(d)
 }
+
+func TestParser(t *testing.T) {
+	db, err := NewGorm(&config)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Error(db.Parser("/Users/linlong/Desktop/zhubaoe/russell/2024/sm0703/lzh.sql"))
+}

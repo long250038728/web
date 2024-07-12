@@ -107,6 +107,7 @@ type Svc struct {
 	Kobe  []string `json:"kobe" yaml:"kobe"`
 	Marx  []string `json:"marx" yaml:"marx"`
 	Shell string   `json:"shell" yaml:"shell"`
+	SQL   string   `json:"sql" yaml:"sql"`
 }
 
 func (g *Pr) GenMerge(address []string, svc *Svc) ([]byte, error) {

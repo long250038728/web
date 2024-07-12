@@ -6,38 +6,50 @@ import (
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/ssh"
 	"testing"
 )
 
-func TestOnlineBuild(t *testing.T) {
+var gitConfig git.Config
+var jenkinsConfig jenkins.Config
+var ormConfig orm.Config
+
+var gitClient git.Git
+var jenkinsClient *jenkins.Client
+var ormClient *orm.Gorm
+var sshClient *ssh.SSH
+
+var hook = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
+
+func init() {
+	var err error
 	configLoad := configurator.NewYaml()
-
-	var gitConfig git.Config
-	var jenkinsConfig jenkins.Config
-	var ormConfig orm.Config
-
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/db2.yaml", &ormConfig)
 
-	giteeClient, err := git.NewGiteeClient(&gitConfig)
-	if err != nil {
-		t.Error(err)
-		return
+	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
+		panic(err)
 	}
-	jenkinsClient, err := jenkins.NewJenkinsClient(&jenkinsConfig)
-	if err != nil {
-		t.Error(err)
-		return
+	if jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig); err != nil {
+		panic(err)
 	}
+	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+		panic(err)
+	}
+	if sshClient, err = ssh.NewSSH(&ssh.Config{Host: "42.193.172.210", Port: 22, User: "root", Password: "199481&&Shuai"}); err != nil {
+		panic(err)
+	}
+}
 
-	//ormClient, err := orm.NewGorm(&ormConfig)
-	//if err != nil {
-	//	t.Error(err)
-	//	return
-	//}
-
-	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient), SetQyHook("bb3f6f61-04b8-4b46-a167-08a2c91d408d")).Build(
+func TestOnlineBuild(t *testing.T) {
+	if err := NewOnlineClient(
+		SetGit(gitClient),
+		SetJenkins(jenkinsClient),
+		SetOrm(ormClient),
+		SetRemoteShell(sshClient),
+		SetQyHook(hook),
+	).Build(
 		context.Background(),
 		"release/v3.5.63",
 		"master",
@@ -49,34 +61,13 @@ func TestOnlineBuild(t *testing.T) {
 }
 
 func TestOnlineRequest(t *testing.T) {
-	configLoad := configurator.NewYaml()
-
-	var gitConfig git.Config
-	var jenkinsConfig jenkins.Config
-	var ormConfig orm.Config
-
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
-
-	giteeClient, err := git.NewGiteeClient(&gitConfig)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	jenkinsClient, err := jenkins.NewJenkinsClient(&jenkinsConfig)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
-	//ormClient, err := orm.NewGorm(&ormConfig)
-	//if err != nil {
-	//	t.Error(err)
-	//	return
-	//}
-
-	if err := NewOnlineClient(SetGit(giteeClient), SetJenkins(jenkinsClient)).Request(context.Background()); err != nil {
+	if err := NewOnlineClient(
+		SetGit(gitClient),
+		SetJenkins(jenkinsClient),
+		SetOrm(ormClient),
+		SetRemoteShell(sshClient),
+		SetQyHook(hook),
+	).Request(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")

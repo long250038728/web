@@ -93,13 +93,6 @@ func SetOrm(orm *orm.Gorm) Opts {
 func SetRemoteShell(ssh *ssh.SSH) Opts {
 	return func(o *Online) {
 		o.ssh = ssh
-
-		//o.ssh, _ = ssh.NewSSH(&ssh.Config{
-		//	Host:     host,
-		//	Port:     port,
-		//	User:     user,
-		//	Password: password,
-		//})
 	}
 }
 
@@ -128,12 +121,15 @@ func (o *Online) Build(ctx context.Context, source, target, svcPath string) erro
 	var b []byte
 	var err error
 	if list, err = o.list(ctx, source, target); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if b, err = json.MarshalIndent(list, "", "	"); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err = os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 
@@ -210,7 +206,8 @@ func (o *Online) Request(ctx context.Context) error {
 				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
 			}
 		case OnlineTypeSql: //sql
-			if err != o.orm.Exec(request.Project).Error {
+			sql := request.Params["sql"].(string)
+			if err != o.orm.Exec(sql).Error {
 				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "sql build", err))
 			}
 		case OnlineTypeRemoteShell: //remote shell
@@ -252,6 +249,17 @@ func (o *Online) list(ctx context.Context, source, target string) ([]*requestInf
 
 	if o.git == nil {
 		return nil, errors.New("git client is null")
+	}
+
+	if len(o.services.SQL) > 0 {
+		if o.orm == nil {
+			return nil, errors.New("orm client is null")
+		}
+		sqlBytes, err := o.orm.Parser(o.services.SQL)
+		if err != nil {
+			return nil, errors.New("sql parser is err: " + err.Error())
+		}
+		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": string(sqlBytes)}})
 	}
 
 	if len(o.services.Shell) > 0 {
