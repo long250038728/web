@@ -162,6 +162,6 @@ func TestParser(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	sql, err := db.Parser2("/Users/linlong/Desktop/zhubaoe/russell/2024/sm0703/lzh.sql")
+	sql, err := db.Parser("/Users/linlong/Desktop/zhubaoe/russell/2024/sm0703/lzh.sql")
 	t.Log(sql, err)
 }

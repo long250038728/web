@@ -13,6 +13,7 @@ import (
 var gitConfig git.Config
 var jenkinsConfig jenkins.Config
 var ormConfig orm.Config
+var sshConfig ssh.Config
 
 var gitClient git.Git
 var jenkinsClient *jenkins.Client
@@ -27,6 +28,7 @@ func init() {
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &ormConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/ssh.yaml", &sshConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)
@@ -37,7 +39,7 @@ func init() {
 	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
 		panic(err)
 	}
-	if sshClient, err = ssh.NewSSH(&ssh.Config{Host: "42.193.172.210", Port: 22, User: "root", Password: "199481&&Shuai"}); err != nil {
+	if sshClient, err = ssh.NewSSH(&sshConfig); err != nil {
 		panic(err)
 	}
 }

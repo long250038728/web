@@ -12,12 +12,12 @@ import (
 //golang.org/x/crypto/ssh
 
 type Config struct {
-	Host string
-	Port int32
-	User string
+	Host string `json:"host" yaml:"host"`
+	Port int32  `json:"port" yaml:"port"`
+	User string `json:"user" yaml:"user"`
 
-	Password    string
-	PrivatePath string
+	Password    string `json:"password" yaml:"password"`
+	PrivatePath string `json:"private_path" yaml:"privatePath"`
 }
 
 type SSH struct {
