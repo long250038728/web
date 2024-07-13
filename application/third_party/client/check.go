@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-type Online struct {
+type Check struct {
 	outPath     string
 	outFileName string
 	hook        string
@@ -32,56 +32,56 @@ type Online struct {
 	ssh     *ssh.SSH
 }
 
-type Opts func(o *Online)
+type OptsCheck func(o *Check)
 
-func SetOutPath(path string) Opts {
-	return func(o *Online) {
+func SetOutPathCheck(path string) OptsCheck {
+	return func(o *Check) {
 		o.outPath = path
 	}
 }
 
-func SetFileName(fileName string) Opts {
-	return func(o *Online) {
+func SetFileNameCheck(fileName string) OptsCheck {
+	return func(o *Check) {
 		o.outFileName = fileName
 	}
 }
 
 //==========================================
 
-func SetQyHook(hook string) Opts {
-	return func(o *Online) {
+func SetQyHookCheck(hook string) OptsCheck {
+	return func(o *Check) {
 		o.hook = hook
 	}
 }
 
-func SetGit(git git.Git) Opts {
-	return func(o *Online) {
+func SetGitCheck(git git.Git) OptsCheck {
+	return func(o *Check) {
 		o.git = git
 	}
 }
 
-func SetJenkins(jenkins *jenkins.Client) Opts {
-	return func(o *Online) {
+func SetJenkinsCheck(jenkins *jenkins.Client) OptsCheck {
+	return func(o *Check) {
 		o.jenkins = jenkins
 	}
 }
 
-func SetOrm(orm *orm.Gorm) Opts {
-	return func(o *Online) {
+func SetOrmCheck(orm *orm.Gorm) OptsCheck {
+	return func(o *Check) {
 		o.orm = orm
 	}
 }
 
-func SetRemoteShell(ssh *ssh.SSH) Opts {
-	return func(o *Online) {
+func SetRemoteShellCheck(ssh *ssh.SSH) OptsCheck {
+	return func(o *Check) {
 		o.ssh = ssh
 	}
 }
 
 //==========================================
 
-func NewOnlineClient(opts ...Opts) *Online {
-	o := &Online{
+func NewCheckClient(opts ...OptsCheck) *Check {
+	o := &Check{
 		outPath:     "./",
 		outFileName: "json.json",
 		services:    &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
@@ -93,7 +93,7 @@ func NewOnlineClient(opts ...Opts) *Online {
 	return o
 }
 
-func (o *Online) Build(ctx context.Context, source, target, svcPath string) error {
+func (o *Check) Build(ctx context.Context, source, target, svcPath string) error {
 	if len(svcPath) > 0 {
 		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
 			return err
@@ -123,7 +123,7 @@ func (o *Online) Build(ctx context.Context, source, target, svcPath string) erro
 	return nil
 }
 
-func (o *Online) Request(ctx context.Context) error {
+func (o *Check) Request(ctx context.Context) error {
 	b, err := os.ReadFile(o.outPath + o.outFileName)
 	if err != nil {
 		return err
@@ -222,7 +222,7 @@ func (o *Online) Request(ctx context.Context) error {
 
 //============================================================================================
 
-func (o *Online) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
+func (o *Check) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
 
 	if o.git == nil {
@@ -241,7 +241,7 @@ func (o *Online) list(ctx context.Context, source, target string) ([]*requestInf
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -258,40 +258,11 @@ func (o *Online) list(ctx context.Context, source, target string) ([]*requestInf
 
 		//调用合并分支
 		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
-
-		//每个服务有两台服务器
-		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag_t.sh kobe"})
-			for _, svc := range o.services.Kobe {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
-			}
-		}
-
-		//每个服务有一台服务器
-		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag_t.sh marx"})
-			for _, svc := range o.services.Marx {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
-			}
-		}
-
-		//有一个服务
-		if addr == "zhubaoe/plato" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
-		}
-
-		//有三个服务
-		if addr == "zhubaoe/locke" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
-		}
 	}
 	return address, nil
 }
 
-func (o *Online) hookSend(ctx context.Context, text string) {
+func (o *Check) hookSend(ctx context.Context, text string) {
 	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(text) > 0 {
 		_ = client.SendHook(ctx, text, []string{})
 	}

@@ -1,11 +1,11 @@
 kobe:
-#  - kobe-goods
-#  - kobe-order
-#  - kobe-stock
-#  - kobe-report
-#  - kobe-message
-  - kobe-customer
-  - kobe-merchant
+# - kobe-goods
+# - kobe-order
+# - kobe-stock
+# - kobe-report
+# - kobe-message
+- kobe-customer
+- kobe-merchant
 # - kobe-foundation
 # - kobe-reportcenter
 # - kobe-scheduler_history_stock

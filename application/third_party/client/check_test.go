@@ -10,23 +10,12 @@ import (
 	"testing"
 )
 
-var gitConfig git.Config
-var jenkinsConfig jenkins.Config
-var ormConfig orm.Config
-
-var gitClient git.Git
-var jenkinsClient *jenkins.Client
-var ormClient *orm.Gorm
-var sshClient *ssh.SSH
-
-var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
-
 func init() {
 	var err error
 	configLoad := configurator.NewYaml()
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/dbOnline.yaml", &ormConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkinsCheck.yaml", &jenkinsConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/dbCheck.yaml", &ormConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)
@@ -42,17 +31,17 @@ func init() {
 	}
 }
 
-func TestOnlineBuild(t *testing.T) {
-	if err := NewOnlineClient(
-		SetGit(gitClient),
-		SetJenkins(jenkinsClient),
-		SetOrm(ormClient),
-		SetRemoteShell(sshClient),
-		SetQyHook(hookToken),
+func TestCheckBuild(t *testing.T) {
+	if err := NewCheckClient(
+		SetGitCheck(gitClient),
+		SetJenkinsCheck(jenkinsClient),
+		SetOrmCheck(ormClient),
+		SetRemoteShellCheck(sshClient),
+		SetQyHookCheck(hookToken),
 	).Build(
 		context.Background(),
 		"release/v3.5.80",
-		"master",
+		"check",
 		"/Users/linlong/Desktop/online/linl.yaml",
 	); err != nil {
 		t.Errorf("Build() error = %v ", err)
@@ -60,13 +49,13 @@ func TestOnlineBuild(t *testing.T) {
 	t.Log("ok")
 }
 
-func TestOnlineRequest(t *testing.T) {
-	if err := NewOnlineClient(
-		SetGit(gitClient),
-		SetJenkins(jenkinsClient),
-		SetOrm(ormClient),
-		SetRemoteShell(sshClient),
-		SetQyHook(hookToken),
+func TestCheckRequest(t *testing.T) {
+	if err := NewCheckClient(
+		SetGitCheck(gitClient),
+		SetJenkinsCheck(jenkinsClient),
+		SetOrmCheck(ormClient),
+		SetRemoteShellCheck(sshClient),
+		SetQyHookCheck(hookToken),
 	).Request(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}

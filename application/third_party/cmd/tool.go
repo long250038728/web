@@ -258,7 +258,7 @@ func json() *cobra.Command {
 			ctx := context.Background()
 			source := args[0]
 			target := args[1]
-			svcPath := "./linl.yaml"
+			svcPath := "./svc.yaml"
 
 			if len(args) == 3 {
 				svcPath = args[2]

@@ -39,7 +39,7 @@ var tmpl = `
 //3.商户管家合并
 
 http://111.230.143.16:8081/ 用户名：admin 密码：admin@zhubaoe
-https://jenkins.zhubaoe.cn/ 用户名：admin 密码：admin@zhubaoe_new
+https://jenkins.zhubaoe.cn/ 用户名：linl 密码：long123456
 
 {{ $giteeToken := .GiteeToken}} {{ $jenkinsToken := .JenkinsToken}} {{ $Svc := .Svc}}
 {{- range $index,$item := .Features}}
