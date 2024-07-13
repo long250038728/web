@@ -13,7 +13,7 @@ func TestModels_Gen(t *testing.T) {
 	var b []byte
 
 	var ormConfig orm.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db_local.yaml", &ormConfig)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/local/db.yaml", &ormConfig)
 	db, err = orm.NewGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)

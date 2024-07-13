@@ -26,7 +26,7 @@ func init() {
 	configLoad := configurator.NewYaml()
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
 	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/dbOnline.yaml", &ormConfig)
+	configLoad.MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &ormConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)

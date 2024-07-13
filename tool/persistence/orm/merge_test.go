@@ -9,7 +9,7 @@ import (
 
 // 139220
 func TestMerge(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/dbOnline.yaml", &config)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
 	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
@@ -45,7 +45,7 @@ func TestMerge(t *testing.T) {
 }
 
 func TestOnlineMerge1(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/dbOnline.yaml", &config)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
 	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
@@ -71,7 +71,7 @@ func TestOnlineMerge1(t *testing.T) {
 }
 
 func TestOnlineMerge2(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/dbOnline.yaml", &config)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
 	db, err := NewGorm(&config)
 	if err != nil {
 		t.Error(err)
