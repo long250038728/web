@@ -19,7 +19,7 @@ var jenkinsClient *jenkins.Client
 var ormClient *orm.Gorm
 var sshClient *ssh.SSH
 
-var hook = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
+var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 
 func init() {
 	var err error
@@ -48,7 +48,7 @@ func TestOnlineBuild(t *testing.T) {
 		SetJenkins(jenkinsClient),
 		SetOrm(ormClient),
 		SetRemoteShell(sshClient),
-		SetQyHook(hook),
+		SetQyHook(hookToken),
 	).Build(
 		context.Background(),
 		"release/v3.5.80",
@@ -66,7 +66,7 @@ func TestOnlineRequest(t *testing.T) {
 		SetJenkins(jenkinsClient),
 		SetOrm(ormClient),
 		SetRemoteShell(sshClient),
-		SetQyHook(hook),
+		SetQyHook(hookToken),
 	).Request(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
