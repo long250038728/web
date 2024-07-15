@@ -100,17 +100,12 @@ func (o *Online) Build(ctx context.Context, source, target, svcPath string) erro
 		}
 	}
 	var list []*requestInfo
-	var b []byte
 	var err error
 	if list, err = o.list(ctx, source, target); err != nil {
 		o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
-	if b, err = json.MarshalIndent(list, "", "	"); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
-		return err
-	}
-	if err = os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
+	if err = o.save(ctx, list); err != nil {
 		o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
@@ -151,7 +146,12 @@ func (o *Online) Request(ctx context.Context) error {
 		}
 	}
 
-	for _, request := range requestList {
+	for index, request := range requestList {
+		//已经成功的就不再处理
+		if request.Success {
+			continue
+		}
+
 		var err error
 		var other string
 
@@ -210,11 +210,16 @@ func (o *Online) Request(ctx context.Context) error {
 			err = errors.New("type is err")
 		}
 
+		//============================================================================
+
 		if err != nil {
 			o.hookSend(ctx, "action:\nproject: "+request.Project+"\nerr: "+err.Error())
 			return err
 		}
+
 		o.hookSend(ctx, "action:\nproject: "+request.Project+"\nok\nother: "+other)
+		requestList[index].Success = true
+		_ = o.save(ctx, requestList)
 	}
 
 	return nil
@@ -295,4 +300,18 @@ func (o *Online) hookSend(ctx context.Context, text string) {
 	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(text) > 0 {
 		_ = client.SendHook(ctx, text, []string{})
 	}
+}
+
+func (o *Online) save(ctx context.Context, list []*requestInfo) error {
+	b, err := json.MarshalIndent(list, "", "	")
+	if err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+	if err := os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+
+	return nil
 }

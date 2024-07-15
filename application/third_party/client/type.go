@@ -5,6 +5,7 @@ type requestInfo struct {
 	Project string         `json:"project"`
 	Params  map[string]any `json:"params"`
 	Num     int32          `json:"num"`
+	Success bool           `json:"success"`
 }
 
 const (
