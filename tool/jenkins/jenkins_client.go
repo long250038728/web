@@ -15,8 +15,6 @@ type Client struct {
 	client  *http.Client
 }
 
-var timeLayout = "2006-01-02 15:04:05"
-
 type Config struct {
 	Address  string `json:"address" yaml:"address"`
 	Username string `json:"username" yaml:"username"`
@@ -96,7 +94,6 @@ func (j *Client) Block(ctx context.Context, job string) error {
 		return err
 	}
 
-	index := 1
 	for {
 		//检查是否退出
 		select {
@@ -112,8 +109,6 @@ func (j *Client) Block(ctx context.Context, job string) error {
 		if resp, _, err = j.client.Get(ctx, fmt.Sprintf("%s/job/%s/%d/api/json?tree=result,building,displayName,duration", j.address, job, number), nil); err != nil {
 			return err
 		}
-		fmt.Println(string(resp))
-		fmt.Println("for check num:", index)
 
 		if err := json.Unmarshal(resp, &q); err != nil {
 			return err
@@ -125,29 +120,17 @@ func (j *Client) Block(ctx context.Context, job string) error {
 		if q.Result == "SUCCESS" {
 			return nil
 		}
-		index += 1
 		time.Sleep(10 * time.Second)
 	}
 }
 
 // BlockBuild  阻塞构建
 func (j *Client) BlockBuild(ctx context.Context, job string, params map[string]any) error {
-	startTime := time.Now()
-	fmt.Println("============== ", job, " ===============")
-	fmt.Println("start time:", startTime.Format(timeLayout))
-	defer func() {
-		endTime := time.Now()
-		fmt.Println("end time:", endTime.Format(timeLayout))
-		fmt.Println("total:", endTime.Sub(startTime))
-	}()
-
 	if buildErr := j.Build(ctx, job, params); buildErr != nil {
 		return buildErr
 	}
-
 	// 等待jenkins列表
 	time.Sleep(time.Second * 10)
-	fmt.Println("query start:", time.Now().Format(timeLayout))
 
 	if queryErr := j.Block(ctx, job); queryErr != nil {
 		return queryErr

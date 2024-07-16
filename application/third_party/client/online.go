@@ -152,28 +152,21 @@ func (o *Online) Request(ctx context.Context) error {
 			continue
 		}
 
+		startTime := time.Now().Local()
 		var err error
-		var other string
+		var other = "empty"
 
 		switch request.Type {
 		case OnlineTypeGit: //合并
-			err := o.git.Merge(ctx, request.Project, request.Num)
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
-			}
+			err = o.git.Merge(ctx, request.Project, request.Num)
 		case OnlineTypeShell: //shell
 			project, ok := request.Params["project"].(string)
 			if !ok {
-				err = errors.New(fmt.Sprintf("%s %s", request.Project, "get project name is err"))
+				err = errors.New("shell script is error")
 				break
 			}
-			err := exec.Command("sh", request.Project, project).Run()
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
-				break
-			}
+			err = exec.Command("sh", request.Project, project).Run()
 		case OnlineTypeJenkins:
-			//jenkins
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
 			for i := 0; i < 3; i++ {
@@ -185,39 +178,42 @@ func (o *Online) Request(ctx context.Context) error {
 				time.Sleep(time.Second * 2)
 			}
 			if !isSuccess {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
+				err = errors.New("jenkins build is failure")
 			}
 		case OnlineTypeSql: //sql
-			sqls := request.Params["sql"].([]string)
+			sql := request.Params["sql"].([]interface{})
+			sqls := make([]string, 0, len(sql))
+			for _, s := range sql {
+				str, ok := s.(string)
+				if !ok {
+					err = errors.New("sql is failure")
+					break
+				}
+				sqls = append(sqls, str)
+			}
+
 			err = o.orm.Transaction(func(tx *gorm.DB) error {
 				for _, sql := range sqls {
-					return o.orm.Exec(sql).Error
+					if err = o.orm.Exec(sql).Error; err != nil {
+						return err
+					}
 				}
 				return nil
 			})
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "sql", err))
-				break
-			}
 		case OnlineTypeRemoteShell: //remote shell
-			success, err := o.ssh.Run(request.Project)
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "remote shell", err))
-				break
-			}
-			other = success
+			other, err = o.ssh.Run(request.Project)
 		default:
 			err = errors.New("type is err")
 		}
 
 		//============================================================================
-
+		endTime := time.Now().Local()
 		if err != nil {
-			o.hookSend(ctx, "action:\nproject: "+request.Project+"\nerr: "+err.Error())
+			o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, err.Error()))
 			return err
 		}
 
-		o.hookSend(ctx, "action:\nproject: "+request.Project+"\nok\nother: "+other)
+		o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, other))
 		requestList[index].Success = true
 		_ = o.save(ctx, requestList)
 	}
