@@ -262,7 +262,7 @@ func (o *Online) list(ctx context.Context, source, target string) ([]*requestInf
 
 		//每个服务有两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag_t.sh kobe"})
+			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
