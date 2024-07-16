@@ -93,25 +93,20 @@ func NewCheckClient(opts ...OptsCheck) *Check {
 	return o
 }
 
-func (o *Check) Build(ctx context.Context, source, target, svcPath string) error {
+func (o *Check) BuildCheck(ctx context.Context, source, target, svcPath string) error {
 	if len(svcPath) > 0 {
 		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
 			return err
 		}
 	}
 	var list []*requestInfo
-	var b []byte
 	var err error
-	if list, err = o.list(ctx, source, target); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+	if list, err = o.listCheck(ctx, source, target); err != nil {
+		o.hookSendCheck(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
-	if b, err = json.MarshalIndent(list, "", "	"); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
-		return err
-	}
-	if err = os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+	if err = o.saveCheck(ctx, list); err != nil {
+		o.hookSendCheck(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 
@@ -119,11 +114,11 @@ func (o *Check) Build(ctx context.Context, source, target, svcPath string) error
 	for index, val := range list {
 		projectNames = append(projectNames, fmt.Sprintf("%d.%s", index+1, val.Project))
 	}
-	o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
+	o.hookSendCheck(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
 	return nil
 }
 
-func (o *Check) Request(ctx context.Context) error {
+func (o *Check) RequestCheck(ctx context.Context) error {
 	b, err := os.ReadFile(o.outPath + o.outFileName)
 	if err != nil {
 		return err
@@ -151,29 +146,27 @@ func (o *Check) Request(ctx context.Context) error {
 		}
 	}
 
-	for _, request := range requestList {
+	for index, request := range requestList {
+		//已经成功的就不再处理
+		if request.Success {
+			continue
+		}
+
+		startTime := time.Now().Local()
 		var err error
-		var other string
+		var other = "empty"
 
 		switch request.Type {
 		case OnlineTypeGit: //合并
-			err := o.git.Merge(ctx, request.Project, request.Num)
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "pr merge", err))
-			}
+			err = o.git.Merge(ctx, request.Project, request.Num)
 		case OnlineTypeShell: //shell
 			project, ok := request.Params["project"].(string)
 			if !ok {
-				err = errors.New(fmt.Sprintf("%s %s", request.Project, "get project name is err"))
+				err = errors.New("shell script is error")
 				break
 			}
-			err := exec.Command("sh", request.Project, project).Run()
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "executing command", err))
-				break
-			}
+			err = exec.Command("sh", request.Project, project).Run()
 		case OnlineTypeJenkins:
-			//jenkins
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
 			for i := 0; i < 3; i++ {
@@ -185,36 +178,44 @@ func (o *Check) Request(ctx context.Context) error {
 				time.Sleep(time.Second * 2)
 			}
 			if !isSuccess {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "block build", err))
+				err = errors.New("jenkins build is failure")
 			}
 		case OnlineTypeSql: //sql
-			sqls := request.Params["sql"].([]string)
+			sql := request.Params["sql"].([]interface{})
+			sqls := make([]string, 0, len(sql))
+			for _, s := range sql {
+				str, ok := s.(string)
+				if !ok {
+					err = errors.New("sql is failure")
+					break
+				}
+				sqls = append(sqls, str)
+			}
+
 			err = o.orm.Transaction(func(tx *gorm.DB) error {
 				for _, sql := range sqls {
-					return o.orm.Exec(sql).Error
+					if err = o.orm.Exec(sql).Error; err != nil {
+						return err
+					}
 				}
 				return nil
 			})
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "sql", err))
-				break
-			}
 		case OnlineTypeRemoteShell: //remote shell
-			success, err := o.ssh.Run(request.Project)
-			if err != nil {
-				err = errors.New(fmt.Sprintf("%s %s %s", request.Project, "remote shell", err))
-				break
-			}
-			other = success
+			other, err = o.ssh.Run(request.Project)
 		default:
 			err = errors.New("type is err")
 		}
 
+		//============================================================================
+		endTime := time.Now().Local()
 		if err != nil {
-			o.hookSend(ctx, "action:\nproject: "+request.Project+"\nerr: "+err.Error())
+			o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, err.Error()))
 			return err
 		}
-		o.hookSend(ctx, "action:\nproject: "+request.Project+"\nok\nother: "+other)
+
+		o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, other))
+		requestList[index].Success = true
+		_ = o.saveCheck(ctx, requestList)
 	}
 
 	return nil
@@ -222,7 +223,7 @@ func (o *Check) Request(ctx context.Context) error {
 
 //============================================================================================
 
-func (o *Check) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
+func (o *Check) listCheck(ctx context.Context, source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
 
 	if o.git == nil {
@@ -241,7 +242,7 @@ func (o *Check) list(ctx context.Context, source, target string) ([]*requestInfo
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -249,21 +250,28 @@ func (o *Check) list(ctx context.Context, source, target string) ([]*requestInfo
 		if err != nil || len(list) != 1 {
 			continue
 		}
-		if addr == "zhubaoe-go/kobe" && len(o.services.Kobe) == 0 {
-			return address, errors.New("有kobe项目，但是未添加服务")
-		}
-		if addr == "zhubaoe/marx" && len(o.services.Marx) == 0 {
-			return address, errors.New("有marx项目，但是未添加服务")
-		}
-
 		//调用合并分支
 		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
 	}
 	return address, nil
 }
 
-func (o *Check) hookSend(ctx context.Context, text string) {
+func (o *Check) hookSendCheck(ctx context.Context, text string) {
 	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(text) > 0 {
 		_ = client.SendHook(ctx, text, []string{})
 	}
+}
+
+func (o *Check) saveCheck(ctx context.Context, list []*requestInfo) error {
+	b, err := json.MarshalIndent(list, "", "	")
+	if err != nil {
+		o.hookSendCheck(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+	if err := os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
+		o.hookSendCheck(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+
+	return nil
 }

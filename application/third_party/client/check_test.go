@@ -39,7 +39,7 @@ func TestCheckBuild(t *testing.T) {
 		SetOrmCheck(ormClient),
 		SetRemoteShellCheck(sshClient),
 		SetQyHookCheck(hookToken),
-	).Build(
+	).BuildCheck(
 		context.Background(),
 		"release/v3.5.80",
 		"check",
@@ -57,7 +57,7 @@ func TestCheckRequest(t *testing.T) {
 		SetOrmCheck(ormClient),
 		SetRemoteShellCheck(sshClient),
 		SetQyHookCheck(hookToken),
-	).Request(context.Background()); err != nil {
+	).RequestCheck(context.Background()); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}
 	t.Log("ok")
