@@ -55,7 +55,7 @@ func TestOnlineBuild(t *testing.T) {
 		context.Background(),
 		"release/v3.5.80",
 		"master",
-		"/Users/linlong/Desktop/online/linl.yaml",
+		"./script/svc.yaml",
 	); err != nil {
 		t.Errorf("Build() error = %v ", err)
 	}

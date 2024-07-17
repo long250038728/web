@@ -169,6 +169,9 @@ func (o *Online) Request(ctx context.Context) error {
 		case OnlineTypeJenkins:
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
+			if requestParams, jsonErr := json.Marshal(request.Params); jsonErr == nil {
+				other = string(requestParams)
+			}
 			for i := 0; i < 3; i++ {
 				err := o.jenkins.BlockBuild(ctx, request.Project, request.Params)
 				if err == nil {
@@ -209,11 +212,11 @@ func (o *Online) Request(ctx context.Context) error {
 		//============================================================================
 		endTime := time.Now().Local()
 		if err != nil {
-			o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, err.Error()))
+			o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
 			return err
 		}
 
-		o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, other))
+		o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
 		requestList[index].Success = true
 		_ = o.save(ctx, requestList)
 	}
@@ -271,7 +274,7 @@ func (o *Online) list(ctx context.Context, source, target string) ([]*requestInf
 
 		//每个服务有一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag_t.sh marx"})
+			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
 			}
