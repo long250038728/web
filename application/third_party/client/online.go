@@ -169,6 +169,9 @@ func (o *Online) Request(ctx context.Context) error {
 		case OnlineTypeJenkins:
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
+			if requestParams, jsonErr := json.Marshal(request.Params); jsonErr == nil {
+				other = string(requestParams)
+			}
 			for i := 0; i < 3; i++ {
 				err := o.jenkins.BlockBuild(ctx, request.Project, request.Params)
 				if err == nil {
