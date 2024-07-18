@@ -209,11 +209,11 @@ func (o *Check) RequestCheck(ctx context.Context) error {
 		//============================================================================
 		endTime := time.Now().Local()
 		if err != nil {
-			o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, err.Error()))
+			o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
 			return err
 		}
 
-		o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %d \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime)/time.Second, other))
+		o.hookSendCheck(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
 		requestList[index].Success = true
 		_ = o.saveCheck(ctx, requestList)
 	}
