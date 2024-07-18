@@ -64,21 +64,6 @@ TCP连接管理
 | 消费确认机制 |   消费进度保存   |        消费位点保存        |          消费位点保存          |         游标位点保存         |
 |  消费确认  |   单条ack    |        批量ack         |          批量ack           |      单条ack，批量ack       |
 
- ddd |	rabbitMq|	Kafka	|RocketMq	|pulser|
-:---:|:---: :---:|:---: |:---: | :---:  |:---:  | 
-应用层协议	AMQP/HTTP	Kafka protocl / HTTP	Rocketmq remoting / HTTP	pulsar protocl / HTTP
-元数据存储	Mnesia	Zookeeper	NameServer	Zookeeper
-数据过期	queue和消息维度	 时间及分区大小	时间、节点维度	时间、节点维度
-数据删除	queue维度	分区segment维度	节点segment维度	分区ledger维度
-客户端寻址	无	连接broker完成寻址（tcp）	连接NameServer完成寻址（tcp）	连接broker完成寻址
-（tcp和http）
-分区分配	无	轮训，按key hash，自定义	轮训，最小投递延迟，自定义	轮训，随机，自定义
-消费模型	pull，push	pull	pull，push，pop	pull
-消费确认机制	消费进度保存	消费位点保存	消费位点保存	游标位点保存
-消费确认	单条ack	批量ack	批量ack	单条ack，批量ack
-
-
-
 
 #### 高性能及高可靠性
 生产者

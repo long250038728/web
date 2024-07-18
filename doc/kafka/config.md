@@ -49,6 +49,46 @@
 * flush时间：默认5s，可以适当的添加时间提高性能
   （但可能有丢失的风险，考虑到kafka本身就有多副本的）
 
+#### 动态配置及静态配置
+静态配置
+  * kafka路径下有个server.properties，指定给文件启动broker 如果变成broker就需要修改文件后进行重启，对于线上这是个不允许的
+
+动态配置
+  * 在1.1.0版本引入，2.3版本中broker有200多个参数，可在下面连接进行查看 (https://kafka.apache.org/documentation/#brokerconfigs)
+    * read-only ：只有重启才能生效
+    * per-broker: 动态配置，只作用于broker
+    * cluster-wide: 动态配置，作用于整个集群
+    
+由于动态配置的特殊性，保存的参数在zookeeper中，znode路径如下:
+```
+change用来实时监测动态参数的变更,不会保存值
+topics用来保存主题的参数
+users和clients用于动态调整客户端配额（限制连入集群的客户端吞吐量或cpu等资源）
+/config/brokers 才是保存动态broker参数的地方，znode有两大子类节点
+第一类，有固定名称<default>保存的事cluster-wide参数
+第二类： 已broker.id为名，保存per-broker参数
+```
+
+cluster-wide、per-broker和static参数的优先级是这样的
+>per-broker参数 > cluster-wide参数 > static参数 > Kafka默认值。
+
+常见设置
+* log.retention.ms 日志留存时间（topic级别的）
+* num.io.threads和num.network.threads 两组线程组
+* num。replica.fetchers 确保有充足线程可以执行follower副本向leader副本的拉取
+
+```
+//如果要设置cluster-wide范围的动态字段参数，需要指定entity-default
+//如果设置的是per-broker范围的动态字段参数，需要指定 --entity-name  xxx
+
+//broker
+kafka-configs.sh --bootstrap-server  kafka-server:9092  --alter --entity-type brokers --entity-name  1   --add-config 'num.io.threads=10'
+kafka-configs.sh --bootstrap-server  kafka-server:9092  --alter --entity-type brokers --entity-default   --add-config "num.io.threads=10"
+kafka-configs.sh --bootstrap-server  kafka-server:9092  -entity-type brokers --entity-default  --describe
+
+//topic
+kafka-configs.sh --bootstrap-server  kafka-server:9092  --alter  --entity-type topics --entity-name  aaa  --add-config 'max.message.bytes=128000'
+```
 ___
 
 ### 常用配置
@@ -105,7 +145,7 @@ ___
 * JVM层：broker是java进程，所有jvm优化的效果虽然比不上上两层，但是有时有巨大的改善 *
 * 系统层：由于系统已经优化了很多，可能在一些配置设置有误
 
-操作系统层优化
+#### 操作系统层优化
 1. 挂载文件系统禁用atime更新，记录文件最后访问时间，由于会访问inode资源，禁用会减少系统写操作
 mount -o noatime
 2. 文件系统建议选择ext4或XFS,能帮助kafka改善I/O性能。
@@ -114,17 +154,17 @@ sudo sysctl.vm.swappiness=N   或/etc/sysctl.confi增加vm.swappiness=N
 4. ulimit -n文件打开数量    vm.max_map_count最大内存映射数
 /etc/sysctl.conf增加vm.max_map_count=655360保存后执行  sysctl -p
 
-JVM优化
+#### JVM优化
 1. JVM堆大小设置为6-8G（如果精确的话可以查看GC log，关注Full GC之后堆存活对象的大小，设置2倍）
 2. GC收集器的选择（建议使用G1,方便省事），但要竭力的避免Full GC，由于是单线程运行，非常慢
 3. 大对象，指占用至少半个区域大小的对象，可以调大区域的大小 
    * JVM启动参数 -XX:+G1HeapRegionSize=N
 
-Broker优化
+#### Broker优化
 1. 保持客户端版本和broker版本一致（减少压缩/解压的开销，zero copy等）
 2. 参数的调整
 
-应用层优化
+#### 应用层优化
 1. 不要频繁创建Producer和Consumer对象，尽可能复用（metadata及tcp连接）
 2. 用完及时关闭，如不及时关闭必定为造成资源的浪费
 3. 合理使用多线程，kafka的java producer是线程安全，可以在多个线程中共享同一个实例，
@@ -140,11 +180,11 @@ Broker优化
 吞吐量：100000/s       (1000ms / (10ms / 1000)  = 100000/s)
 实际上愿意用较少的延迟代价换取TPS的提升
 ```
-broker ：
+#### broker ：
 1. 增加num.replica.fetchers参数，但不超过cpu核数（副本用多少线程来拉取消息）
 2. GC避免经常性的Full GC
 
-Producer：
+#### Producer：
 1. 增加batch.size大小，默认16kb，可加到512kb或1MB（批次大小）
 2. 加大linger.ms的值 （批次时间）
 3. 设置compression.type=lz4或zstd （压缩方式）
@@ -152,7 +192,7 @@ Producer：
 5. retries = 0  （重试次数）
 6. 如果多线程共享一个producer就增加buffer.memory （消息缓冲区）
 
-Consumer
+#### Consumer
 1. 采用多进程/线程同时消费
 2. 增加fetch.min.bytes参数，如1k或更大 (broker积累多少字节再发给Consumer)
 
