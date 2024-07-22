@@ -26,7 +26,7 @@ type Role struct {
 	Id         int32  `json:"id" yaml:"id" form:"id"`
 	Name       string `json:"name" yaml:"name" form:"name"`
 	Status     int32  `json:"status" yaml:"status" form:"status"` // 1:正常  0:删除
-	
+
 }
 
 type RolePermission struct {

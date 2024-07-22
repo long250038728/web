@@ -8,8 +8,11 @@ import (
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/jenkins"
+	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/ssh"
 	"github.com/spf13/cobra"
 	"os"
+	"path/filepath"
 )
 
 // go get -u github.com/spf13/cobra
@@ -47,25 +50,42 @@ var productList = []string{
 
 var gitConfig git.Config
 var jenkinsConfig jenkins.Config
+var ormConfig orm.Config
+var sshConfig ssh.Config
 
 var gitClient git.Git
 var jenkinsClient *jenkins.Client
+var ormClient *orm.Gorm
+var sshClient ssh.SSH
+
+var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 
 func init() {
-	configLoad := configurator.NewYaml()
+	path := os.Getenv("WEB")
+	if len(path) == 0 {
+		path = "/Users/linlong/Desktop/web"
+	}
+
 	var err error
+	configLoad := configurator.NewYaml()
+	configLoad.MustLoad(filepath.Join(path, "config", "gitee.yaml"), &gitConfig)
+	configLoad.MustLoad(filepath.Join(path, "config", "jenkins.yaml"), &jenkinsConfig)
+	configLoad.MustLoad(filepath.Join(path, "config", "online/db.yaml"), &ormConfig)
+	configLoad.MustLoad(filepath.Join(path, "config", "ssh.yaml"), &sshConfig)
 
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &gitConfig)
-	configLoad.MustLoad("/Users/linlong/Desktop/web/config/jenkins.yaml", &jenkinsConfig)
-
-	gitClient, err = git.NewGiteeClient(&gitConfig)
-	if err != nil {
+	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)
 	}
-	jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig)
-	if err != nil {
+	if jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig); err != nil {
 		panic(err)
 	}
+	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+		panic(err)
+	}
+	if sshClient, err = ssh.NewRemoteSSH(&sshConfig); err != nil {
+		panic(err)
+	}
+
 }
 
 var ctx = context.Background()
@@ -80,9 +100,9 @@ func main() {
 	rootCmd.AddCommand(pr())
 	rootCmd.AddCommand(list())
 	rootCmd.AddCommand(online())
-
 	rootCmd.AddCommand(json())
 	rootCmd.AddCommand(action())
+	rootCmd.AddCommand(completion())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err.Error())
@@ -97,6 +117,16 @@ func checkProduct(products []string) error {
 		}
 	}
 	return nil
+}
+
+func completion() *cobra.Command {
+	return &cobra.Command{
+		Use:   "completion",
+		Short: "无",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("该方法无实际命令")
+		},
+	}
 }
 
 func pr() *cobra.Command {
@@ -191,13 +221,13 @@ func list() *cobra.Command {
 func online() *cobra.Command {
 	return &cobra.Command{
 		Use:   "online [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
-		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
+		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件(默认:./svc.yaml)】",
 		Long:  "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			source := args[0]
 			target := args[1]
-			conf := ""
+			conf := "./svc.yaml"
 			if len(args) == 3 {
 				conf = args[2]
 			}
@@ -264,7 +294,13 @@ func json() *cobra.Command {
 				svcPath = args[2]
 			}
 
-			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).Build(ctx, source, target, svcPath); err != nil {
+			if err := client.NewTaskClient(
+				client.SetGit(gitClient),
+				client.SetJenkins(jenkinsClient),
+				client.SetOrm(ormClient),
+				client.SetRemoteShell(sshClient),
+				client.SetQyHook(hookToken),
+			).Build(ctx, source, target, svcPath); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")
@@ -280,7 +316,13 @@ func action() *cobra.Command {
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			if err := client.NewOnlineClient(client.SetGit(gitClient), client.SetJenkins(jenkinsClient)).Request(ctx); err != nil {
+			if err := client.NewTaskClient(
+				client.SetGit(gitClient),
+				client.SetJenkins(jenkinsClient),
+				client.SetOrm(ormClient),
+				client.SetRemoteShell(sshClient),
+				client.SetQyHook(hookToken),
+			).Request(ctx); err != nil {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")

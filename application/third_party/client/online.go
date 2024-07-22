@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-type Online struct {
+type Task struct {
 	outPath     string
 	outFileName string
 	hook        string
@@ -29,19 +29,19 @@ type Online struct {
 	git     git.Git
 	jenkins *jenkins.Client
 	orm     *orm.Gorm
-	ssh     *ssh.SSH
+	ssh     ssh.SSH
 }
 
-type Opts func(o *Online)
+type Opts func(o *Task)
 
 func SetOutPath(path string) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.outPath = path
 	}
 }
 
 func SetFileName(fileName string) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.outFileName = fileName
 	}
 }
@@ -49,39 +49,39 @@ func SetFileName(fileName string) Opts {
 //==========================================
 
 func SetQyHook(hook string) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.hook = hook
 	}
 }
 
 func SetGit(git git.Git) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.git = git
 	}
 }
 
 func SetJenkins(jenkins *jenkins.Client) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.jenkins = jenkins
 	}
 }
 
 func SetOrm(orm *orm.Gorm) Opts {
-	return func(o *Online) {
+	return func(o *Task) {
 		o.orm = orm
 	}
 }
 
-func SetRemoteShell(ssh *ssh.SSH) Opts {
-	return func(o *Online) {
+func SetRemoteShell(ssh ssh.SSH) Opts {
+	return func(o *Task) {
 		o.ssh = ssh
 	}
 }
 
 //==========================================
 
-func NewOnlineClient(opts ...Opts) *Online {
-	o := &Online{
+func NewTaskClient(opts ...Opts) *Task {
+	o := &Task{
 		outPath:     "./",
 		outFileName: "json.json",
 		services:    &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
@@ -93,7 +93,9 @@ func NewOnlineClient(opts ...Opts) *Online {
 	return o
 }
 
-func (o *Online) Build(ctx context.Context, source, target, svcPath string) error {
+//============================================================================================
+
+func (o *Task) Build(ctx context.Context, source, target, svcPath string) error {
 	if len(svcPath) > 0 {
 		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
 			return err
@@ -118,7 +120,138 @@ func (o *Online) Build(ctx context.Context, source, target, svcPath string) erro
 	return nil
 }
 
-func (o *Online) Request(ctx context.Context) error {
+func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
+	var address = make([]*requestInfo, 0, 100)
+
+	if o.git == nil {
+		return nil, errors.New("git client is null")
+	}
+
+	if len(o.services.SQL) > 0 {
+		if o.orm == nil {
+			return nil, errors.New("orm client is null")
+		}
+		sqls, err := o.orm.Parser(o.services.SQL)
+		if err != nil {
+			return nil, errors.New("sql parser is err: " + err.Error())
+		}
+		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
+	}
+
+	if len(o.services.Shell) > 0 {
+		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
+	}
+
+	for _, addr := range productList {
+		list, err := o.git.GetPR(ctx, addr, source, target)
+		if err != nil || len(list) != 1 {
+			continue
+		}
+		if addr == "zhubaoe-go/kobe" && len(o.services.Kobe) == 0 {
+			return address, errors.New("有kobe项目，但是未添加服务")
+		}
+		if addr == "zhubaoe/marx" && len(o.services.Marx) == 0 {
+			return address, errors.New("有marx项目，但是未添加服务")
+		}
+
+		//调用合并分支
+		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
+
+		//每个服务有两台服务器
+		if addr == "zhubaoe-go/kobe" {
+			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
+			for _, svc := range o.services.Kobe {
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
+			}
+		}
+
+		//每个服务有一台服务器
+		if addr == "zhubaoe/marx" {
+			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
+			for _, svc := range o.services.Marx {
+				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
+			}
+		}
+
+		//有一个服务
+		if addr == "zhubaoe/plato" {
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
+		}
+
+		//有三个服务
+		if addr == "zhubaoe/locke" {
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
+			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
+		}
+	}
+	return address, nil
+}
+
+//============================================================================================
+
+func (o *Task) BuildCheck(ctx context.Context, source, target, svcPath string) error {
+	if len(svcPath) > 0 {
+		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
+			return err
+		}
+	}
+	var list []*requestInfo
+	var err error
+	if list, err = o.listCheck(ctx, source, target); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+	if err = o.save(ctx, list); err != nil {
+		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		return err
+	}
+
+	projectNames := make([]string, 0, len(list))
+	for index, val := range list {
+		projectNames = append(projectNames, fmt.Sprintf("%d.%s", index+1, val.Project))
+	}
+	o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
+	return nil
+}
+
+func (o *Task) listCheck(ctx context.Context, source, target string) ([]*requestInfo, error) {
+	var address = make([]*requestInfo, 0, 100)
+
+	if o.git == nil {
+		return nil, errors.New("git client is null")
+	}
+
+	if len(o.services.SQL) > 0 {
+		if o.orm == nil {
+			return nil, errors.New("orm client is null")
+		}
+		sqls, err := o.orm.Parser(o.services.SQL)
+		if err != nil {
+			return nil, errors.New("sql parser is err: " + err.Error())
+		}
+		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
+	}
+
+	if len(o.services.Shell) > 0 {
+		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
+	}
+
+	for _, addr := range productList {
+		list, err := o.git.GetPR(ctx, addr, source, target)
+		if err != nil || len(list) != 1 {
+			continue
+		}
+		//调用合并分支
+		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
+	}
+	return address, nil
+}
+
+//============================================================================================
+
+func (o *Task) Request(ctx context.Context) error {
 	b, err := os.ReadFile(o.outPath + o.outFileName)
 	if err != nil {
 		return err
@@ -226,82 +359,13 @@ func (o *Online) Request(ctx context.Context) error {
 
 //============================================================================================
 
-func (o *Online) list(ctx context.Context, source, target string) ([]*requestInfo, error) {
-	var address = make([]*requestInfo, 0, 100)
-
-	if o.git == nil {
-		return nil, errors.New("git client is null")
-	}
-
-	if len(o.services.SQL) > 0 {
-		if o.orm == nil {
-			return nil, errors.New("orm client is null")
-		}
-		sqls, err := o.orm.Parser(o.services.SQL)
-		if err != nil {
-			return nil, errors.New("sql parser is err: " + err.Error())
-		}
-		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
-	}
-
-	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
-	}
-
-	for _, addr := range productList {
-		list, err := o.git.GetPR(ctx, addr, source, target)
-		if err != nil || len(list) != 1 {
-			continue
-		}
-		if addr == "zhubaoe-go/kobe" && len(o.services.Kobe) == 0 {
-			return address, errors.New("有kobe项目，但是未添加服务")
-		}
-		if addr == "zhubaoe/marx" && len(o.services.Marx) == 0 {
-			return address, errors.New("有marx项目，但是未添加服务")
-		}
-
-		//调用合并分支
-		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
-
-		//每个服务有两台服务器
-		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
-			for _, svc := range o.services.Kobe {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
-			}
-		}
-
-		//每个服务有一台服务器
-		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
-			for _, svc := range o.services.Marx {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
-			}
-		}
-
-		//有一个服务
-		if addr == "zhubaoe/plato" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
-		}
-
-		//有三个服务
-		if addr == "zhubaoe/locke" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
-		}
-	}
-	return address, nil
-}
-
-func (o *Online) hookSend(ctx context.Context, text string) {
+func (o *Task) hookSend(ctx context.Context, text string) {
 	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(text) > 0 {
 		_ = client.SendHook(ctx, text, []string{})
 	}
 }
 
-func (o *Online) save(ctx context.Context, list []*requestInfo) error {
+func (o *Task) save(ctx context.Context, list []*requestInfo) error {
 	b, err := json.MarshalIndent(list, "", "	")
 	if err != nil {
 		o.hookSend(ctx, "生成失败: \n"+err.Error())

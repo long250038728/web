@@ -1,6 +1,6 @@
 server-user:
-    http_port: 8001
-    grpc_port: 9001
+  http_port: 8001
+  grpc_port: 9001
 server-order:
-    http_port: 8002
-    grpc_port: 9002
+  http_port: 8002
+  grpc_port: 9002
