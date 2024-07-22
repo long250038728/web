@@ -99,3 +99,73 @@ func TestOnlineMerge2(t *testing.T) {
 		fmt.Println(orderId)
 	}
 }
+
+func TestStockChange1(t *testing.T) {
+	//configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
+	//db, err := NewGorm(&config)
+	//if err != nil {
+	//	t.Error(err)
+	//	return
+	//}
+	startMerchantId := 1
+	endMerchantId := 1000
+	sourceTable := "zby_stock_change_log"
+	mergeTable := "zby_stock_change_log_part_1"
+
+	startId := 1
+	maxId := 145759988
+
+	batchNum := 10000
+
+	for i := startId; i <= maxId; i += batchNum {
+		s := i
+		e := i - 1 + batchNum
+
+		if e > maxId {
+			e = maxId
+		}
+
+		sql := fmt.Sprintf("INSERT INTO %s SELECT * FROM %s WHERE  merchant_id between %d and %d and id between %d and %d", mergeTable, sourceTable, startMerchantId, endMerchantId, s, e)
+		fmt.Println(sql)
+
+		//if err := db.Exec(sql).Error; err != nil {
+		//	fmt.Println(err)
+		//	return
+		//}
+	}
+}
+
+func TestStockChange2(t *testing.T) {
+	//configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
+	//db, err := NewGorm(&config)
+	//if err != nil {
+	//	t.Error(err)
+	//	return
+	//}
+	startMerchantId := 1001
+	endMerchantId := 2000
+	sourceTable := "zby_stock_change_log"
+	mergeTable := "zby_stock_change_log_part_2"
+
+	startId := 1
+	maxId := 145759988
+
+	batchNum := 10000
+
+	for i := startId; i <= maxId; i += batchNum {
+		s := i
+		e := i - 1 + batchNum
+
+		if e > maxId {
+			e = maxId
+		}
+
+		sql := fmt.Sprintf("INSERT INTO %s SELECT * FROM %s WHERE  merchant_id between %d and %d and id between %d and %d", mergeTable, sourceTable, startMerchantId, endMerchantId, s, e)
+		fmt.Println(sql)
+
+		//if err := db.Exec(sql).Error; err != nil {
+		//	fmt.Println(err)
+		//	return
+		//}
+	}
+}
