@@ -51,7 +51,7 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	res.Body = responseReader
 
-	fmt.Println("url: " + req.URL.Host + req.URL.Path)
+	fmt.Println("url: " + req.URL.Host + req.URL.Path + "?" + req.URL.RawQuery)
 	fmt.Println("request: " + string(requestBytes))
 	fmt.Println("response: " + string(responseBytes))
 	fmt.Println("=================================================================")

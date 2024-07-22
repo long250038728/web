@@ -44,6 +44,8 @@ func TestMerge(t *testing.T) {
 	}
 }
 
+//RENAME TABLE zby_stock_check_record TO zby_stock_check_record_bak;
+
 func TestOnlineMerge1(t *testing.T) {
 	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
 	db, err := NewGorm(&config)
@@ -53,6 +55,7 @@ func TestOnlineMerge1(t *testing.T) {
 	}
 	startMerchantId := 1
 	endMerchantId := 1000
+	sourceTable := "zby_stock_check_record_bak"
 	mergeTable := "zby_stock_check_record_part_1"
 
 	var ids []int32
@@ -62,7 +65,7 @@ func TestOnlineMerge1(t *testing.T) {
 		return
 	}
 	for _, orderId := range ids {
-		if err := db.Exec(fmt.Sprintf("INSERT INTO %s SELECT * FROM zby_stock_check_record WHERE order_id = %d;\n", mergeTable, orderId)).Error; err != nil {
+		if err := db.Exec(fmt.Sprintf("INSERT INTO %s SELECT * FROM %s WHERE order_id = %d;\n", mergeTable, sourceTable, orderId)).Error; err != nil {
 			fmt.Println(err)
 			return
 		}
@@ -79,6 +82,7 @@ func TestOnlineMerge2(t *testing.T) {
 	}
 	startMerchantId := 1001
 	endMerchantId := 2000
+	sourceTable := "zby_stock_check_record_bak"
 	mergeTable := "zby_stock_check_record_part_2"
 
 	var ids []int32
@@ -88,7 +92,7 @@ func TestOnlineMerge2(t *testing.T) {
 		return
 	}
 	for _, orderId := range ids {
-		if err := db.Exec(fmt.Sprintf("INSERT INTO %s SELECT * FROM zby_stock_check_record WHERE order_id = %d;\n", mergeTable, orderId)).Error; err != nil {
+		if err := db.Exec(fmt.Sprintf("INSERT INTO %s SELECT * FROM %s WHERE order_id = %d;\n", mergeTable, sourceTable, orderId)).Error; err != nil {
 			fmt.Println(err)
 			return
 		}
