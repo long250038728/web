@@ -1,6 +1,7 @@
 package gen
 
 import (
+	_ "embed"
 	"encoding/json"
 	"strings"
 	"text/template"
@@ -28,12 +29,15 @@ func NewEnumGen() *Enum {
 	return &Enum{}
 }
 
+//go:embed tmpl/enum.tmpl
+var enumTmpl string
+
 // Gen 通过EnumItem列表
 func (g *Enum) Gen(data []*EnumItem) ([]byte, error) {
 	return (&Impl{
-		Name:     "gen enum",
-		TmplPath: "./tmpl/enum.tmpl",
-		Data:     &list{List: data},
+		Name: "gen enum",
+		Tmpl: enumTmpl,
+		Data: &list{List: data},
 		Func: template.FuncMap{
 			"fieldName": g.fieldName,
 		},

@@ -1,6 +1,7 @@
 package gen
 
 import (
+	_ "embed"
 	"errors"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"strings"
@@ -40,6 +41,9 @@ func NewModelsGen(db *orm.Gorm) *Models {
 	}
 }
 
+//go:embed tmpl/models.tmpl
+var modelTmpl string
+
 func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 	if len(tables) == 0 {
 		return nil, errors.New("tables num is error")
@@ -51,8 +55,8 @@ func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 	}
 
 	return (&Impl{
-		Name:     "gen models",
-		TmplPath: "./tmpl/models.tmpl",
+		Name: "gen models",
+		Tmpl: modelTmpl,
 		Func: template.FuncMap{
 			"tableName": g.tableName,
 			"fieldName": g.fieldName,
@@ -65,6 +69,9 @@ func (g *Models) Gen(schema string, tables []string) ([]byte, error) {
 	}).Gen()
 }
 
+//go:embed tmpl/proto.tmpl
+var protoTmpl string
+
 func (g *Models) GenProto(schema string, tables []string) ([]byte, error) {
 	if len(tables) == 0 {
 		return nil, errors.New("tables num is error")
@@ -76,8 +83,8 @@ func (g *Models) GenProto(schema string, tables []string) ([]byte, error) {
 	}
 
 	return (&Impl{
-		Name:     "gen models",
-		TmplPath: "./tmpl/proto.tmpl",
+		Name: "gen models",
+		Tmpl: protoTmpl,
 		Func: template.FuncMap{
 			"tableName": g.tableName,
 			"fieldName": g.fieldName,
