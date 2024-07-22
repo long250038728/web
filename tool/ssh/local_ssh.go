@@ -8,8 +8,8 @@ import (
 
 type LocalSSH struct{}
 
-func NewLocalSSH() (SSH, error) {
-	return &LocalSSH{}, nil
+func NewLocalSSH() SSH {
+	return &LocalSSH{}
 }
 
 func (s *LocalSSH) Run(script string) (string, error) {

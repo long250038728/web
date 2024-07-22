@@ -50,9 +50,10 @@ func init() {
 		panic(err)
 	}
 }
-
 func TestCheckBuild(t *testing.T) {
 	if err := NewTaskClient(
+		SetOutPath("./"),
+		SetFileName("json.json"),
 		SetGit(gitClient),
 		SetJenkins(jenkinsClient),
 		SetOrm(ormClient),

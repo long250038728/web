@@ -14,7 +14,6 @@ import (
 	"github.com/long250038728/web/tool/ssh"
 	"gorm.io/gorm"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 )
@@ -298,7 +297,7 @@ func (o *Task) Request(ctx context.Context) error {
 				err = errors.New("shell script is error")
 				break
 			}
-			err = exec.Command("sh", request.Project, project).Run()
+			other, err = ssh.NewLocalSSH().Run(fmt.Sprintf("%s %s", request.Project, project))
 		case OnlineTypeJenkins:
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
