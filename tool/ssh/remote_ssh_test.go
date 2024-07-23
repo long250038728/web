@@ -1,6 +1,8 @@
 package ssh
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_RemoteSSH(t *testing.T) {
 	ssh, err := NewRemoteSSH(&Config{

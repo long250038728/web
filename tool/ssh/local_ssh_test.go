@@ -1,10 +1,16 @@
 package ssh
 
-import "testing"
+import (
+	_ "embed"
+	"testing"
+)
+
+//go:embed shell/test.sh
+var str string
 
 func Test_LocalSSH(t *testing.T) {
 	ssh := NewLocalSSH()
-	resp, err := ssh.Run("docker ps")
+	resp, err := ssh.Run(str)
 	if err != nil {
 		t.Error(err)
 	}
