@@ -372,15 +372,14 @@ func cron() *cobra.Command {
 			_, _ = job.AddFunc(spec, func() {
 				fmt.Println("执行了")
 				ctx := context.Background()
-				if err := client.NewTaskClient(
+				ch <- client.NewTaskClient(
+					client.SetOutPath("../client/"),
 					client.SetGit(gitClient),
 					client.SetJenkins(jenkinsClient),
 					client.SetOrm(ormClient),
 					client.SetRemoteShell(sshClient),
 					client.SetQyHook(hookToken),
-				).Request(ctx); err != nil {
-					ch <- err
-				}
+				).Request(ctx)
 			})
 
 			select {
