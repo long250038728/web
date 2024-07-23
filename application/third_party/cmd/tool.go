@@ -10,9 +10,13 @@ import (
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/ssh"
+	"github.com/long250038728/web/tool/task/cron_job/robfig"
 	"github.com/spf13/cobra"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"strconv"
+	"syscall"
 )
 
 // go get -u github.com/spf13/cobra
@@ -103,6 +107,7 @@ func main() {
 	rootCmd.AddCommand(json())
 	rootCmd.AddCommand(action())
 	rootCmd.AddCommand(completion())
+	rootCmd.AddCommand(cron())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err.Error())
@@ -326,6 +331,65 @@ func action() *cobra.Command {
 				fmt.Println("error :", err)
 			}
 			fmt.Println("ok")
+		},
+	}
+}
+
+func cron() *cobra.Command {
+	return &cobra.Command{
+		Use:   "cron [执行时] [执行分]",
+		Short: "cron： 执行请输入时间",
+		Long:  "cron： 执行请输入时间",
+		Args:  cobra.MinimumNArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			//信号退出
+			quit := make(chan os.Signal, 1)
+			signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+			h := args[0]
+			m := args[1]
+			if _, err := strconv.Atoi(h); err != nil {
+				fmt.Println("hour cron is error :", err)
+				return
+			}
+			if _, err := strconv.Atoi(m); err != nil {
+				fmt.Println("minute cron is error :", err)
+				return
+			}
+			spec := fmt.Sprintf("%s %s * * *", m, h)
+			fmt.Println(spec)
+
+			//创建任务
+			job := robfig.NewCronJob()
+			job.Start()
+			defer func() {
+				fmt.Println("=========")
+				job.Close()
+			}()
+
+			//添加任务
+			ch := make(chan error)
+			_, _ = job.AddFunc(spec, func() {
+				fmt.Println("执行了")
+				ctx := context.Background()
+				if err := client.NewTaskClient(
+					client.SetGit(gitClient),
+					client.SetJenkins(jenkinsClient),
+					client.SetOrm(ormClient),
+					client.SetRemoteShell(sshClient),
+					client.SetQyHook(hookToken),
+				).Request(ctx); err != nil {
+					ch <- err
+				}
+			})
+
+			select {
+			case err := <-ch: //等待执行
+				fmt.Println(err)
+
+			case s := <-quit: //监听信号
+				fmt.Println(s.String())
+			}
 		},
 	}
 }
