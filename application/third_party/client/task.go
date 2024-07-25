@@ -340,7 +340,7 @@ func (o *Task) Request(ctx context.Context) error {
 
 			err = o.orm.Transaction(func(tx *gorm.DB) error {
 				for _, sql := range sqls {
-					if err = o.orm.Exec(sql).Error; err != nil {
+					if err = tx.Exec(sql).Error; err != nil {
 						return err
 					}
 				}

@@ -27,10 +27,10 @@ var taskHashMap = map[int32]string{
 var productList = []string{
 	"zhubaoe/locke",
 	"zhubaoe-go/kobe",
-	"zhubaoe/hume",
+	"zhubaoe/marx",
 	"zhubaoe/socrates",
 	"zhubaoe/aristotle",
 	"fissiongeek/h5-sales",
 	"zhubaoe/plato",
-	"zhubaoe/marx",
+	"zhubaoe/hume",
 }
