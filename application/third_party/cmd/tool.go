@@ -373,7 +373,6 @@ func cron() *cobra.Command {
 				fmt.Println("执行了")
 				ctx := context.Background()
 				ch <- client.NewTaskClient(
-					client.SetOutPath("../client/"),
 					client.SetGit(gitClient),
 					client.SetJenkins(jenkinsClient),
 					client.SetOrm(ormClient),
