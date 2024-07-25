@@ -9,12 +9,20 @@ type requestInfo struct {
 }
 
 const (
-	OnlineTypeGit         int32 = 1 //git
-	OnlineTypeJenkins     int32 = 2 //构建
-	OnlineTypeShell       int32 = 3 //脚本
-	OnlineTypeSql         int32 = 4 //数据库
-	OnlineTypeRemoteShell int32 = 5 //脚本
+	TaskTypeGit         int32 = 1 //git
+	TaskTypeJenkins     int32 = 2 //构建
+	TaskTypeShell       int32 = 3 //脚本
+	TaskTypeSql         int32 = 4 //数据库
+	TaskTypeRemoteShell int32 = 5 //脚本
 )
+
+var taskHashMap = map[int32]string{
+	TaskTypeGit:         "Git",         //git
+	TaskTypeJenkins:     "Jenkins",     //构建
+	TaskTypeShell:       "Shell",       //脚本
+	TaskTypeSql:         "Sql",         //数据库
+	TaskTypeRemoteShell: "RemoteShell", //脚本
+}
 
 var productList = []string{
 	"zhubaoe/locke",

@@ -111,9 +111,20 @@ func (o *Task) Build(ctx context.Context, source, target, svcPath string) error 
 		return err
 	}
 
+	var sqlBytes []byte
+	var sqlErr error
+
 	projectNames := make([]string, 0, len(list))
 	for index, val := range list {
-		projectNames = append(projectNames, fmt.Sprintf("%d.%s", index+1, val.Project))
+		projectNames = append(projectNames, fmt.Sprintf("%d.%s: %s", index+1, taskHashMap[val.Type], val.Project))
+		if val.Type == TaskTypeSql {
+			sqlBytes, sqlErr = json.MarshalIndent(val.Params["sql"], "", "	")
+			if sqlErr != nil {
+				o.hookSend(ctx, sqlErr.Error())
+			} else {
+				o.hookSend(ctx, string(sqlBytes))
+			}
+		}
 	}
 	o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
 	return nil
@@ -134,11 +145,11 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 		if err != nil {
 			return nil, errors.New("sql parser is err: " + err.Error())
 		}
-		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
+		address = append(address, &requestInfo{Type: TaskTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -154,35 +165,35 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 		}
 
 		//调用合并分支
-		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
+		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Num: list[0].Number})
 
 		//每个服务有两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
 			for _, svc := range o.services.Kobe {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
+				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
+				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
 			}
 		}
 
 		//每个服务有一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
 			for _, svc := range o.services.Marx {
-				address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: svc})
+				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc})
 			}
 		}
 
 		//有一个服务
 		if addr == "zhubaoe/plato" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
+			address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: "plato-prod", Params: map[string]any{"BRANCH": "origin/master"}})
 		}
 
 		//有三个服务
 		if addr == "zhubaoe/locke" {
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_32"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-prod_64"})
-			address = append(address, &requestInfo{Type: OnlineTypeJenkins, Project: "locke-hot-prod-64"})
+			address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: "locke-prod_32"})
+			address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: "locke-prod_64"})
+			address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: "locke-hot-prod-64"})
 		}
 	}
 	return address, nil
@@ -230,11 +241,11 @@ func (o *Task) listCheck(ctx context.Context, source, target string) ([]*request
 		if err != nil {
 			return nil, errors.New("sql parser is err: " + err.Error())
 		}
-		address = append(address, &requestInfo{Type: OnlineTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
+		address = append(address, &requestInfo{Type: TaskTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: OnlineTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -243,7 +254,7 @@ func (o *Task) listCheck(ctx context.Context, source, target string) ([]*request
 			continue
 		}
 		//调用合并分支
-		address = append(address, &requestInfo{Type: OnlineTypeGit, Project: addr, Num: list[0].Number})
+		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Num: list[0].Number})
 	}
 	return address, nil
 }
@@ -264,16 +275,16 @@ func (o *Task) Request(ctx context.Context) error {
 	// 查询有什么类型
 	for _, val := range requestList {
 		key := val.Type
-		if key == OnlineTypeGit && app.IsNil(o.git) {
+		if key == TaskTypeGit && app.IsNil(o.git) {
 			return errors.New("git is null")
 		}
-		if key == OnlineTypeJenkins && app.IsNil(o.jenkins) {
+		if key == TaskTypeJenkins && app.IsNil(o.jenkins) {
 			return errors.New("jenkins is null")
 		}
-		if key == OnlineTypeSql && app.IsNil(o.orm) {
+		if key == TaskTypeSql && app.IsNil(o.orm) {
 			return errors.New("orm is null")
 		}
-		if key == OnlineTypeRemoteShell && app.IsNil(o.ssh) {
+		if key == TaskTypeRemoteShell && app.IsNil(o.ssh) {
 			return errors.New("remote ssh is null")
 		}
 	}
@@ -289,16 +300,16 @@ func (o *Task) Request(ctx context.Context) error {
 		var other = "empty"
 
 		switch request.Type {
-		case OnlineTypeGit: //合并
+		case TaskTypeGit: //合并
 			err = o.git.Merge(ctx, request.Project, request.Num)
-		case OnlineTypeShell: //shell
+		case TaskTypeShell: //shell
 			project, ok := request.Params["project"].(string)
 			if !ok {
 				err = errors.New("shell script is error")
 				break
 			}
 			other, err = ssh.NewLocalSSH().Run(fmt.Sprintf("%s %s", request.Project, project))
-		case OnlineTypeJenkins:
+		case TaskTypeJenkins:
 			// jenkins 可能会构建失败，所以重试 3次重试还不行就报错
 			isSuccess := false
 			if requestParams, jsonErr := json.Marshal(request.Params); jsonErr == nil {
@@ -315,7 +326,7 @@ func (o *Task) Request(ctx context.Context) error {
 			if !isSuccess {
 				err = errors.New("jenkins build is failure")
 			}
-		case OnlineTypeSql: //sql
+		case TaskTypeSql: //sql
 			sql := request.Params["sql"].([]interface{})
 			sqls := make([]string, 0, len(sql))
 			for _, s := range sql {
@@ -335,7 +346,7 @@ func (o *Task) Request(ctx context.Context) error {
 				}
 				return nil
 			})
-		case OnlineTypeRemoteShell: //remote shell
+		case TaskTypeRemoteShell: //remote shell
 			other, err = o.ssh.Run(request.Project)
 		default:
 			err = errors.New("type is err")
