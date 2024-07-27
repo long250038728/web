@@ -149,7 +149,7 @@ func TestStockChange2(t *testing.T) {
 	sourceTable := "zby_stock_change_log"
 	mergeTable := "zby_stock_change_log_part_2"
 
-	startId := 96000001
+	startId := 101300000 + 1
 	maxId := 146180000
 
 	batchNum := 10000
