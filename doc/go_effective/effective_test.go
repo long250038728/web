@@ -6,11 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"reflect"
 	"runtime"
 	"strings"
 	"testing"
+	"testing/iotest"
 	"time"
 )
 
@@ -40,6 +43,7 @@ import (
 
 // time.After内存泄露。 在select语句中使用time.After函数时，如果其他通道的数据到达，time.After的通道还没到达前内存不用释放。
 // 如果interface的值是int/int32等类型。在json反序列化后会变成float32类型。是因为反序列化时无法知道之前的类型是float还是int。从兼容性的考虑转换为float64
+// 嵌套对象时，json.Marshal 有可能子对象已经实现了Marshaler接口导致序列化/反序列化有问题
 // 读写时尽可能使用io.Reader/ io.writer，同时读取大文件时间可以考虑使用bufio.NewScanner(f)
 //
 
@@ -265,7 +269,7 @@ func TestInterface(t *testing.T) {
 func TestChan(t *testing.T) {
 }
 
-func TestLibrary(t *testing.T) {
+func TestTime(t *testing.T) {
 	//time.After内存泄露
 	_ = func() {
 		consumer := make(chan int32, 1)
@@ -339,6 +343,20 @@ func TestLibrary(t *testing.T) {
 		}
 	}
 
+	// time
+	_ = func() {
+		t1 := time.Now()
+		t2, _ := time.Parse(time.DateTime, "2024-07-01 12:00:00")
+		t.Log(t1) //2024-07-27 11:05:44.185951 +0800 CST m=+0.000843600 (单调式类型，多了m=+0.000843600，用于比较相对时间)
+		t.Log(t2) // 2024-07-01 12:00:00 +0000 UTC (wall类型， 用于比较绝对时间)
+
+		t3 := t1.Truncate(0) //剥离了单调式时间
+
+		t3.Equal(t1) //判断两个时间用Equal 而不是使用 ==
+	}
+}
+
+func TestJson(t *testing.T) {
 	// interface{} 值int类型json序列化后再反序列化就变成值float64
 	_ = func() {
 		var value int32 = 2
@@ -353,14 +371,17 @@ func TestLibrary(t *testing.T) {
 		t.Log(reflect.TypeOf(unmarshalData["hello"]).Kind())
 	}
 
-	// time
 	_ = func() {
-		t1 := time.Now()
-		t2, _ := time.Parse(time.DateTime, "2024-07-01 12:00:00")
-		t.Log(t1) //2024-07-27 11:05:44.185951 +0800 CST m=+0.000843600 (多了m=+0.000843600，用于比较相对时间)
-		t.Log(t2) // 2024-07-01 12:00:00 +0000 UTC (挂壁类型， 用于比较绝对时间)
-	}
+		c := curr{Msg: "ok", Code: 200, Time: time.Now()}
+		b, _ := json.Marshal(&c)
+		t.Log(string(b))
 
+		//curr实现了  json.Marshaler接口  {"Msg":"ok","Code":200,"Time":"2024-07-28T21:26:23.97965+08:00"}
+		//curr未实现了json.Marshaler接口  "2024-07-28T21:26:45.669756+08:00"
+	}
+}
+
+func TestReader(t *testing.T) {
 	// bufio包Scanner的使用（减少一次性读取大文件的问题）
 	_ = func() {
 		f, _ := os.Open("./effective_test.go")
@@ -378,13 +399,112 @@ func TestLibrary(t *testing.T) {
 	}
 }
 
+func TestTest(t *testing.T) {
+	// //go:build test1
+	//  标识种类的方法
+	//	go test -v .    			表示值运行不含build标识的方法
+	//  go test --tags=test1 -v .   表示值运行不含build标识及test1标识的方法
+
+	// 随机执行单元测试用例
+	// go test -shuffle=on -v .
+	// 希望以之前的随机顺序执行，指定上次的执行返回的随机值
+	// go test -shuffle=324213412  -v .
+
+	//代码覆盖率
+	// go test -coverprofile=coverage.out ./...
+	// go test -coverprofile=./... -coverprofile=coverage.out ./...
+	// go tool cover -html=coverage.out
+
+	// 执行单元测试时指定-race ，表示运行时会检查竞态检测
+	// go test -race -v .
+
+	//标识该测试用例跳过
+	_ = func() {
+		t.Skip("this is t.Skip")
+	}
+
+	// 并行执行多个单元测试用例
+	_ = func() {
+		t.Parallel()
+		t.Log("hello")
+	}
+
+	// 执行单元测试时指定-short ，表示只执行短测试
+	// go test -short -v .
+	_ = func() {
+		if testing.Short() {
+			t.Log("this is testing.Short")
+		}
+	}
+
+	//使用表格驱动测试
+	_ = func() {
+		tests := map[string]struct{}{}
+		for name, tt := range tests {
+			t.Run(name, func(t *testing.T) {
+				t.Log(tt)
+			})
+		}
+	}
+
+	//httptest包 及 iotest包
+	func() {
+		//测试服务端处理逻辑
+		handle := func(http.ResponseWriter, *http.Request) {
+			//do something
+		}
+		req := httptest.NewRequest(http.MethodGet, "https://localhost", strings.NewReader("isOpen=true"))
+		w := httptest.NewRecorder()
+		handle(w, req)
+		t.Log(w.Result().Status)
+
+		//测试客户端发起请求
+		svc := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			_, _ = w.Write([]byte("hello"))
+		}))
+		defer svc.Close()
+		t.Log(svc.Client().Post("https://localhost", "application/json", nil))
+
+		//测试iotest
+		_ = iotest.TestReader(strings.NewReader("hello"), []byte("hello"))
+	}()
+}
+
+func BenchmarkBenchmark(b *testing.B) {
+	// 默认1s  可通过 -benchmark=10s 设置时间  或 -count=10
+
+	b.ResetTimer() //重置时间
+	b.StopTimer()  //停止
+	b.StartTimer() //开始
+	for i := 0; i < b.N; i++ {
+		func() {
+			c := 0
+			for i := 0; i < 1000; i++ {
+				c += 1
+			}
+		}()
+	}
+}
+
 //=======
 
 type curr struct {
 	Msg  string
 	Code int
+	time.Time
 }
 
+func (c curr) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Msg  string
+		Code int
+		Time time.Time
+	}{
+		Msg:  c.Msg,
+		Code: c.Code,
+		Time: c.Time,
+	})
+}
 func (c *curr) Bar() string {
 	return "bar"
 }
