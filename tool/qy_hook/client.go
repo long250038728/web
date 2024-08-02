@@ -15,7 +15,7 @@ type Client struct {
 	token  string
 }
 
-func NewQyHookClient(config *Config) (*Client, error) {
+func NewQyHookClient(config *Config) (Hook, error) {
 	if len(config.Token) <= 0 {
 		return nil, errors.New("token is empty")
 	}
