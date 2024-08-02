@@ -21,7 +21,7 @@ import (
 type Task struct {
 	outPath     string
 	outFileName string
-	hook        string
+	tels        []string
 
 	services *Svc
 
@@ -29,6 +29,7 @@ type Task struct {
 	jenkins *jenkins.Client
 	orm     *orm.Gorm
 	ssh     ssh.SSH
+	hook    qy_hook.Hook
 }
 
 type Opts func(o *Task)
@@ -47,9 +48,10 @@ func SetFileName(fileName string) Opts {
 
 //==========================================
 
-func SetQyHook(hook string) Opts {
+func SetQyHook(hook qy_hook.Hook, tels []string) Opts {
 	return func(o *Task) {
 		o.hook = hook
+		o.tels = tels
 	}
 }
 
@@ -85,7 +87,6 @@ func NewTaskClient(opts ...Opts) *Task {
 		outFileName: "json.json",
 		services:    &Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)},
 	}
-
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -103,11 +104,11 @@ func (o *Task) Build(ctx context.Context, source, target, svcPath string) error 
 	var list []*requestInfo
 	var err error
 	if list, err = o.list(ctx, source, target); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err = o.save(ctx, list); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 
@@ -120,13 +121,13 @@ func (o *Task) Build(ctx context.Context, source, target, svcPath string) error 
 		if val.Type == TaskTypeSql {
 			sqlBytes, sqlErr = json.MarshalIndent(val.Params["sql"], "", "	")
 			if sqlErr != nil {
-				o.hookSend(ctx, sqlErr.Error())
+				_ = o.hookSend(ctx, sqlErr.Error())
 			} else {
-				o.hookSend(ctx, string(sqlBytes))
+				_ = o.hookSend(ctx, string(sqlBytes))
 			}
 		}
 	}
-	o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
+	_ = o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
 	return nil
 }
 
@@ -210,11 +211,11 @@ func (o *Task) BuildCheck(ctx context.Context, source, target, svcPath string) e
 	var list []*requestInfo
 	var err error
 	if list, err = o.listCheck(ctx, source, target); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err = o.save(ctx, list); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 
@@ -222,7 +223,7 @@ func (o *Task) BuildCheck(ctx context.Context, source, target, svcPath string) e
 	for index, val := range list {
 		projectNames = append(projectNames, fmt.Sprintf("%d.%s", index+1, val.Project))
 	}
-	o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
+	_ = o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
 	return nil
 }
 
@@ -355,11 +356,11 @@ func (o *Task) Request(ctx context.Context) error {
 		//============================================================================
 		endTime := time.Now().Local()
 		if err != nil {
-			o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
+			_ = o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
 			return err
 		}
 
-		o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
+		_ = o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
 		requestList[index].Success = true
 		_ = o.save(ctx, requestList)
 	}
@@ -369,22 +370,22 @@ func (o *Task) Request(ctx context.Context) error {
 
 //============================================================================================
 
-func (o *Task) hookSend(ctx context.Context, text string) {
-	if client, err := qy_hook.NewQyHookClient(&qy_hook.Config{Token: o.hook}); err == nil && len(text) > 0 {
-		_ = client.SendHook(ctx, text, []string{})
+func (o *Task) hookSend(ctx context.Context, text string) error {
+	if len(text) == 0 {
+		return errors.New("text is empty")
 	}
+	return o.hook.SendHook(ctx, text, o.tels)
 }
 
 func (o *Task) save(ctx context.Context, list []*requestInfo) error {
 	b, err := json.MarshalIndent(list, "", "	")
 	if err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err := os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
-		o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
-
 	return nil
 }
