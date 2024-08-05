@@ -21,12 +21,12 @@ type Middleware struct {
 
 	auth    auth.Auth
 	limiter limiter.Limiter
-	error   map[error]MiddleErr
+	error   map[error]*MiddleErr
 }
 
 func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 	middleware := &Middleware{
-		error: map[error]MiddleErr{},
+		error: map[error]*MiddleErr{},
 		ctx:   context.Background(),
 	}
 	for _, opt := range opts {

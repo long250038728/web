@@ -8,9 +8,9 @@ import (
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
+	"github.com/long250038728/web/tool/hook"
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
-	"github.com/long250038728/web/tool/qy_hook"
 	"github.com/long250038728/web/tool/ssh"
 	"gorm.io/gorm"
 	"os"
@@ -29,7 +29,7 @@ type Task struct {
 	jenkins *jenkins.Client
 	orm     *orm.Gorm
 	ssh     ssh.SSH
-	hook    qy_hook.Hook
+	hook    hook.Hook
 }
 
 type Opts func(o *Task)
@@ -48,7 +48,7 @@ func SetFileName(fileName string) Opts {
 
 //==========================================
 
-func SetQyHook(hook qy_hook.Hook, tels []string) Opts {
+func SetQyHook(hook hook.Hook, tels []string) Opts {
 	return func(o *Task) {
 		o.hook = hook
 		o.tels = tels

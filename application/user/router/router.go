@@ -24,20 +24,19 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 		tool.Limiter( //设置限流
 			limiter.NewCacheLimiter(
 				app.NewUtil().Cache(),
-				limiter.SetExpiration(time.Second),
-				limiter.SetTimes(10),
+				limiter.SetExpiration(time.Second), limiter.SetTimes(10),
 			),
 		),
 
 		tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
-			auth.NewCacheAuth(
+			auth.NewAuth(
 				app.NewUtil().Cache(),
-				auth.WhiteList([]string{"/", "/user/", "/user/sse"}),
+				auth.WhiteList(auth.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
 			),
 		),
 
 		tool.Error( //设置错误
-			[]tool.MiddleErr{}, //可以通过数据库处理
+			[]*tool.MiddleErr{}, //可以通过数据库处理
 		),
 	}
 	middleware := tool.NewMiddlewarePool(opts...)

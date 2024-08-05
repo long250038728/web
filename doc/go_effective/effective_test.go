@@ -759,3 +759,27 @@ func (c *curr) String() string {
 
 	return "this is curr"
 }
+
+func TestAAAA(t *testing.T) {
+	tr := &http.Transport{
+		MaxIdleConns:    100,
+		IdleConnTimeout: 5 * time.Second,
+	}
+
+	n := 5
+	for i := 0; i < n; i++ {
+		req, _ := http.NewRequest("POST", fmt.Sprintf("https://www.baidu.com"), nil)
+		req.Header.Add("content-type", "application/json")
+		client := &http.Client{
+			Transport: tr,
+		}
+		_, err := client.Do(req)
+		if err != nil {
+			continue
+		}
+		//_, _ = io.ReadAll(resp.Body)
+		//_ = resp.Body.Close()
+	}
+	time.Sleep(time.Second * 2)
+	fmt.Printf("goroutine num is %d\n", runtime.NumGoroutine())
+}

@@ -9,10 +9,10 @@ import (
 type MiddlewareOpt func(middle *Middleware)
 
 // Error 错误列表赋值
-func Error(errList []MiddleErr) MiddlewareOpt {
+func Error(errList []*MiddleErr) MiddlewareOpt {
 	return func(middle *Middleware) {
 		// O(1)的效率
-		var hash = make(map[error]MiddleErr, len(errList))
+		var hash = make(map[error]*MiddleErr, len(errList))
 
 		// 通过code快速查找error
 		for _, err := range errList {

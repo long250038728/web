@@ -11,13 +11,14 @@ type MiddleErr struct {
 	Message string
 }
 
-func (err *MiddleErr) Error() string {
+func NewError(code, message string) *MiddleErr {
+	return &MiddleErr{Code: code, Message: message}
+}
+
+func (err *MiddleErr) String() string {
 	return err.Message
 }
 
-func NewError(code, message string) *MiddleErr {
-	return &MiddleErr{
-		Code:    code,
-		Message: message,
-	}
+func (err *MiddleErr) Error() string {
+	return err.Message
 }

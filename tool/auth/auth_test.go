@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var c cache.Cache
+var c Store
 
 func init() {
 	var conf cache.Config
@@ -16,7 +16,7 @@ func init() {
 }
 
 func TestSet(t *testing.T) {
-	auth := NewCacheAuth(c)
+	auth := NewAuth(c)
 	t.Log(auth.Signed(context.Background(),
 		&UserClaims{Id: 123456, Name: "john"},
 		&UserSession{AuthList: []string{"123", "456", "789"}},
@@ -25,7 +25,7 @@ func TestSet(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	var accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTU5NDg4NzAsImlhdCI6MTcxNTg0MDg3MCwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.vk7CR288G1s5a8ky5gV2iUtmbzxyz1LYRT5eJSIpnqE"
-	auth := NewCacheAuth(c)
+	auth := NewAuth(c)
 	ctx, err := auth.Parse(context.Background(), accessToken)
 	if err != nil {
 		t.Error(err)

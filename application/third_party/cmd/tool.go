@@ -7,9 +7,9 @@ import (
 	"github.com/long250038728/web/application/third_party/client"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
+	"github.com/long250038728/web/tool/hook"
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
-	"github.com/long250038728/web/tool/qy_hook"
 	"github.com/long250038728/web/tool/ssh"
 	"github.com/long250038728/web/tool/task/cron_job/robfig"
 	"github.com/spf13/cobra"
@@ -62,7 +62,7 @@ var gitClient git.Git
 var jenkinsClient *jenkins.Client
 var ormClient *orm.Gorm
 var sshClient ssh.SSH
-var hookClient qy_hook.Hook
+var hookClient hook.Hook
 
 var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 var tels = []string{"18575538087"}
@@ -92,7 +92,7 @@ func init() {
 	if sshClient, err = ssh.NewRemoteSSH(&sshConfig); err != nil {
 		panic(err)
 	}
-	if hookClient, err = qy_hook.NewQyHookClient(&qy_hook.Config{Token: hookToken}); err != nil {
+	if hookClient, err = hook.NewQyHookClient(&hook.Config{Token: hookToken}); err != nil {
 		panic(err)
 	}
 }

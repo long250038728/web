@@ -30,7 +30,7 @@ func (r *UserRepository) Login(ctx context.Context, name, password string) (*use
 }
 
 func (r *UserRepository) Refresh(ctx context.Context, refreshToken string) (*user.UserResponse, error) {
-	refreshCla, err := auth.NewCacheAuth(r.util.Cache()).Refresh(ctx, refreshToken)
+	refreshCla, err := auth.NewAuth(r.util.Cache()).Refresh(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (r *UserRepository) getUserResponse(ctx context.Context, userInfo *model.Us
 	//基本参数
 	claims := &auth.UserClaims{Id: userInfo.Id, Name: userInfo.Name}
 	session := &auth.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
-	accessToken, refreshToken, err := auth.NewCacheAuth(r.util.Cache()).Signed(ctx, claims, session)
+	accessToken, refreshToken, err := auth.NewAuth(r.util.Cache()).Signed(ctx, claims, session)
 	if err != nil {
 		return nil, err
 	}

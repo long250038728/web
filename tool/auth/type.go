@@ -2,10 +2,7 @@ package auth
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
-	"fmt"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -34,6 +31,9 @@ type UserSession struct {
 }
 
 type Auth interface {
+	// Signed 生成accessToken refreshToken
+	Signed(ctx context.Context, userClaims *UserClaims, session *UserSession) (accessToken string, refreshToken string, err error)
+
 	// Parse 解析accessToken
 	// 生成Claims Session存放到ctx中 通过 GetClaims GetSession 获取
 	Parse(ctx context.Context, accessToken string) (context.Context, error)
@@ -41,10 +41,12 @@ type Auth interface {
 	// Auth 判断是否有权限 判断path是否在GetSession中
 	Auth(ctx context.Context, path string) error
 
-	// Signed 生成accessToken refreshToken
-	Signed(ctx context.Context, userClaims *UserClaims, userSession *UserSession) (string, string, error)
-
 	Refresh(ctx context.Context, refreshToken string) (*RefreshClaims, error)
+}
+
+type Store interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value string) (bool, error)
 }
 
 type claims struct{}
@@ -68,10 +70,4 @@ func GetSession(ctx context.Context) (*UserSession, error) {
 		return val, nil
 	}
 	return nil, errors.New("session is null")
-}
-
-func authToken(id int32) string {
-	hash := sha256.New()
-	hash.Write([]byte(fmt.Sprintf("id:%d", id))) // 向哈希计算对象中写入字符串数据
-	return hex.EncodeToString(hash.Sum(nil))
 }

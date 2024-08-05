@@ -54,6 +54,8 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 }
 
 // File  File返回
+//
+//	response 必须实现 FileInterface 接口
 func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) {
 	middleware, _ := m.pool.Get().(*Middleware)
 	defer func() {
@@ -88,6 +90,8 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 }
 
 // SSE  SSE返回
+//
+// response 必须是<-chan string
 func (m *MiddlewarePool) SSE(gin *gin.Context, request any, function HttpFunc) {
 	middleware, _ := m.pool.Get().(*Middleware)
 	defer func() {

@@ -16,7 +16,7 @@ func serverInterceptor() grpc.UnaryServerInterceptor {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
 			//写入用户信息
 			if authorization, ok := md["authorization"]; ok && len(authorization) == 1 {
-				ctx, _ = auth.NewCacheAuth(app.NewUtil().Cache()).Parse(ctx, authorization[0])
+				ctx, _ = auth.NewAuth(app.NewUtil().Cache()).Parse(ctx, authorization[0])
 			}
 
 			//写入链路

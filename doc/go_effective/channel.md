@@ -16,7 +16,7 @@ chan是使用CSP模型(通信顺序进程)。表示goroutine不要通过共享�
 * close 已经close的chan
 
 ### channel 内存泄露的情况:
-* 生唱者
+* 生产者
   * chan如果设置为空buffer时由于已经没有消费者，(生产者就会一直阻塞无法写入导致生产者内存泄露 )
 * 消费者（select 多个chan，当其中有一个chan到达，其他chan未到达时，就会导致内存泄露）
   * time.After需要等到时间到了才会释放

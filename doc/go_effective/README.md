@@ -89,6 +89,20 @@ go func() {
 }()
 wg.Wait()
 ```
+* SingleFight:
+  * 内部有个map[string]*call{}对象(*call内部存放sync.WaitGroup 及 interface{}值)，调用判断传入的key是否存在。
+    1. 不存在: 创建上面说的*call对象，并写入到map中。sync.WaitGroup.Add(1), 执行fn中方法返回的结果后写入interface{}中，并调用sync.WaitGroup.Done()解除阻塞。delete map中的key
+    2. 存在: 利用sync.WaitGroup的Wait进行阻塞等待。等到解除阻塞后。可通过持有对象获取*struct{}对象的值。
+  * 设计巧妙之处在于
+    1. 通过map判断key是否存在。如果存在通过阻塞的方式进行等待操作(使用sync.WaitGroup)，
+    2. 由于map的value是对象指针，在fn执行完成之后delete map中的key。 此时对象指针并未销毁回收只是解除与map的绑定，其他等待的依旧可以通过对象指针获取值
+    3. fn方法返回后进行map key的删除，删除后新的相同的key进入就会当做不存在。这样可以不用主动去删除key及是否需要再去fn获取最新的值 （相同key在fn执行期间只保证只有一个请求。如果fn执行结束后又有相同的key就当做新的与之前不相关）
+
+
+
+
+
+
 
 ### 测试用例:
 * 测试时可以加上以下参数: 
