@@ -3,12 +3,11 @@ package limiter
 import (
 	"context"
 	"errors"
-	"github.com/long250038728/web/tool/cache"
 	"time"
 )
 
 type cacheLimiter struct {
-	client     cache.Cache
+	client     Store
 	expiration time.Duration
 	times      int64
 }
@@ -27,7 +26,7 @@ func SetTimes(times int64) Opt {
 	}
 }
 
-func NewCacheLimiter(client cache.Cache, opts ...Opt) Limiter {
+func NewCacheLimiter(client Store, opts ...Opt) Limiter {
 	limit := &cacheLimiter{
 		client:     client,
 		expiration: time.Second,

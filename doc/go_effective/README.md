@@ -90,7 +90,7 @@ go func() {
 wg.Wait()
 ```
 * SingleFight:
-  * 内部有个map[string]*call{}对象(*call内部存放sync.WaitGroup 及 interface{}值)，调用判断传入的key是否存在。
+  * 内部有个map string *call{}对象(*call内部存放sync.WaitGroup 及 interface{}值)，调用判断传入的key是否存在。
     1. 不存在: 创建上面说的*call对象，并写入到map中。sync.WaitGroup.Add(1), 执行fn中方法返回的结果后写入interface{}中，并调用sync.WaitGroup.Done()解除阻塞。delete map中的key
     2. 存在: 利用sync.WaitGroup的Wait进行阻塞等待。等到解除阻塞后。可通过持有对象获取*struct{}对象的值。
   * 设计巧妙之处在于

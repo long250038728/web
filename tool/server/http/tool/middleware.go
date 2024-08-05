@@ -56,7 +56,7 @@ func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
 
 	//限流
 	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "HTTP API"); err != nil {
+		if err := m.limiter.Allow(ctx, ginContext.Request.URL.Path); err != nil {
 			return ctx, err
 		}
 	}
