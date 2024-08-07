@@ -114,7 +114,6 @@ func TestStockChange1(t *testing.T) {
 
 	startId := 146180000 + 1
 	maxId := 146930000
-
 	batchNum := 10000
 
 	for i := startId; i <= maxId; i += batchNum {

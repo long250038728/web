@@ -49,7 +49,7 @@ func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		server:      grpc.NewServer(opts...),
 		address:     address,
 		port:        port,
-		svcInstance: register.NewServiceInstance(serverName, address, port, "GRPC"),
+		svcInstance: register.NewServiceInstance(serverName, address, port, register.InstanceTypeGRPC),
 	}
 
 	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)

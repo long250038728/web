@@ -15,6 +15,11 @@
 * range 
   * 在for中val都是值拷贝修改无效(指针类型的拷贝还是原指针所以可以直接修改)，同时val都是同一个指针地址所以操作不当可能会导致有问题
 * 读写时尽可能使用io.Reader/ io.writer，同时读取大文件时间可以考虑使用bufio.NewScanner(f)
+* 指针
+  * 如果传递的是指针就有可能会被外部改变。(ctx.Value("key") 这个值可能会跟保存时的不一样因为被改变)
+* 内部函数结束
+  * 通过ctx的done方法控制内部是否接受
+  * 提供一个Close方法在defer进行关闭
 
 
 ### 基本类型使用事项:
@@ -46,6 +51,9 @@
   * 接口判断nil时会判断接口类型及值是不是都为nil才认定是nil。当使用自定义类型时值是nil但是类型是curr 所以不是nil。需要通过反射的方式进行判断 reflect.ValueOf(i).IsNil()
 * context:
   * 用于控制操作的超时和取消，防止函数长时间运行，避免内存泄漏和资源浪费
+* http body
+  * 如果我们在没有读取的情况下关闭正文，默认的 HTTP 传输可能会关闭连接。 
+  * 如果我们在读取之后关闭正文，默认的 HTTP 传输不会关闭连接；因此，它可以重复使用。
 
 
 ### 并发
@@ -119,3 +127,30 @@ wg.Wait()
   * 单元测试用例建议使用表格驱动测试,可以覆盖到不同的场景
 * 其他
   * 测试提供了httptest包及iotest包
+
+
+
+### 优化
+在编写可读清晰的代码是第一要素
+* CPU
+  * L1和L2缓存是在片上他意味与处理器是在同一块硅片。L3是在片外所以性能会差一点，然后就是RAM速度是L1的50到100倍
+  * L1缓存有两个子缓存 1. 用于缓存数据 2. 用于缓存命令上下文
+  * 高速缓存行概念，当访问特定的内存位置时不久将来。(当CPU想要访问一个特定的内存位置时，它首先检查 L1，然后是 L2，然后是 L3，最后，如果该位置不在这些缓存中，则检查主内存)
+    1. 相同的位置会被再次引用 (时间局部性)
+    2. 会同时引用附近的存储位置（空间局部性） sum([]int32)的性能一定比sum([]struct.num)快的多 
+  * 当一个缓存行在多个内核之间共享，并且至少有一个 goroutine 是写线程时，整个缓存行都会失效
+* 堆栈
+  * 一个变量既可以分配在栈上，也可以分配在堆上。这两种类型的内存有着根本的不同
+    * 栈是默认内存；它是一种后进先出(LIFO)的数据结构，存储特定 goroutine 的所有局部变量
+* pprof
+  * 通过net/http/pprof包开启HTTP(应用通过SIGPROF信号要求操作系统每隔 10 ms 中断一次。当应用接收到一个SIGPROF时，它会挂起当前的活动，并将执行转移到分析器。分析器收集数据)
+    * /debug/pprof/profile端点来激活 CPU 分析
+    * /debug/pprof/heap/?debug=0 heap分析
+    * /debug/pprof/heap?gc=1 heap分析
+    * /debug/pprof/goroutine/?debug=0 goroutine分析
+    * /debug/pprof/goroutine/?debug=2
+    * /debug/pprof/block
+* 通过基准测试 
+  * go test -bench=. -cpuprofile profile.out  && go tool pprof -http=:8080 <file>  ||  go tool pprof -http=:8080 -diff_base <file2> <file1>
+* 跟踪器
+  * go test -bench=. -v -trace=trace.out  && go tool trace trace.out

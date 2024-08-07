@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"io"
 	"math"
 	"net/http"
@@ -419,6 +420,20 @@ func TestGoroutine(t *testing.T) {
 
 }
 
+func TestContext(t *testing.T) {
+	t.Run("context", func(t *testing.T) {
+		val := &curr{Code: 200}
+
+		//由于value是指针，外部进行了修改，ctx.Value的值也会发生改变
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, "key", val)
+
+		val.Code = 300
+		t.Log(ctx.Value("key").(*curr).Code)
+	})
+
+}
+
 func TestTime(t *testing.T) {
 	// time
 	t.Run("time use", func(t *testing.T) {
@@ -727,7 +742,36 @@ func TestChanTransfer(t *testing.T) {
 	select {}
 }
 
-//=======
+func TestErrGroupPool(t *testing.T) {
+	pool, err := NewErrGroupPool(2)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	pool.Go(func() error {
+		t.Log("this is go func1")
+		time.Sleep(time.Second)
+		return nil
+	})
+	pool.Go(func() error {
+		t.Log("this is go func2")
+		time.Sleep(time.Millisecond * 500)
+		return nil
+	})
+	pool.Go(func() error {
+		t.Log("this is go func3")
+		time.Sleep(time.Millisecond * 800) //第二个执行0.5s后结束，此时这个函数唤醒执行0.8s
+		return nil
+	})
+	err = pool.Wait() // 根据上面这里的时间应该是总共处理时间1.3s
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok")
+}
+
+// ==========test中用到的结构体=======
 
 type curr struct {
 	mu   sync.Mutex
@@ -751,10 +795,72 @@ func (c curr) MarshalJSON() ([]byte, error) {
 		Time: c.Time,
 	})
 }
-
 func (c *curr) String() string {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	return "this is curr"
+}
+
+// ==========带有池化的ErrGroup=======
+
+func NewErrGroupPool(num int) (*ErrGroupPool, error) {
+	if num <= 0 {
+		return nil, errors.New("num is > 0")
+	}
+	return &ErrGroupPool{m: make(chan struct{}, num), num: num}, nil
+}
+
+type ErrGroupPool struct {
+	m   chan struct{}
+	g   errgroup.Group
+	num int
+	err error
+}
+
+func (p *ErrGroupPool) Go(fn func() error) {
+	// 判断是否已满 已满阻塞等待
+	p.m <- struct{}{}
+
+	//如果之前已经返回错误了就不在添加了
+	if p.err != nil {
+		<-p.m
+		return
+	}
+
+	//调用
+	p.g.Go(func() error {
+		err := fn()
+
+		//如果函数返回错误，后续阻塞的就无需再加入
+		if p.err == nil {
+			p.err = err
+		}
+
+		//消费完成腾出一个buffer
+		<-p.m
+		return err
+	})
+}
+func (p *ErrGroupPool) Wait() error {
+	err := p.g.Wait()
+	if resetErr := p.reset(); err == nil {
+		err = resetErr
+	}
+	return err
+}
+func (p *ErrGroupPool) reset() (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprintf("%v", r))
+		}
+	}()
+
+	//恢复数据
+	p.err = nil
+	close(p.m)
+	p.m = make(chan struct{}, p.num)
+	p.g = errgroup.Group{}
+
+	return
 }

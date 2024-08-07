@@ -17,7 +17,7 @@ type Config struct {
 	User string `json:"user" yaml:"user"`
 
 	Password    string `json:"password" yaml:"password"`
-	PrivatePath string `json:"private_path" yaml:"privatePath"`
+	PrivatePath string `json:"private_path" yaml:"private_path"`
 }
 
 type RemoteSSH struct {
@@ -73,24 +73,37 @@ func NewRemoteSSH(config *Config) (SSH, error) {
 	}, nil
 }
 
-func (s *RemoteSSH) Run(script string) (string, error) {
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", s.host, s.port), s.config)
+func (s *RemoteSSH) Run(script string) (out string, err error) {
+	var client *ssh.Client
+	client, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", s.host, s.port), s.config)
 	if err != nil {
-		return "", err
+		return
 	}
-	defer client.Close()
+	defer func() {
+		if closeErr := client.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	session, err := client.NewSession()
 	if err != nil {
-		return "", err
+		return
 	}
+	defer func() {
+		if closeErr := session.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
 	session.Stderr = &stdoutBuf
 	if err = session.Run(script); err != nil {
-		return "", fmt.Errorf("failed to run script: %v", err)
+		err = fmt.Errorf("failed to run script: %v", err)
+		return
 	}
-	return stdoutBuf.String(), nil
+	out = stdoutBuf.String()
+	return
 }
 
 func (s *RemoteSSH) RunFile(scriptFile string) (string, error) {

@@ -21,6 +21,9 @@ type ServiceInstance struct {
 	Type    string
 }
 
+const InstanceTypeHttp = "HTTP"
+const InstanceTypeGRPC = "GRPC"
+
 func NewServiceInstance(serverName, address string, port int, instanceType string) *ServiceInstance {
 	instance := &ServiceInstance{
 		Address: address,
@@ -40,18 +43,6 @@ func (i *ServiceInstance) serverId(serverName string) string {
 	return fmt.Sprintf("%v-%v-%d", serverName, i.Type, rand.Uint64()%10000)
 }
 
-func HttpServerName(serverName string) string {
-	return fmt.Sprintf("%v-%v", serverName, "HTTP")
-}
-
-func HttpServerId(serverName string) string {
-	return fmt.Sprintf("%v-%v-%d", serverName, "HTTP", rand.Uint64()%10000)
-}
-
 func GrpcServerName(serverName string) string {
-	return fmt.Sprintf("%v-%v", serverName, "GRPC")
-}
-
-func GrpcServerId(serverName string) string {
-	return fmt.Sprintf("%v-%v-%d", serverName, "GRPC", rand.Uint64()%10000)
+	return fmt.Sprintf("%v-%v", serverName, InstanceTypeGRPC)
 }

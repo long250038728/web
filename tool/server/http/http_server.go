@@ -31,7 +31,7 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		handler:     handler,
 		address:     address,
 		port:        port,
-		svcInstance: register.NewServiceInstance(serverName, address, port, "HTTP"),
+		svcInstance: register.NewServiceInstance(serverName, address, port, register.InstanceTypeHttp),
 	}
 
 	handler.Use(func(c *gin.Context) {
@@ -39,6 +39,12 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		// 如果是预检请求（OPTIONS 方法），则直接返回成功响应
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatusJSON(http.StatusNoContent, gin.H{}) // 204 No Content
+			return
+		}
+
 		c.Next()
 	})
 	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
