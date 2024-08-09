@@ -7,13 +7,17 @@ import (
 	"testing"
 )
 
+var ormConfig orm.Config
+
+func init() {
+	configurator.NewYaml().MustLoadConfigPath("db.yaml", &ormConfig)
+}
+
 func TestModels_Gen(t *testing.T) {
 	var err error
 	var db *orm.Gorm
 	var b []byte
 
-	var ormConfig orm.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
 	db, err = orm.NewGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)
@@ -40,8 +44,6 @@ func TestModels_GenProto(t *testing.T) {
 	var db *orm.Gorm
 	var b []byte
 
-	var ormConfig orm.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &ormConfig)
 	db, err = orm.NewGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)

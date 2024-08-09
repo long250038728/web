@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-var conf cache.Config
 var cacheClient cache.Cache
 
 func init() {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/redis.yaml", &conf)
-	cacheClient = cache.NewRedisCache(&conf)
+	var redisConfig cache.Config
+	configurator.NewYaml().MustLoadConfigPath("redis.yaml", &redisConfig)
+	cacheClient = cache.NewRedisCache(&redisConfig)
 }
 
 func TestLimiter_Allow(t *testing.T) {

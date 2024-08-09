@@ -8,17 +8,19 @@ import (
 	"testing"
 )
 
+var exporter SpanExporter
+
+func init() {
+	var err error
+	var traceConfig Config
+	configurator.NewYaml().MustLoadConfigPath("tracing.yaml", &traceConfig)
+	if exporter, err = NewJaegerExporter(&traceConfig); err != nil {
+		panic(err)
+	}
+}
+
 func TestTracing(t *testing.T) {
 	ctx := context.Background()
-
-	var cfg Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/tracing.yaml", &cfg)
-
-	exporter, err := NewJaegerExporter(&cfg)
-	if err != nil {
-		t.Error(err)
-	}
-
 	trace, err := NewTrace(ctx, exporter, "ServiceA")
 	if err != nil {
 		t.Error(err)

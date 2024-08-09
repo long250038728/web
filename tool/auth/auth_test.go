@@ -10,9 +10,9 @@ import (
 var c Store
 
 func init() {
-	var conf cache.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/redis.yaml", &conf)
-	c = cache.NewRedisCache(&conf)
+	var redisConfig cache.Config
+	configurator.NewYaml().MustLoadConfigPath("redis.yaml", &redisConfig)
+	c = cache.NewRedisCache(&redisConfig)
 }
 
 func TestSet(t *testing.T) {

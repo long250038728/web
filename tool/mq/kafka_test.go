@@ -9,12 +9,13 @@ import (
 var topic = "bonus_message_queue_kafka"
 var ctx = context.Background()
 var consumerGroup = "hume_2"
+
 var client *Kafka
 
 func init() {
-	var conf Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/kafka.yaml", &conf)
-	client = NewKafkaMq(&conf)
+	var kafkaConf Config
+	configurator.NewYaml().MustLoadConfigPath("kafka.yaml", &kafkaConf)
+	client = NewKafkaMq(&kafkaConf)
 }
 
 func TestMqCreateTopic(t *testing.T) {

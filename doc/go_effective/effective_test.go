@@ -345,10 +345,12 @@ func TestGoroutine(t *testing.T) {
 	})
 
 	t.Run("atomic", func(t *testing.T) {
-		var count int32 = 1
+		var count int32
+		atomic.StoreInt32(&count, 4) //赋值
+
 		t.Log(atomic.LoadInt32(&count)) //读
 
-		t.Log(atomic.SwapInt32(&count, 2)) //替换/赋值
+		t.Log(atomic.SwapInt32(&count, 2)) //替换
 		t.Log(count)
 
 		t.Log(atomic.CompareAndSwapInt32(&count, 2, 4)) //先对比成功再替换/赋值
@@ -357,7 +359,7 @@ func TestGoroutine(t *testing.T) {
 		t.Log(atomic.AddInt32(&count, 2)) // 加
 		t.Log(count)
 
-		atomic.StoreInt32(&count, 4) //减
+		atomic.AddInt32(&count, -4) //减
 		t.Log(count)
 	})
 
@@ -743,11 +745,7 @@ func TestChanTransfer(t *testing.T) {
 }
 
 func TestErrGroupPool(t *testing.T) {
-	pool, err := NewErrGroupPool(2)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	pool := NewErrGroupPool(2)
 	pool.Go(func() error {
 		t.Log("this is go func1")
 		time.Sleep(time.Second)
@@ -763,7 +761,7 @@ func TestErrGroupPool(t *testing.T) {
 		time.Sleep(time.Millisecond * 800) //第二个执行0.5s后结束，此时这个函数唤醒执行0.8s
 		return nil
 	})
-	err = pool.Wait() // 根据上面这里的时间应该是总共处理时间1.3s
+	err := pool.Wait() // 根据上面这里的时间应该是总共处理时间1.3s
 	if err != nil {
 		t.Error(err)
 		return
@@ -804,11 +802,11 @@ func (c *curr) String() string {
 
 // ==========带有池化的ErrGroup=======
 
-func NewErrGroupPool(num int) (*ErrGroupPool, error) {
+func NewErrGroupPool(num int) *ErrGroupPool {
 	if num <= 0 {
-		return nil, errors.New("num is > 0")
+		num = 1
 	}
-	return &ErrGroupPool{m: make(chan struct{}, num), num: num}, nil
+	return &ErrGroupPool{m: make(chan struct{}, num), num: num}
 }
 
 type ErrGroupPool struct {

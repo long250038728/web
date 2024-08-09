@@ -12,6 +12,16 @@ const (
 	Customer = "zby_customer"
 )
 
+var db *Gorm
+
+func init() {
+	var err error
+	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
+	if db, err = NewGorm(&dbConfig); err != nil {
+		panic(err)
+	}
+}
+
 func partition(partitionKey int32) int32 {
 	switch {
 	case partitionKey <= 500:
@@ -31,13 +41,6 @@ func pTableName(table string, partitionKey int32) string {
 }
 
 func TestCreate(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &config)
-	db, err := NewGorm(&config)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	// 插入
 	user := &User{MerchantId: 1, Id: 1, Name: "linl"}
 	db.Table(pTableName(Customer, 1)).Create(&user)
@@ -61,13 +64,6 @@ func TestCreate(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &config)
-	db, err := NewGorm(&config)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	//单个
 	var user *User
 	db.Table(pTableName(Customer, 1)).Where("id < 10").Find(&user)
@@ -97,13 +93,6 @@ func TestSelect(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &config)
-	db, err := NewGorm(&config)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	//根据模型
 	var users = []*User{
 		{Id: 1, Name: "xx1", MerchantId: 2},
@@ -126,13 +115,6 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &config)
-	db, err := NewGorm(&config)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-
 	// 根据条件
 	t.Log(db.Table(pTableName(Customer, 1)).Where("id = ? ", 7).Delete(nil).Error)
 

@@ -6,18 +6,21 @@ import (
 	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/olivere/elastic/v7"
-
 	"strings"
 	"testing"
 )
 
-var persistence *ES
 var indexName = "hello_word"
 
+var persistence *ES
+
 func init() {
-	var cfg Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/es.yaml", &cfg)
-	persistence, _ = NewEs(&cfg)
+	var err error
+	var esConfig Config
+	configurator.NewYaml().MustLoadConfigPath("es.yaml", &esConfig)
+	if persistence, err = NewEs(&esConfig); err != nil {
+		panic(err)
+	}
 }
 
 func TestAllIndex(t *testing.T) {

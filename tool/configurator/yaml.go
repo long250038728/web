@@ -1,8 +1,10 @@
 package configurator
 
 import (
+	"github.com/long250038728/web/tool/paths"
 	"gopkg.in/yaml.v3"
 	"os"
+	"path/filepath"
 )
 
 type yamlLoad struct {
@@ -33,4 +35,12 @@ func (y *yamlLoad) MustLoad(path string, data interface{}) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (y *yamlLoad) MustLoadConfigPath(file string, data interface{}) {
+	root, err := paths.RootConfigPath("")
+	if err != nil {
+		panic(err)
+	}
+	y.MustLoad(filepath.Join(root, file), data)
 }

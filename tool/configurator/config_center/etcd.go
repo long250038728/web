@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	etcdClient "go.etcd.io/etcd/client/v3"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,8 +15,20 @@ type Config struct {
 	Address string `json:"address" yaml:"address"`
 }
 
-type etcdCenter struct {
+type EtcdCenter struct {
+	io.Closer
 	client *etcdClient.Client
+}
+
+func NewEtcd(config *Config) (*EtcdCenter, error) {
+	client, err := etcdClient.New(etcdClient.Config{
+		Endpoints:   []string{config.Address},
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &EtcdCenter{client: client}, nil
 }
 
 // NewEtcdConfigCenter   配置中心
@@ -27,10 +40,10 @@ func NewEtcdConfigCenter(config *Config) (ConfigCenter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &etcdCenter{client: client}, nil
+	return &EtcdCenter{client: client}, nil
 }
 
-func (r *etcdCenter) Get(ctx context.Context, key string) (string, error) {
+func (r *EtcdCenter) Get(ctx context.Context, key string) (string, error) {
 	res, err := r.client.Get(ctx, key)
 	if err != nil {
 		return "", err
@@ -41,17 +54,17 @@ func (r *etcdCenter) Get(ctx context.Context, key string) (string, error) {
 	return string(res.Kvs[0].Value), nil
 }
 
-func (r *etcdCenter) Set(ctx context.Context, key, value string) error {
+func (r *EtcdCenter) Set(ctx context.Context, key, value string) error {
 	_, err := r.client.Put(ctx, key, value)
 	return err
 }
 
-func (r *etcdCenter) Del(ctx context.Context, key string) error {
+func (r *EtcdCenter) Del(ctx context.Context, key string) error {
 	_, err := r.client.Delete(ctx, key)
 	return err
 }
 
-func (r *etcdCenter) Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error {
+func (r *EtcdCenter) Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error {
 	ch := r.client.Watch(ctx, key, etcdClient.WithRange(etcdClient.GetPrefixRangeEnd(key)))
 	for {
 		select {
@@ -69,7 +82,7 @@ func (r *etcdCenter) Watch(ctx context.Context, key string, callback func(change
 	}
 }
 
-func (r *etcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string) error {
+func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string) error {
 	var defaultConfigs = []string{"db", "redis", "kafka", "es", "register", "tracing"}
 	if len(yaml) == 0 {
 		yaml = defaultConfigs
@@ -92,4 +105,8 @@ func (r *etcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string
 		}
 	}
 	return nil
+}
+
+func (r *EtcdCenter) Close() error {
+	return r.client.Close()
 }

@@ -11,14 +11,18 @@ import (
 
 var ctx = context.Background()
 
-func initTracing() (*opentelemetry.Trace, error) {
-	var cfg opentelemetry.Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/tracing.yaml", &cfg)
+var exporter opentelemetry.SpanExporter
 
-	exporter, err := opentelemetry.NewJaegerExporter(&cfg)
-	if err != nil {
-		return nil, err
+func init() {
+	var err error
+	var traceConfig opentelemetry.Config
+	configurator.NewYaml().MustLoadConfigPath("tracing.yaml", &traceConfig)
+	if exporter, err = opentelemetry.NewJaegerExporter(&traceConfig); err != nil {
+		panic(err)
 	}
+}
+
+func initTracing() (*opentelemetry.Trace, error) {
 	return opentelemetry.NewTrace(ctx, exporter, "ServiceA")
 }
 

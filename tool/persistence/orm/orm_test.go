@@ -17,14 +17,14 @@ var models []*User
 var mapModel *map[string]interface{}
 var mapModels *[]map[string]interface{}
 
-var config Config
+var dbConfig Config
 
 func init() {
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/db.yaml", &config)
+	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
 }
 
 func TestCreateGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -47,7 +47,7 @@ func TestCreateGorm(t *testing.T) {
 }
 
 func TestSearchGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -63,7 +63,7 @@ func TestSearchGorm(t *testing.T) {
 }
 
 func TestUpdateGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -86,7 +86,7 @@ func TestUpdateGorm(t *testing.T) {
 }
 
 func TestDeleteGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -95,7 +95,7 @@ func TestDeleteGorm(t *testing.T) {
 }
 
 func TestRawGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -105,7 +105,7 @@ func TestRawGorm(t *testing.T) {
 }
 
 func TestTransactionGorm(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -119,7 +119,7 @@ func TestTransactionGorm(t *testing.T) {
 }
 
 func TestTempTable(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -157,7 +157,7 @@ func TestTempTable(t *testing.T) {
 }
 
 func TestParser(t *testing.T) {
-	db, err := NewGorm(&config)
+	db, err := NewGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return

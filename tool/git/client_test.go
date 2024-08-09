@@ -6,17 +6,18 @@ import (
 	"testing"
 )
 
-var gitToken = "5f8aaa1e024cad5e24e86fda85c57f49"
+var gitClient Git
+
+func init() {
+	var err error
+	var giteeConfig Config
+	configurator.NewYaml().MustLoadConfigPath("gitee.yaml", &giteeConfig)
+	if gitClient, err = NewGiteeClient(&giteeConfig); err != nil {
+		panic(err)
+	}
+}
 
 func TestClient_Merge(t *testing.T) {
-	var cfg Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/gitee.yaml", &cfg)
-
-	gitClient, err := NewGiteeClient(&cfg)
-	if err != nil {
-		t.Error(err)
-		return
-	}
 	list, err := gitClient.GetPR(context.Background(), "zhubaoe/socrates", "release/v3.5.59", "master")
 	if err != nil {
 		t.Error(err)
@@ -36,12 +37,7 @@ func TestClient_Merge(t *testing.T) {
 }
 
 func TestClient_MergePR(t *testing.T) {
-	gitClient, err := NewGiteeClient(&Config{Token: gitToken})
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if err = gitClient.MergePR(context.Background(), "zhubaoe/socrates", "release/v3.5.59", "master"); err != nil {
+	if err := gitClient.MergePR(context.Background(), "zhubaoe/socrates", "release/v3.5.59", "master"); err != nil {
 		t.Error(err)
 		return
 	}

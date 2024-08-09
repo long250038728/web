@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+var config Config
+
 // 139220
 func TestMerge(t *testing.T) {
 	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
@@ -100,6 +102,10 @@ func TestOnlineMerge2(t *testing.T) {
 	}
 }
 
+//下班前跑剩下的的，然后往两个插入两个maxid
+//INSERT INTO `zhubaoe`.`zby_stock_change_log_part_1` ( `id`, `merchant_id` )VALUES ( 150000000, 1 );
+//INSERT INTO `zhubaoe`.`zby_stock_change_log_part_2` ( `id`, `merchant_id` )VALUES ( 150000000, 1001 );
+
 func TestStockChange1(t *testing.T) {
 	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/online/db.yaml", &config)
 	db, err := NewGorm(&config)
@@ -112,8 +118,8 @@ func TestStockChange1(t *testing.T) {
 	sourceTable := "zby_stock_change_log"
 	mergeTable := "zby_stock_change_log_part_1"
 
-	startId := 146180000 + 1
-	maxId := 146930000
+	startId := 148470000 + 1
+	maxId := 148470000
 	batchNum := 10000
 
 	for i := startId; i <= maxId; i += batchNum {
@@ -148,8 +154,8 @@ func TestStockChange2(t *testing.T) {
 	sourceTable := "zby_stock_change_log"
 	mergeTable := "zby_stock_change_log_part_2"
 
-	startId := 146180000 + 1
-	maxId := 146930000
+	startId := 148470000 + 1
+	maxId := 148470000
 
 	batchNum := 10000
 

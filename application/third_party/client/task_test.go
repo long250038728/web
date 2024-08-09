@@ -13,25 +13,25 @@ import (
 	"testing"
 )
 
-var gitConfig git.Config
-var jenkinsConfig jenkins.Config
-var ormConfig orm.Config
-var sshConfig ssh.Config
-
 var gitClient git.Git
 var jenkinsClient *jenkins.Client
 var ormClient *orm.Gorm
 var sshClient ssh.SSH
 var hookClient hook.Hook
-var tels = []string{"18575538087"}
 
-var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
+var tels = []string{"18575538087"}
 
 func init() {
 	path := os.Getenv("WEB")
 	if len(path) == 0 {
 		path = "/Users/linlong/Desktop/web"
 	}
+
+	var gitConfig git.Config
+	var jenkinsConfig jenkins.Config
+	var ormConfig orm.Config
+	var sshConfig ssh.Config
+	var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 
 	var err error
 	configLoad := configurator.NewYaml()

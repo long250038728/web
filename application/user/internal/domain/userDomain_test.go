@@ -5,11 +5,16 @@ import (
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/paths"
 	"testing"
 )
 
 func init() {
-	app.InitPathInfo("/Users/linlong/Desktop/web/config", protoc.UserService)
+	root, err := paths.RootConfigPath("")
+	if err != nil {
+		panic(err)
+	}
+	app.InitPathInfo(root, protoc.UserService)
 }
 
 func TestUserDomain_Login(t *testing.T) {
