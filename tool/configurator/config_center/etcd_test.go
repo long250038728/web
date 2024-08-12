@@ -8,7 +8,6 @@ import (
 	"go.etcd.io/etcd/client/v3/concurrency"
 	recipe "go.etcd.io/etcd/client/v3/experimental/recipes"
 	"log"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -18,8 +17,6 @@ var client ConfigCenter
 var eClient *EtcdCenter
 
 func init() {
-	_ = os.Setenv("CONFIG_PATH", "/Users/linlong/Desktop/web/config")
-
 	var err error
 	var centerConfig Config
 	configurator.NewYaml().MustLoadConfigPath("center.yaml", &centerConfig)

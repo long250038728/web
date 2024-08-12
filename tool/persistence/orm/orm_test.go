@@ -3,6 +3,7 @@ package orm
 import (
 	"github.com/long250038728/web/tool/configurator"
 	"gorm.io/gorm"
+	"os"
 	"testing"
 )
 
@@ -20,6 +21,7 @@ var mapModels *[]map[string]interface{}
 var dbConfig Config
 
 func init() {
+	_ = os.Setenv("CONFIG_PATH", "/Users/linlong/Desktop/web/config")
 	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
 }
 

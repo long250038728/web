@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Redis struct {
+type redis struct {
 	client cache.Cache
 	key,
 	identification string
@@ -14,7 +14,7 @@ type Redis struct {
 }
 
 func NewRedisLocker(client cache.Cache, key, identification string, RefreshTime time.Duration) Locker {
-	return &Redis{
+	return &redis{
 		client:         client,
 		key:            key,
 		identification: identification,
@@ -22,7 +22,7 @@ func NewRedisLocker(client cache.Cache, key, identification string, RefreshTime 
 	}
 }
 
-func (l *Redis) Lock(ctx context.Context) error {
+func (l *redis) Lock(ctx context.Context) error {
 	ok, err := l.client.SetNX(ctx, l.key, l.identification, l.time)
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (l *Redis) Lock(ctx context.Context) error {
 	return nil
 }
 
-func (l *Redis) UnLock(ctx context.Context) error {
+func (l *redis) UnLock(ctx context.Context) error {
 	script := `
 		if (redis.call("get",KEYS[1]) == ARGV[1]) then
 			return redis.call("del",KEYS[1]);
@@ -51,7 +51,7 @@ func (l *Redis) UnLock(ctx context.Context) error {
 	return nil
 }
 
-func (l *Redis) Refresh(ctx context.Context) error {
+func (l *redis) Refresh(ctx context.Context) error {
 	script := `
 		if (redis.call("get",KEYS[1]) == ARGV[1]) then
 			return redis.call("expire",KEYS[1],ARGV[2]);
@@ -69,7 +69,7 @@ func (l *Redis) Refresh(ctx context.Context) error {
 	return nil
 }
 
-func (l *Redis) AutoRefresh(ctx context.Context) error {
+func (l *redis) AutoRefresh(ctx context.Context) error {
 	retryTimes := 3
 	retry := 0
 
@@ -104,4 +104,8 @@ func (l *Redis) AutoRefresh(ctx context.Context) error {
 			}
 		}
 	}
+}
+
+func (l *redis) Close() error {
+	return nil
 }
