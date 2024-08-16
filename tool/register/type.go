@@ -30,19 +30,15 @@ func NewServiceInstance(serverName, address string, port int, instanceType strin
 		Port:    port,
 		Type:    instanceType,
 	}
-	instance.Name = instance.serverName(serverName)
-	instance.ID = instance.serverId(serverName)
+	instance.Name = GetServerName(serverName, instanceType)
+	instance.ID = GetServerId(serverName, instanceType)
 	return instance
 }
 
-func (i *ServiceInstance) serverName(serverName string) string {
-	return fmt.Sprintf("%v-%v", serverName, i.Type)
+func GetServerName(serverName string, instanceType string) string {
+	return fmt.Sprintf("%v-%v", serverName, instanceType)
 }
 
-func (i *ServiceInstance) serverId(serverName string) string {
-	return fmt.Sprintf("%v-%v-%d", serverName, i.Type, rand.Uint64()%10000)
-}
-
-func GrpcServerName(serverName string) string {
-	return fmt.Sprintf("%v-%v", serverName, InstanceTypeGRPC)
+func GetServerId(serverName string, instanceType string) string {
+	return fmt.Sprintf("%v-%v-%d", serverName, instanceType, rand.Uint64()%10000)
 }

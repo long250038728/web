@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
+	"log"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -24,8 +25,12 @@ type Server struct {
 
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
-	handler := gin.Default()
 
+	go func() {
+		log.Println(http.ListenAndServe("192.168.0.5:6060", nil))
+	}()
+
+	handler := gin.Default()
 	svc := &Server{
 		server:      &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
 		handler:     handler,
@@ -48,12 +53,14 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		c.Next()
 	})
 	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
+
+	//health check
+	handler.GET("/health", func(gin *gin.Context) {
+		gin.Writer.WriteHeader(http.StatusOK)
+		_, _ = gin.Writer.Write([]byte("health"))
+	})
+
 	handlerFunc(handler)
-
-	//go func() {
-	//	log.Println(http.ListenAndServe(fmt.Sprintf("%s:6060", svc.svcInstance.Address), nil)) //"net/http/pprof"
-	//}()
-
 	return svc
 }
 

@@ -37,3 +37,31 @@ etcd的优势
 * 使用了raft会对锁的要求更高，但是消耗的时间可能会更高
 * 本身带了版本号等其他额外信息，可以做更多的逻辑判断（etcd库也内置扩展了很多包已经实现对应功能）
 * etcd由于是分布式部署，在稳定性及高可用上会比redis更好
+* 支持事务(IF 语句、Then 语句、Else 语句组成,支持比较 key 的是修改版本号 mod_revision 和创建版本号 create_revision)
+* 支持watch监听机制
+* 使用lease机制进行心跳检查
+
+### redis及etcd还能用在什么地方
+redis
+* 缓存
+* 分布式锁
+* 消息队列
+* 配置中心（无watch）
+
+
+etcd (CP 保障数据一致性，牺牲可用性  与zookeeper一样)
+* 服务注册与发现（无提供DNS方式获取、多种机制健康检查）
+* 配置中心
+* 分布式锁
+* leader选举
+
+
+### consul,zookeeper及etcd
+consul (gossip协议)
+* 服务注册与发现(提供DNS方式获取、多种机制健康检查)
+
+zookeeper (Zab协议)
+* java系使用——配置中心/锁
+
+etcd (Raft协议)
+* go系使用——配置中心/锁

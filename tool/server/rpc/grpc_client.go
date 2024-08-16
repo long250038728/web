@@ -77,7 +77,8 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 	}
 
 	//创建socket 连接
-	return grpc.Dial(
+	return grpc.DialContext(
+		ctx,
 		target,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
@@ -130,12 +131,15 @@ type MyResolver struct {
 }
 
 func (r *MyResolver) ResolveNow(options resolver.ResolveNowOptions) {
-	svcInstances, err := r.register.List(r.ctx, register.GrpcServerName(strings.Replace(r.target.URL.Path, "/", "", 1)))
+	svcInstances, err := r.register.List(r.ctx, register.GetServerName(strings.Replace(r.target.URL.Path, "/", "", 1), register.InstanceTypeGRPC))
+	adders := make([]resolver.Address, 0, 0)
+
+	_ = r.cc.UpdateState(resolver.State{Addresses: adders})
 	if err != nil {
 		return
 	}
 
-	adders := make([]resolver.Address, 0, len(svcInstances))
+	//adders := make([]resolver.Address, 0, len(svcInstances))
 	for _, instance := range svcInstances {
 		adders = append(adders, resolver.Address{Addr: fmt.Sprintf("%s:%d", instance.Address, instance.Port)})
 	}

@@ -170,7 +170,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 
 		//每个服务有两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /tmp/project/tag.sh kobe"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh kobe"})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
@@ -179,7 +179,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 
 		//每个服务有一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /tmp/project/tag.sh marx"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh marx"})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc})
 			}
@@ -329,18 +329,18 @@ func (o *Task) Request(ctx context.Context) error {
 			}
 		case TaskTypeSql: //sql
 			sql := request.Params["sql"].([]interface{})
-			sqls := make([]string, 0, len(sql))
+			sqlList := make([]string, 0, len(sql))
 			for _, s := range sql {
 				str, ok := s.(string)
 				if !ok {
 					err = errors.New("sql is failure")
 					break
 				}
-				sqls = append(sqls, str)
+				sqlList = append(sqlList, str)
 			}
 
 			err = o.orm.Transaction(func(tx *gorm.DB) error {
-				for _, sql := range sqls {
+				for _, sql := range sqlList {
 					if err = tx.Exec(sql).Error; err != nil {
 						return err
 					}
@@ -364,6 +364,8 @@ func (o *Task) Request(ctx context.Context) error {
 		requestList[index].Success = true
 		_ = o.save(ctx, requestList)
 	}
+
+	_ = o.hookSend(ctx, "The entire pipeline has been processed")
 
 	return nil
 }

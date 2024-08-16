@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"syscall"
 )
@@ -68,17 +67,12 @@ var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 var tels = []string{"18575538087"}
 
 func init() {
-	path := os.Getenv("WEB")
-	if len(path) == 0 {
-		path = "/Users/linlong/Desktop/web"
-	}
-
 	var err error
 	configLoad := configurator.NewYaml()
-	configLoad.MustLoad(filepath.Join(path, "config", "gitee.yaml"), &gitConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "jenkins.yaml"), &jenkinsConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "online/db.yaml"), &ormConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "ssh.yaml"), &sshConfig)
+	configLoad.MustLoadConfigPath("gitee.yaml", &gitConfig)
+	configLoad.MustLoadConfigPath("jenkins.yaml", &jenkinsConfig)
+	configLoad.MustLoadConfigPath("online/db.yaml", &ormConfig)
+	configLoad.MustLoadConfigPath("ssh.yaml", &sshConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)

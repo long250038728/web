@@ -13,7 +13,11 @@ func RootConfigPath(path string) (string, error) {
 			return path //init的参数变量
 		},
 		func() string {
-			return os.Getenv("CONFIG_PATH") //获取环境变量CONFIG_PATH
+			rootPath := os.Getenv("WEB")
+			if len(rootPath) == 0 {
+				return rootPath
+			}
+			return filepath.Join(rootPath, "config") //获取环境变量CONFIG_PATH
 		},
 		func() string {
 			wd, _ := os.Getwd()

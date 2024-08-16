@@ -136,33 +136,51 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	return util, nil
 }
 
-func (u *Util) Db(ctx context.Context) *orm.Gorm {
-	return &orm.Gorm{DB: u.db.DB.WithContext(ctx)}
+func (u *Util) Db(ctx context.Context) (*orm.Gorm, error) {
+	if u.db == nil {
+		return nil, errors.New("db is not initialized")
+	}
+	return &orm.Gorm{DB: u.db.DB.WithContext(ctx)}, nil
 }
 
-func (u *Util) Es() *es.ES {
-	return u.es
+func (u *Util) Es() (*es.ES, error) {
+	if u.es == nil {
+		return nil, errors.New("es is not initialized")
+	}
+	return u.es, nil
 }
 
-func (u *Util) Mq() mq.Mq {
-	return u.mq
+func (u *Util) Mq() (mq.Mq, error) {
+	if u.es == nil {
+		return nil, errors.New("mq is not initialized")
+	}
+	return u.mq, nil
 }
 
-func (u *Util) Cache() cache.Cache {
-	return u.cache
+func (u *Util) Cache() (cache.Cache, error) {
+	if u.cache == nil {
+		return nil, errors.New("cache is not initialized")
+	}
+	return u.cache, nil
 }
 
 func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (locker.Locker, error) {
 	if u.cache == nil {
-		return nil, errors.New("redis is null")
+		return nil, errors.New("locker is not initialized")
 	}
 	return locker.NewRedisLocker(u.cache, key, identification, RefreshTime), nil
 }
 
-func (u *Util) Register() register.Register {
-	return u.register
+func (u *Util) Register() (register.Register, error) {
+	if u.register == nil {
+		return nil, errors.New("register is not initialized")
+	}
+	return u.register, nil
 }
 
-func (u *Util) Exporter() opentelemetry.SpanExporter {
-	return u.exporter
+func (u *Util) Exporter() (opentelemetry.SpanExporter, error) {
+	if u.exporter == nil {
+		return nil, errors.New("exporter is not initialized")
+	}
+	return u.exporter, nil
 }

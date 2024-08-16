@@ -38,7 +38,11 @@ func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHell
 	}
 	c := &customer{}
 	//orm
-	r.util.Db(ctx).Where("id = ?", 1).Find(c)
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return "", err
+	}
+	db.Where("id = ?", 1).Find(c)
 
 	////mq
 	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})

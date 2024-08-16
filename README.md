@@ -167,13 +167,13 @@ web服务应用
 ```
 docker pull golang:1.20 
 
-docker run --network=my-service-network --name=user -p 8001:8001  -p 6060:6060 -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=user -e WEB="/app" -p 8001:8001  -p 6060:6060 -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/user/cmd/main.go -config /app/config
 
 
-docker run --network=my-service-network --name=order -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=order -e WEB="/app" -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/order/cmd/main.go -config /app/config

@@ -8,8 +8,6 @@ import (
 	"github.com/long250038728/web/tool/jenkins"
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/ssh"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -22,11 +20,6 @@ var hookClient hook.Hook
 var tels = []string{"18575538087"}
 
 func init() {
-	path := os.Getenv("WEB")
-	if len(path) == 0 {
-		path = "/Users/linlong/Desktop/web"
-	}
-
 	var gitConfig git.Config
 	var jenkinsConfig jenkins.Config
 	var ormConfig orm.Config
@@ -35,10 +28,10 @@ func init() {
 
 	var err error
 	configLoad := configurator.NewYaml()
-	configLoad.MustLoad(filepath.Join(path, "config", "gitee.yaml"), &gitConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "jenkins.yaml"), &jenkinsConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "online/db.yaml"), &ormConfig)
-	configLoad.MustLoad(filepath.Join(path, "config", "ssh.yaml"), &sshConfig)
+	configLoad.MustLoadConfigPath("gitee.yaml", &gitConfig)
+	configLoad.MustLoadConfigPath("jenkins.yaml", &jenkinsConfig)
+	configLoad.MustLoadConfigPath("online/db.yaml", &ormConfig)
+	configLoad.MustLoadConfigPath("ssh.yaml", &sshConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)

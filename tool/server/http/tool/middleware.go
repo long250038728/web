@@ -36,6 +36,9 @@ func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 }
 
 func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
+	m.ginContext = ginContext
+	m.ctx = ginContext.Request.Context()
+
 	//从请求里面获取生成新的ctx
 	ctx := opentelemetry.ExtractHttp(ginContext.Request.Context(), ginContext.Request)
 
@@ -56,7 +59,7 @@ func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
 
 	//限流
 	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, ginContext.Request.URL.Path); err != nil {
+		if err := m.limiter.Allow(ctx, "http"); err != nil {
 			return ctx, err
 		}
 	}
@@ -75,7 +78,6 @@ func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
 
 	m.ctx = ctx
 	m.span = span
-	m.ginContext = ginContext
 
 	return m.ctx, nil
 }

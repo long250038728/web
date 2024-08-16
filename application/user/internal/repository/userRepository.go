@@ -30,7 +30,12 @@ func (r *UserRepository) Login(ctx context.Context, name, password string) (*use
 }
 
 func (r *UserRepository) Refresh(ctx context.Context, refreshToken string) (*user.UserResponse, error) {
-	refreshCla, err := auth.NewAuth(r.util.Cache()).Refresh(ctx, refreshToken)
+	cache, err := r.util.Cache()
+	if err != nil {
+		return nil, err
+	}
+
+	refreshCla, err := auth.NewAuth(cache).Refresh(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -43,6 +48,11 @@ func (r *UserRepository) Refresh(ctx context.Context, refreshToken string) (*use
 }
 
 func (r *UserRepository) getUserResponse(ctx context.Context, userInfo *model.User) (*user.UserResponse, error) {
+	cache, err := r.util.Cache()
+	if err != nil {
+		return nil, err
+	}
+
 	//角色
 	roles, err := r.GetRoles(ctx, userInfo.Id)
 	if err != nil {
@@ -68,7 +78,7 @@ func (r *UserRepository) getUserResponse(ctx context.Context, userInfo *model.Us
 	//基本参数
 	claims := &auth.UserClaims{Id: userInfo.Id, Name: userInfo.Name}
 	session := &auth.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
-	accessToken, refreshToken, err := auth.NewAuth(r.util.Cache()).Signed(ctx, claims, session)
+	accessToken, refreshToken, err := auth.NewAuth(cache).Signed(ctx, claims, session)
 	if err != nil {
 		return nil, err
 	}
@@ -82,39 +92,64 @@ func (r *UserRepository) GetUser(ctx context.Context, id int32, name, password s
 		return nil, errors.New("params is empty")
 	}
 
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	userInfo := &model.User{}
-	db := r.util.Db(ctx).Where("status = 1")
+	model := db.Where("status = 1")
 	if id > 0 {
-		db = db.Where("id = ?", id)
+		model = model.Where("id = ?", id)
 	}
 	if len(name) > 0 && len(password) > 0 {
-		db = db.Where("name = ?", name).Where("password = ?", password)
+		model = model.Where("name = ?", name).Where("password = ?", password)
 	}
-	return userInfo, db.Find(userInfo).Error
+	return userInfo, model.Find(userInfo).Error
 }
 
 func (r *UserRepository) GetRoles(ctx context.Context, userId int32) ([]*model.Role, error) {
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var ids []int32
-	if err := r.util.Db(ctx).Model(model.UserRole{}).Select("role_id").Where("user_id = ?", userId).Find(&ids).Error; err != nil {
+	if err := db.Model(model.UserRole{}).Select("role_id").Where("user_id = ?", userId).Find(&ids).Error; err != nil {
 		return nil, err
 	}
 	var roles []*model.Role
-	return roles, r.util.Db(ctx).Where("id in ?", ids).Where("status = 1").Find(&roles).Error
+	return roles, db.Where("id in ?", ids).Where("status = 1").Find(&roles).Error
 }
 
 func (r *UserRepository) GetPermissions(ctx context.Context, roleIds []int32) ([]*model.Permission, error) {
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	var ids []int32
-	if err := r.util.Db(ctx).Model(model.RolePermission{}).Select("permission_id").Where("role_id = ?", roleIds).Find(&ids).Error; err != nil {
+	if err := db.Model(model.RolePermission{}).Select("permission_id").Where("role_id = ?", roleIds).Find(&ids).Error; err != nil {
 		return nil, err
 	}
 	var permissions []*model.Permission
-	return permissions, r.util.Db(ctx).Where("id in ?", ids).Where("status = 1").Find(&permissions).Error
+	return permissions, db.Where("id in ?", ids).Where("status = 1").Find(&permissions).Error
 }
 
 func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	es, err := r.util.Es()
+	if err != nil {
+		return "", err
+	}
+
 	c := &model.User{}
 	//orm
-	r.util.Db(ctx).Select("name").Where("id = ?", 1).Find(c)
+	db.Select("name").Where("id = ?", 1).Find(c)
 
 	////mq
 	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
@@ -139,7 +174,7 @@ func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello
 		elastic.NewMatchQuery("admin_user_name", "小刘"),
 		elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
 	)
-	_, _ = r.util.Es().Search("sale_order_record_report").Query(query).From(0).Size(100).Do(ctx)
+	_, _ = es.Search("sale_order_record_report").Query(query).From(0).Size(100).Do(ctx)
 
 	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", map[string]any{
 		"merchant_id":      394,

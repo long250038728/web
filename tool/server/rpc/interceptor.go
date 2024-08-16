@@ -12,11 +12,12 @@ import (
 func serverInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		var span *opentelemetry.Span
+		cache, err := app.NewUtil().Cache()
 
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
 			//写入用户信息
 			if authorization, ok := md["authorization"]; ok && len(authorization) == 1 {
-				ctx, _ = auth.NewAuth(app.NewUtil().Cache()).Parse(ctx, authorization[0])
+				ctx, _ = auth.NewAuth(cache).Parse(ctx, authorization[0])
 			}
 
 			//写入链路

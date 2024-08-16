@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
 	"github.com/long250038728/web/tool/register"
+	"github.com/long250038728/web/tool/server/http"
 )
 
 type Register struct {
@@ -22,11 +23,11 @@ func NewConsulRegister(conf *Config) (*Register, error) {
 	//创建consul客户端
 	config := api.DefaultConfig()
 	config.Address = conf.Address
+	config.HttpClient = http.NewCustomHttpClient()
 	client, err := api.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Register{client: client, address: conf.Address}, nil
 }
 
@@ -46,7 +47,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Port:    serviceInstance.Port,
 	}
 
-	if serviceInstance.Type == "HTTP" {
+	if serviceInstance.Type == register.InstanceTypeHttp {
 		check := api.AgentServiceCheck{}
 		check.Timeout = "30s"
 		check.Interval = "30s"
@@ -55,7 +56,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		registration.Check = &check
 	}
 
-	if serviceInstance.Type == "GRPC" {
+	if serviceInstance.Type == register.InstanceTypeGRPC {
 		check := api.AgentServiceCheck{}
 		check.Timeout = "30s"
 		check.Interval = "30s"

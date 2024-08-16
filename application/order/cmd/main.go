@@ -30,7 +30,6 @@ func Run() error {
 			domain.NewOrderDomain(repository.NewOrderRepository(util)),
 		),
 	)
-
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
@@ -40,8 +39,12 @@ func Run() error {
 				router.RegisterGRPCServer(engine, orderService)
 			}),
 		),
-		app.Register(util.Register()),                      //服务注册 && 发现
-		app.Tracing(util.Exporter(), util.Info.ServerName), //链路
+	}
+	if register, err := util.Register(); err == nil {
+		opts = append(opts, app.Register(register)) //服务注册 && 发现
+	}
+	if exporter, err := util.Exporter(); err == nil {
+		opts = append(opts, app.Tracing(exporter, util.Info.ServerName)) //服务注册 && 发现
 	}
 
 	//启动服务

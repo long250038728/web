@@ -11,7 +11,6 @@ import (
 	"github.com/long250038728/web/tool/server/http/tool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
-	_ "net/http/pprof"
 	"time"
 )
 
@@ -21,23 +20,24 @@ import (
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	opts := []tool.MiddlewareOpt{
-		tool.Limiter( //设置限流
-			limiter.NewCacheLimiter(
-				app.NewUtil().Cache(),
-				limiter.SetExpiration(time.Second), limiter.SetTimes(10),
-			),
-		),
-
-		tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
-			auth.NewAuth(
-				app.NewUtil().Cache(),
-				auth.WhiteList(auth.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
-			),
-		),
-
-		tool.Error( //设置错误
+		tool.Error( //设置错误（错误信息可从数据库获取文件获取）
 			[]*tool.MiddleErr{}, //可以通过数据库处理
 		),
+	}
+
+	if cache, err := app.NewUtil().Cache(); err == nil {
+		opts = append(opts, tool.Limiter( //设置限流
+			limiter.NewCacheLimiter(
+				cache,
+				limiter.SetExpiration(time.Second), limiter.SetTimes(10),
+			),
+		))
+		opts = append(opts, tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
+			auth.NewAuth(
+				cache,
+				auth.WhiteList(auth.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
+			),
+		))
 	}
 	middleware := tool.NewMiddlewarePool(opts...)
 
