@@ -67,10 +67,17 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		if c.handle != nil {
 			c.handle(req, requestBytes, responseBytes, err)
 		}
-		c.writeLog("url: " + req.URL.Host + req.URL.Path + "?" + req.URL.RawQuery)
+		url := req.URL.Scheme + "://" + req.URL.Host + req.URL.Path
+		if len(req.URL.RawQuery) > 0 {
+			url = url + "?" + req.URL.RawQuery
+		}
+		c.writeLog("url: " + url)
+		c.writeLog("method: " + req.Method)
 		c.writeLog("request: " + string(requestBytes))
 		c.writeLog("response: " + string(responseBytes))
-		c.writeLog("err: " + err.Error())
+		if err != nil {
+			c.writeLog("err: " + err.Error())
+		}
 		c.writeLog("=================================================================")
 	}()
 

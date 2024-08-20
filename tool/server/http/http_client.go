@@ -21,11 +21,13 @@ type Client struct {
 	isTracing          bool
 	username, password string
 	contentType        string
-	transport          http.RoundTripper
+	client             *http.Client
 }
 
 type Opt func(c *Client)
 
+// SetTimeout The request timeout ,Not client timeout
+// The lifecycle is within one request, not throughout the entire client
 func SetTimeout(timeout time.Duration) Opt {
 	return func(c *Client) {
 		c.timeout = timeout
@@ -51,18 +53,18 @@ func SetContentType(contentType string) Opt {
 	}
 }
 
-func SetTransport(transport http.RoundTripper) Opt {
+func SetHttpClient(client *http.Client) Opt {
 	return func(c *Client) {
-		c.transport = transport
+		c.client = client
 	}
 }
 
 func NewClient(opts ...Opt) *Client {
 	client := &Client{
-		timeout:     time.Second * 3,      //默认3s超时
-		isTracing:   true,                 //默认记录链路
-		contentType: "application/json",   //默认json
-		transport:   NewCustomTransport(), //默认的transport
+		timeout:     time.Second * 3,       //默认3s超时(单个请求超时，并非整个client)
+		isTracing:   true,                  //默认记录链路
+		contentType: "application/json",    //默认json
+		client:      NewCustomHttpClient(), //默认http client
 	}
 	for _, opt := range opts {
 		opt(client)
@@ -141,7 +143,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 }
 
 func (c *Client) request(request *http.Request) ([]byte, int, error) {
-	res, err := (&http.Client{Transport: c.transport}).Do(request)
+	res, err := c.client.Do(request)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -157,6 +159,5 @@ func (c *Client) request(request *http.Request) ([]byte, int, error) {
 	//if err := scanner.Err(); err != nil {
 	//	fmt.Println(err)
 	//}
-
 	return b, res.StatusCode, err
 }
