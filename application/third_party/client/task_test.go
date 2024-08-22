@@ -78,7 +78,7 @@ func TestOnlineBuild(t *testing.T) {
 		SetQyHook(hookClient, tels),
 	).Build(
 		context.Background(),
-		"release/v3.5.85",
+		"release/v3.5.96",
 		"master",
 		"./script/svc.yaml",
 	); err != nil {

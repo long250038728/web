@@ -2,10 +2,14 @@ package qn
 
 import (
 	"context"
+	"fmt"
+	"github.com/long250038728/web/tool/server/http"
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
 	"github.com/qiniu/go-sdk/v7/storage"
 	"io"
+	"math/rand"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -30,24 +34,29 @@ func (qn *Qn) Token(bucket string) string {
 	return putPolicy.UploadToken(qn.mac)
 }
 
-func (qn *Qn) UpLoad(ctx context.Context, bucket, address string, fileName string) error {
-	//配置
-	uploader := storage.NewFormUploader(&storage.Config{})
-
-	//额外信息
-	putExtra := &storage.PutExtra{
-		Params: map[string]string{
-			"x:name": "github logo",
-		},
-	}
-
-	//响应
-	response := &storage.PutRet{}
-
-	return uploader.PutFile(ctx, response, qn.Token(bucket), fileName, address, putExtra)
+func (qn *Qn) UpLoad(ctx context.Context, bucket, path, fileName string) error {
+	response := &storage.PutRet{} //响应
+	return storage.NewFormUploader(&storage.Config{}).PutFile(ctx, response, qn.Token(bucket), fileName, path, nil)
 }
 
-func (qn *Qn) Download(ctx context.Context, bucket, address string, fileName string) error {
+func (qn *Qn) UpLoadUrl(ctx context.Context, bucket, url, fileName string) error {
+	filePaths := strings.Split(url, "/")
+	tmpPath := fmt.Sprintf("./%d_%s", rand.Int(), filePaths[len(filePaths)-1])
+
+	b, _, err := http.NewClient().Get(ctx, url, nil)
+	if err != nil {
+		return err
+	}
+	if err = os.WriteFile(tmpPath, b, os.ModePerm); err != nil {
+		return err
+	}
+	defer func() {
+		_ = os.Remove(tmpPath)
+	}()
+	return qn.UpLoad(ctx, bucket, tmpPath, fileName)
+}
+
+func (qn *Qn) Download(ctx context.Context, bucket, path, fileName string) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -63,7 +72,7 @@ func (qn *Qn) Download(ctx context.Context, bucket, address string, fileName str
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(address, body, os.ModePerm)
+	return os.WriteFile(path, body, os.ModePerm)
 }
 
 func (qn *Qn) Delete(ctx context.Context, bucket, fileName string) error {

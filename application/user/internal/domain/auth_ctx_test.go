@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/auth/auth"
 )
 
 func authCtx() context.Context {

@@ -7,6 +7,7 @@ import (
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/auth"
+	auth2 "github.com/long250038728/web/tool/auth/auth"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/olivere/elastic/v7"
 )
@@ -35,11 +36,16 @@ func (r *UserRepository) Refresh(ctx context.Context, refreshToken string) (*use
 		return nil, err
 	}
 
-	refreshCla, err := auth.NewAuth(cache).Refresh(ctx, refreshToken)
-	if err != nil {
+	refreshCla := auth2.RefreshClaims{}
+	if err = auth2.NewAuth(cache).Refresh(ctx, refreshToken, refreshCla); err != nil {
 		return nil, err
 	}
-	userInfo, err := r.GetUser(ctx, refreshCla.Id, "", "")
+	refresh := refreshCla.Refresh
+
+	if refresh.Md5 != auth.GetSessionId(refresh.Id) {
+		return nil, errors.New("refresh token error")
+	}
+	userInfo, err := r.GetUser(ctx, refresh.Id, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -76,9 +82,9 @@ func (r *UserRepository) getUserResponse(ctx context.Context, userInfo *model.Us
 	}
 
 	//基本参数
-	claims := &auth.UserClaims{Id: userInfo.Id, Name: userInfo.Name}
-	session := &auth.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
-	accessToken, refreshToken, err := auth.NewAuth(cache).Signed(ctx, claims, session)
+	claims := &auth2.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
+	session := &auth2.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
+	accessToken, refreshToken, err := auth2.NewAuth(cache).Signed(ctx, claims, session)
 	if err != nil {
 		return nil, err
 	}

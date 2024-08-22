@@ -8,7 +8,7 @@ fi
 
 # 从参数中获取项目名称
 project_name="$1"
-project_dir="./${project_name}"  # 使用项目名称构建目录的相对路径
+project_dir="${project_name}"  # 使用项目名称构建目录的相对路径
 tag_file="./tag"
 
 

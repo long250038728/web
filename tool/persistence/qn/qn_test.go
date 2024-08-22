@@ -27,6 +27,16 @@ func TestQn_Upload(t *testing.T) {
 	t.Log("ok")
 }
 
+func TestQn_UploadUrl(t *testing.T) {
+	qn := NewQn(config)
+	err := qn.UpLoadUrl(context.Background(), "zhubaoe-hn", "https://static001.geekbang.org/resource/image/a5/cb/a5e734915edb241ac60c21a17ff73bcb.png", "goods/346.png")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok")
+}
+
 func TestQn_Download(t *testing.T) {
 	qn := NewQn(config)
 	err := qn.Download(context.Background(), "zhubaoe-hn", "/Users/linlong/Desktop/123.png", "goods/346.png")

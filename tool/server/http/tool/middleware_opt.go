@@ -1,7 +1,7 @@
 package tool
 
 import (
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/auth/auth"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/pkg/errors"
 )

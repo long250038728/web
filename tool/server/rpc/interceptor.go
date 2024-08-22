@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/auth/auth"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

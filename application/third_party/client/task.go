@@ -150,7 +150,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -166,11 +166,11 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 		}
 
 		//调用合并分支
-		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Num: list[0].Number})
+		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
 
 		//每个服务有两台服务器
 		if addr == "zhubaoe-go/kobe" {
-			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh kobe"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh /data/project/kobe"})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
@@ -179,7 +179,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 
 		//每个服务有一台服务器
 		if addr == "zhubaoe/marx" {
-			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh marx"})
+			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh /data/project/marx"})
 			for _, svc := range o.services.Marx {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc})
 			}
@@ -255,7 +255,7 @@ func (o *Task) listCheck(ctx context.Context, source, target string) ([]*request
 			continue
 		}
 		//调用合并分支
-		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Num: list[0].Number})
+		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
 	}
 	return address, nil
 }
@@ -289,7 +289,6 @@ func (o *Task) Request(ctx context.Context) error {
 			return errors.New("remote ssh is null")
 		}
 	}
-
 	for index, request := range requestList {
 		//已经成功的就不再处理
 		if request.Success {
@@ -302,7 +301,7 @@ func (o *Task) Request(ctx context.Context) error {
 
 		switch request.Type {
 		case TaskTypeGit: //合并
-			err = o.git.Merge(ctx, request.Project, request.Num)
+			err = o.git.Merge(ctx, request.Project, int32(request.Params["num"].(float64)))
 		case TaskTypeShell: //shell
 			project, ok := request.Params["project"].(string)
 			if !ok {

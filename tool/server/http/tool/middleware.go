@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/tool/auth"
+	auth2 "github.com/long250038728/web/tool/auth/auth"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
@@ -19,7 +19,7 @@ type Middleware struct {
 	span       *opentelemetry.Span
 	ctx        context.Context
 
-	auth    auth.Auth
+	auth    auth2.Auth
 	limiter limiter.Limiter
 	error   map[error]*MiddleErr
 }

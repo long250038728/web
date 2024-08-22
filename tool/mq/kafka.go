@@ -8,8 +8,11 @@ import (
 
 // go get github.com/segmentio/kafka-go
 
+const envKey = "env"
+
 type Config struct {
 	Address []string `json:"address" yaml:"address"`
+	Env     string   `json:"env" yaml:"env"`
 }
 
 type Kafka struct {
@@ -90,10 +93,17 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 
 	// 通过自定义的message 转换 为 kafka内部的message
 	for _, message := range messages {
-		headers := make([]kafka.Header, 0, len(message.Headers))
+		headers := make([]kafka.Header, 0, len(message.Headers)+1)
+
+		// config中如果带有环境变量，那么就把环境变量的值写入到header中
+		if len(m.config.Env) > 0 {
+			headers = append(headers, kafka.Header{Key: envKey, Value: []byte(m.config.Env)})
+		}
+
 		for _, header := range message.Headers {
 			headers = append(headers, kafka.Header{Key: header.Key, Value: header.Value})
 		}
+
 		msg := kafka.Message{
 			Topic:   topic,
 			Key:     []byte(key),
@@ -118,7 +128,7 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 //======================================================================================================================
 
 // Subscribe 消费者
-func (m *Kafka) Subscribe(subscribeCtx context.Context, topic string, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) {
+func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) {
 	// 创建Kafka消费者
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: m.config.Address, // Kafka broker地址
@@ -149,15 +159,24 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic string, consumerGr
 		}
 
 		// 通过kafka内部的message 转换为 自定义的message
-		// header头处理
+		env := true
 		headers := make([]Header, 0, len(kafkaMessage.Headers))
 		for _, header := range kafkaMessage.Headers {
+			if len(m.config.Env) > 0 && header.Key == envKey && m.config.Env != string(header.Value) { // config中如果带有环境变量，那么判断环境变量的值与消息中的环境变量的值是否一致，如果不一致就提交不处理
+				env = false
+				break
+			}
 			headers = append(headers, Header{Key: header.Key, Value: header.Value})
 		}
-		message := &Message{Data: kafkaMessage.Value, Headers: headers}
-		err = callback(ctx, message, nil)
+
+		//环境不同，不处理消息(直接提交)
+		if !env {
+			_ = reader.CommitMessages(subscribeCtx, kafkaMessage)
+			continue
+		}
 
 		// 成功才提交
+		err = callback(ctx, &Message{Data: kafkaMessage.Value, Headers: headers}, nil)
 		if err == nil {
 			MaxRetryNum := 3
 			ErrRetryNum := 0

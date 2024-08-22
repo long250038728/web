@@ -1,10 +1,10 @@
 package ssh
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh"
+	"io"
 	"os"
 	"time"
 )
@@ -80,7 +80,7 @@ func (s *RemoteSSH) Run(script string) (out string, err error) {
 		return
 	}
 	defer func() {
-		if closeErr := client.Close(); err == nil {
+		if closeErr := client.Close(); err == nil && closeErr != nil && !errors.Is(closeErr, io.EOF) {
 			err = closeErr
 		}
 	}()
@@ -90,19 +90,16 @@ func (s *RemoteSSH) Run(script string) (out string, err error) {
 		return
 	}
 	defer func() {
-		if closeErr := session.Close(); err == nil {
+		if closeErr := session.Close(); err == nil && closeErr != nil && !errors.Is(closeErr, io.EOF) {
 			err = closeErr
 		}
 	}()
 
-	var stdoutBuf bytes.Buffer
-	session.Stdout = &stdoutBuf
-	session.Stderr = &stdoutBuf
-	if err = session.Run(script); err != nil {
-		err = fmt.Errorf("failed to run script: %v", err)
-		return
+	b, err := session.Output(script)
+	if err != nil && errors.Is(err, io.EOF) {
+		err = nil
 	}
-	out = stdoutBuf.String()
+	out = string(b)
 	return
 }
 
