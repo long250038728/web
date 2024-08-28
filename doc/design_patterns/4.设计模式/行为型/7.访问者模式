@@ -1,0 +1,103 @@
+访问者模式(可以看做是桥接模式的应用)
+运行一个或多个操作应用在不同对象上，设计意图是解耦操作和对象本身，保持类职单一，满足开闭原则。
+
+针对一组不同的的对象，我们需要对这组对象进行不相关业务的扩展，为了避免不断添加功能导致膨胀，职责不单一，也避免频繁改代码，
+    把这些业务抽离出来，定义在独立的访问者类中
+
+
+代码实现比较复杂在于函数重载大部分面向对象编程中是静态绑定的，调用类的哪个重载函数，在编译期间，由参数的声明类型决定，非非运行时，根据参数实际类型决定
+```
+//抽象类
+public abstract class ResourceFile{
+    protected String filePath;
+    public ResourceFile(String filePath){
+        this.filePath = filePath;
+    }
+    public abstract void extract2txt();
+}
+
+public class PPTFile extends ResourceFile{
+    public PPTFile(String filePath){
+        super(filePath)
+    }
+    @override
+    public void extract2txt(){
+        xxxxxx
+    }
+}
+
+public class PdfFile extends ResourceFile{
+    public PdfFile(String filePath){
+        super(filePath)
+    }
+    @override
+    public void extract2txt(){
+        xxxxxx
+    }
+}
+main(){
+    ResourceFile = PdfFile("aaa");
+    ResourceFile.extract2txt()
+}
+```
+
+
+如果还需要支持压缩，提取文件的方法等，那么就把具体的逻辑交给具体的实现类，不在原有类上实现，优化如下：
+创建工具类，把数据放入工具类处理
+
+多态是动态绑定，编译时并不能获取到对象的实际类型
+定义的时候并未定义  extract2txt(ResourceFile resourceFile)
+
+```
+public class Extractor {
+    public void extract2txt(PPTFile pptfile){
+        xxxxxx
+    }
+    public void extract2txt(PdfFile pdtfile){
+        xxxxxx
+    }
+}
+
+main(){
+    Extractor extractor =  new Extractor()
+    ResourceFile = PdfFile("aaa");
+    extractor.extract2txt(ResourceFile)   //其实这个时候是编译不了的
+}
+```
+
+
+
+
+
+所以进行改造： 
+```
+之前是创建一个压缩方法，然后把得到的数据对象传给压缩方法中，但是由于多态的原因，
+换种思路，通过压缩的方法传到数据对象中，在对象内部调用压缩的算法
+
+public abstract class ResourceFile{
+    protected String filePath;
+    public ResourceFile(String filePath){
+        this.filePath = filePath;
+    }
+    public abstract void accept(Extractor extractor);
+}
+
+public class PdfFile extends ResourceFile{
+    public PdfFile(String filePath){
+        super(filePath)
+    }
+    @override
+    public void accept(Extractor extractor);
+        extractor.dosome(this)
+    }
+}
+
+main(){
+    Extractor extractor = new Extractor();   //提取
+    Extractor extractor2 = new Extractor2(); //压缩
+
+    ResourceFile = PdfFile("aaa");
+    ResourceFile.accept(extractor)
+    ResourceFile.accept(extractor2)
+}
+```
