@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: demo-job
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - image: nginx
+        name: job
+        imagePullPolicy: IfNotPresent
+        command:
+        - bin/echo
+        args:
+        - "hello world"

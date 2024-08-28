@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo-config-pod
+spec:
+
+  volumes:
+    - name: vol-config-map
+      configMap: 
+        name: demo-config-map
+    - name: vol-secret
+      secret: 
+        secretName: demo-secret
+
+
+  containers:
+  - image: nginx:latest
+    name: demo-config-pod1 
+
+    volumeMounts:
+    - mountPath: /tmp/config_map
+      name: vol-config-map
+    - mountPath: /tmp/secret
+      name: vol-secret
+
+    env:
+    - name: VERSION
+      valueFrom:
+        configMapKeyRef:
+          name: demo-config-map
+          key: version 
+    - name: TT
+      valueFrom:
+        secretKeyRef:
+          name: demo-secret
+          key: pwd
+  
