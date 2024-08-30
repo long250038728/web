@@ -170,13 +170,13 @@ docker pull golang:1.20
 docker run --network=my-service-network --name=user -e WEB="/app" -p 8001:8001  -p 6060:6060 -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/user/cmd/main.go -config /app/config
+go run application/user/cmd/main.go -path /app
 
 
 docker run --network=my-service-network --name=order -e WEB="/app" -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/order/cmd/main.go -config /app/config
+go run application/order/cmd/main.go -path /app
 
 curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
 ```

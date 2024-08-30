@@ -14,7 +14,7 @@ type OrderDomain struct {
 	orderRepository *repository.OrderRepository
 }
 
-func NewOrderDomain(userRepository *repository.OrderRepository) *OrderDomain {
+func NewDomain(userRepository *repository.OrderRepository) *OrderDomain {
 	return &OrderDomain{
 		orderRepository: userRepository,
 	}

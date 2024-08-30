@@ -15,7 +15,7 @@ type UserService struct {
 
 type UserServerOpt func(s *UserService)
 
-func SetUserDomain(domain *domain.UserDomain) UserServerOpt {
+func SetDomain(domain *domain.UserDomain) UserServerOpt {
 	return func(s *UserService) {
 		s.domain = domain
 	}
@@ -28,11 +28,6 @@ func NewService(opts ...UserServerOpt) *UserService {
 	}
 	return s
 }
-
-func (s *UserService) Login(ctx context.Context, request *user.LoginRequest) (*user.UserResponse, error) {
-	return s.domain.Login(ctx, request)
-}
-
 func (s *UserService) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {
 	return s.domain.SayHello(ctx, request)
 }

@@ -52,7 +52,7 @@ func NewRemoteSSH(config *Config) (SSH, error) {
 	}
 
 	if len(authMethods) == 0 {
-		return nil, errors.New("auth methods is null")
+		return nil, errors.New("authorization methods is null")
 	}
 
 	if config.Port == 0 {

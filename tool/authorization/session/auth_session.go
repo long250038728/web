@@ -1,14 +1,14 @@
-package auth
+package session
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/authorization"
 )
 
 type Session struct {
-	Store auth.Store
+	Store authorization.Store
 }
 
 func (p *Session) GetSession(ctx context.Context, sessionId string) (session *UserSession, err error) {

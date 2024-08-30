@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	auth2 "github.com/long250038728/web/tool/auth/auth"
+	auth2 "github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"

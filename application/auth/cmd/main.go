@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/user/internal/domain"
-	"github.com/long250038728/web/application/user/internal/repository"
-	"github.com/long250038728/web/application/user/internal/service"
-	"github.com/long250038728/web/application/user/router"
+	"github.com/long250038728/web/application/auth/internal/domain"
+	"github.com/long250038728/web/application/auth/internal/repository"
+	"github.com/long250038728/web/application/auth/internal/service"
+	"github.com/long250038728/web/application/auth/router"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -18,7 +18,7 @@ import (
 func main() {
 	path := flag.String("path", "", "root path")
 	flag.Parse()
-	app.InitPathInfo(*path, protoc.UserService)
+	app.InitPathInfo(*path, protoc.AuthService)
 
 	fmt.Println(Run())
 }

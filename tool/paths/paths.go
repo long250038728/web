@@ -10,7 +10,10 @@ func RootConfigPath(path string) (string, error) {
 	//获取配置
 	var cfgPaths = []func() string{
 		func() string {
-			return path //init的参数变量
+			if len(path) == 0 {
+				return path
+			}
+			return filepath.Join(path, "config") //init的参数变量
 		},
 		func() string {
 			rootPath := os.Getenv("WEB")
