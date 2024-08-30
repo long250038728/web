@@ -11,18 +11,10 @@ type UserDomain struct {
 	userRepository *repository.UserRepository
 }
 
-func NewUserDomain(userRepository *repository.UserRepository) *UserDomain {
+func NewDomain(userRepository *repository.UserRepository) *UserDomain {
 	return &UserDomain{
 		userRepository: userRepository,
 	}
-}
-
-func (s *UserDomain) Login(ctx context.Context, request *user.LoginRequest) (*user.UserResponse, error) {
-	return s.userRepository.Login(ctx, request.Name, request.Password)
-}
-
-func (s *UserDomain) Refresh(ctx context.Context, request *user.RefreshRequest) (*user.UserResponse, error) {
-	return s.userRepository.Refresh(ctx, request.RefreshToken)
 }
 
 func (s *UserDomain) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {

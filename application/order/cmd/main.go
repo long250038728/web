@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	path := flag.String("config", "", "config path")
+	path := flag.String("path", "", "root path")
 	flag.Parse()
 	app.InitPathInfo(*path, protoc.OrderService)
 
@@ -26,8 +26,8 @@ func main() {
 func Run() error {
 	util := app.NewUtil()
 	orderService := service.NewService(
-		service.SetOrderDomain(
-			domain.NewOrderDomain(repository.NewOrderRepository(util)),
+		service.SetDomain(
+			domain.NewDomain(repository.NewRepository(util)),
 		),
 	)
 	opts := []app.Option{

@@ -1,10 +1,10 @@
-package auth
+package session
 
 import (
 	"context"
 	"errors"
 	"github.com/golang-jwt/jwt"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/authorization"
 )
 
 //=====================================================================================
@@ -52,7 +52,7 @@ type Auth interface {
 	// Auth 判断是否有权限 判断path是否在GetSession中
 	Auth(ctx context.Context, path string) error
 
-	Refresh(ctx context.Context, refreshToken string, claims auth.Claims) error
+	Refresh(ctx context.Context, refreshToken string, claims authorization.Claims) error
 }
 
 type claims struct{}

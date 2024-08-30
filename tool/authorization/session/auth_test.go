@@ -1,14 +1,14 @@
-package auth
+package session
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/configurator"
 	"testing"
 )
 
-var c auth.Store
+var c authorization.Store
 
 func init() {
 	var redisConfig cache.Config

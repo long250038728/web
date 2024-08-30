@@ -15,7 +15,7 @@ type OrderService struct {
 
 type OrderServerOpt func(s *OrderService)
 
-func SetOrderDomain(domain *domain.OrderDomain) OrderServerOpt {
+func SetDomain(domain *domain.OrderDomain) OrderServerOpt {
 	return func(s *OrderService) {
 		s.domain = domain
 	}

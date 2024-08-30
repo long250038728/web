@@ -1,10 +1,10 @@
-package auth
+package session
 
 import (
 	"context"
 	"errors"
 	"github.com/golang-jwt/jwt"
-	"github.com/long250038728/web/tool/auth"
+	"github.com/long250038728/web/tool/authorization"
 	"strings"
 	"time"
 )
@@ -12,9 +12,9 @@ import (
 type Opt func(r *CacheAuth)
 
 type CacheAuth struct {
-	auth.Token
+	authorization.Token
 	Session
-	white auth.White
+	white authorization.White
 }
 
 func SecretKey(secretKey []byte) Opt {
@@ -23,13 +23,13 @@ func SecretKey(secretKey []byte) Opt {
 	}
 }
 
-func WhiteList(white auth.White) Opt {
+func WhiteList(white authorization.White) Opt {
 	return func(r *CacheAuth) {
 		r.white = white
 	}
 }
 
-func NewAuth(store auth.Store, opts ...Opt) Auth {
+func NewAuth(store authorization.Store, opts ...Opt) Auth {
 	r := &CacheAuth{}
 	r.SecretKey = []byte("secretKey")
 	r.Store = store
@@ -44,12 +44,12 @@ func NewAuth(store auth.Store, opts ...Opt) Auth {
 
 // Signed token生成
 func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo, session *UserSession) (accessToken string, refreshToken string, err error) {
-	if err = p.SetSession(ctx, auth.GetSessionId(userClaims.Id), session); err != nil {
+	if err = p.SetSession(ctx, authorization.GetSessionId(userClaims.Id), session); err != nil {
 		return "", "", err
 	}
 	now := time.Now().Local()
 	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
-	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: auth.GetSessionId(userClaims.Id)}}
+	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: authorization.GetSessionId(userClaims.Id)}}
 
 	if accessToken, err = p.SignedToken(access); err != nil {
 		return "", "", nil
@@ -72,10 +72,13 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	if err := p.ParseToken(accessToken, claims); err != nil {
 		return ctx, err
 	}
+	if err := claims.Valid(); err != nil {
+		return ctx, err
+	}
 	ctx = SetClaims(ctx, claims.UserInfo)
 
 	//获取Session对象
-	userSession, err := p.GetSession(ctx, auth.GetSessionId(claims.UserInfo.Id))
+	userSession, err := p.GetSession(ctx, authorization.GetSessionId(claims.UserInfo.Id))
 	if err != nil {
 		return ctx, err
 	}
@@ -85,7 +88,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 
 // ===============================Refresh 生成 Claims Session=============================
 
-func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims auth.Claims) error {
+func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims authorization.Claims) error {
 	if len(refreshToken) == 0 {
 		return errors.New("refresh token is null")
 	}
