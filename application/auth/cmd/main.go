@@ -41,9 +41,9 @@ func Run() error {
 			}),
 		),
 	}
-	if register, err := util.Register(); err == nil {
-		opts = append(opts, app.Register(register)) //服务注册 && 发现
-	}
+	//if register, err := util.Register(); err == nil {
+	//	opts = append(opts, app.Register(register)) //服务注册 && 发现
+	//}
 	if exporter, err := util.Exporter(); err == nil {
 		opts = append(opts, app.Tracing(exporter, util.Info.ServerName)) //服务注册 && 发现
 	}

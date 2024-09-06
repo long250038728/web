@@ -69,7 +69,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	}
 	//获取Claims对象
 	claims := &AccessClaims{}
-	if err := p.ParseToken(accessToken, claims); err != nil {
+	if err := p.ParseToken(accessToken, claims, authorization.AccessToken); err != nil {
 		return ctx, err
 	}
 	if err := claims.Valid(); err != nil {
@@ -97,7 +97,7 @@ func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims aut
 		return ctx.Err()
 	default:
 	}
-	return p.ParseToken(refreshToken, claims)
+	return p.ParseToken(refreshToken, claims, authorization.RefreshToken)
 }
 
 // =================================业务判断===========================

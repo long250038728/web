@@ -4,3 +4,6 @@ server-user:
 server-order:
   http_port: 8002
   grpc_port: 9002
+server-authorization:
+  http_port: 8003
+  grpc_port: 9003

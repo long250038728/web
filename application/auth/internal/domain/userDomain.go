@@ -7,19 +7,19 @@ import (
 )
 
 type Domain struct {
-	userRepository *repository.Repository
+	repository *repository.Repository
 }
 
-func NewDomain(userRepository *repository.Repository) *Domain {
+func NewDomain(repository *repository.Repository) *Domain {
 	return &Domain{
-		userRepository: userRepository,
+		repository: repository,
 	}
 }
 
 func (s *Domain) Login(ctx context.Context, request *auth_rpc.LoginRequest) (*auth_rpc.UserResponse, error) {
-	return s.userRepository.Login(ctx, request.Name, request.Password)
+	return s.repository.Login(ctx, request.Name, request.Password)
 }
 
 func (s *Domain) Refresh(ctx context.Context, request *auth_rpc.RefreshRequest) (*auth_rpc.UserResponse, error) {
-	return s.userRepository.Refresh(ctx, request.RefreshToken)
+	return s.repository.Refresh(ctx, request.RefreshToken)
 }
