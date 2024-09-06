@@ -90,3 +90,24 @@ mysql重要的系统参数
 * IGNORE_SPACE : 多加空格换行符不会报错
 * ANSI ： 相当与开启REAL_AS_FLOAT、PIPES_AS_CONCAT、ANSI_QUOTES、IGNORE_SPACE 和 ONLY_FULL_GROUP_BY
 * TRADITIONAL ：相当与开启STRICT_TRANS_TABLES、STRICT_ALL_TABLES、NO_ZERO_IN_DATE、NO_ZERO_DATE、ERROR_FOR_DIVISION_BY_ZERO 和 NO_ENGINE_SUBSTITUTION
+
+##  字符集
+```
+show variables like '%char%';
+```
+* character_set_system 系统字符集，用于存放元数据
+* character_set_server 创建数据库默认字符集
+* character_set_database 切换数据库默认字符集
+* character_set_client 客户端默认字符集
+* character_set_connection 连接字符集（当character_set_connection与character_set_client不一致，会转换为character_set_connection字符集）
+* character_set_results 返回客户端结果字符集
+* character_set_filesystem 文件名字符集
+
+
+## 常见命令
+```
+-- 整理表的碎片
+OPTIMIZE TABLE table_name;
+-- 采集数据重新刷新
+ANALYZE TABLE;
+```

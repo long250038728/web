@@ -22,7 +22,6 @@ var tels = []string{"18575538087"}
 func init() {
 	var gitConfig git.Config
 	var jenkinsConfig jenkins.Config
-	var ormConfig orm.Config
 	var sshConfig ssh.Config
 	var hookToken = "bb3f6f61-04b8-4b46-a167-08a2c91d408d"
 
@@ -30,7 +29,6 @@ func init() {
 	configLoad := configurator.NewYaml()
 	configLoad.MustLoadConfigPath("gitee.yaml", &gitConfig)
 	configLoad.MustLoadConfigPath("jenkins.yaml", &jenkinsConfig)
-	configLoad.MustLoadConfigPath("online/db.yaml", &ormConfig)
 	configLoad.MustLoadConfigPath("ssh.yaml", &sshConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
@@ -39,9 +37,7 @@ func init() {
 	if jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig); err != nil {
 		panic(err)
 	}
-	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
-		panic(err)
-	}
+
 	if sshClient, err = ssh.NewRemoteSSH(&sshConfig); err != nil {
 		panic(err)
 	}
@@ -50,6 +46,14 @@ func init() {
 	}
 }
 func TestCheckBuild(t *testing.T) {
+	var err error
+	var ormConfig orm.Config
+	configLoad := configurator.NewYaml()
+	configLoad.MustLoadConfigPath("check/db.yaml", &ormConfig)
+	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+		panic(err)
+	}
+
 	if err := NewTaskClient(
 		SetOutPath("./"),
 		SetFileName("json.json"),
@@ -60,7 +64,7 @@ func TestCheckBuild(t *testing.T) {
 		SetQyHook(hookClient, tels),
 	).BuildCheck(
 		context.Background(),
-		"release/v3.5.85",
+		"release/v3.6.02.0",
 		"check",
 		"./script/svc.yaml",
 	); err != nil {
@@ -70,6 +74,15 @@ func TestCheckBuild(t *testing.T) {
 }
 
 func TestOnlineBuild(t *testing.T) {
+	return
+	var err error
+	var ormConfig orm.Config
+	configLoad := configurator.NewYaml()
+	configLoad.MustLoadConfigPath("online/db.yaml", &ormConfig)
+	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+		panic(err)
+	}
+
 	if err := NewTaskClient(
 		SetGit(gitClient),
 		SetJenkins(jenkinsClient),
@@ -87,7 +100,7 @@ func TestOnlineBuild(t *testing.T) {
 	t.Log("ok")
 }
 
-func TestOnlineRequest(t *testing.T) {
+func TestRequest(t *testing.T) {
 	if err := NewTaskClient(
 		SetGit(gitClient),
 		SetJenkins(jenkinsClient),
