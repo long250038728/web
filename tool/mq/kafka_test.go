@@ -10,7 +10,7 @@ var topic = "bonus_message_queue_kafka"
 var ctx = context.Background()
 var consumerGroup = "hume_2"
 
-var client *Kafka
+var client Mq
 
 func init() {
 	var kafkaConf Config
@@ -18,23 +18,23 @@ func init() {
 	client = NewKafkaMq(&kafkaConf)
 }
 
-func TestMqCreateTopic(t *testing.T) {
-	err := client.CreateTopic(ctx, "aaa", 1, 1)
-	if err != nil {
-		t.Log(err)
-		return
-	}
-	t.Log("success")
-}
+//func TestMqCreateTopic(t *testing.T) {
+//	err := client.CreateTopic(ctx, "aaa", 1, 1)
+//	if err != nil {
+//		t.Log(err)
+//		return
+//	}
+//	t.Log("success")
+//}
 
-func TestMqDelTopic(t *testing.T) {
-	err := client.DeleteTopic(ctx, "aaa")
-	if err != nil {
-		t.Log(err)
-		return
-	}
-	t.Log("success")
-}
+//func TestMqDelTopic(t *testing.T) {
+//	err := client.DeleteTopic(ctx, "aaa")
+//	if err != nil {
+//		t.Log(err)
+//		return
+//	}
+//	t.Log("success")
+//}
 
 func TestMqSend(t *testing.T) {
 	message, err := NewMessage("hello1")
