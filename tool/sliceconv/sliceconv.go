@@ -80,3 +80,12 @@ func Sort[T constraints.Ordered](slice []T, mapper func(val T, val2 T) bool) []T
 	}
 	return slice
 }
+
+// Extract 提取数据中的字段值
+func Extract[T, X any](slice []T, condition func(T) X) []X {
+	newSlice := make([]X, 0, len(slice))
+	for _, item := range slice {
+		newSlice = append(newSlice, condition(item))
+	}
+	return newSlice
+}

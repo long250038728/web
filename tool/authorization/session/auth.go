@@ -43,10 +43,7 @@ func NewAuth(store authorization.Store, opts ...Opt) Auth {
 // ===============================通过 Claims Session 生成token=============================
 
 // Signed token生成
-func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo, session *UserSession) (accessToken string, refreshToken string, err error) {
-	if err = p.SetSession(ctx, authorization.GetSessionId(userClaims.Id), session); err != nil {
-		return "", "", err
-	}
+func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
 	now := time.Now().Local()
 	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
 	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: authorization.GetSessionId(userClaims.Id)}}

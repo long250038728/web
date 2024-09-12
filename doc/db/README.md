@@ -104,6 +104,34 @@ show variables like '%char%';
 * character_set_filesystem 文件名字符集
 
 
+## 大表DDL
+```
+alter table salaries modify emp_no int not null comment 'Employee Identity', ALGORITHM=inplace, lock=none;
+```
+ALGORITHM
+* DEFAULT: 默认方式会根据不同的DDL默认选择开销最低的方式
+* INPLACE: 在重建的过程中DML修改数据时记录到在线变更日志中，等到后续这个变更更新到新表时此时会锁表——重建表
+* COPY: 执行期间会进行锁表，Lock为SHARED(共享锁) ——重建表
+* INSTANT: 8.0新增的且默认，在添加/删除字段不需要重建表（不能再指定Lock关键字）
+  * 不支持 修改类型, 是否为null,删除枚举值
+  * varchar长度 如果变动前后都是255字节内或超过255字节没问题，如果变动前后发生255字节的大小变动则无法使用
+  * 注意: 同一个表指定instant操作次数(64)是有限制的，超过会报错，需要使用COPY或INPLACE重建表(INSTANT是通过版本号控制)
+
+Lock
+* NONE: 无锁
+* SHARED: 共享锁
+* EXCLUSIVE: 排他锁
+
+
+Metadata(元数据修改不影响实际存储)
+1. 修改表名、字段名或索引名
+2. 删除表/索引 (DROP TABLE、DROP INDEX 但是如果开启了innodb_file_per_table，DROP 表时需要删除对应的 ibd 文件)
+3. 修改表、字段的注释
+
+注意:
+* 删除索引时需要有可能会导致有些SQL原先命中的现在无法命中导致慢SQL.此时恢复之前索引就会长时间的锁。在mysql 8.0之后建议设置索引不可见后再删除
+* 删除表时需要确定确实没有任何业务会访问这个表了再删除，优先建议先改表名后再删除
+
 ## 常见命令
 ```
 -- 整理表的碎片

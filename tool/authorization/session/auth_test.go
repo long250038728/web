@@ -19,7 +19,6 @@ func init() {
 func TestSigned(t *testing.T) {
 	t.Log(NewAuth(c).Signed(context.Background(),
 		&UserInfo{Id: 123456, Name: "john"},
-		&UserSession{AuthList: []string{"123", "111111", "789"}},
 	))
 }
 

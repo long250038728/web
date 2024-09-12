@@ -43,16 +43,19 @@ type Refresh struct {
 
 type Auth interface {
 	// Signed 生成accessToken refreshToken
-	Signed(ctx context.Context, userClaims *UserInfo, session *UserSession) (accessToken string, refreshToken string, err error)
+	Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error)
 
 	// Parse 解析accessToken
 	// 生成Claims Session存放到ctx中 通过 GetClaims GetSession 获取
 	Parse(ctx context.Context, accessToken string) (context.Context, error)
 
+	Refresh(ctx context.Context, refreshToken string, claims authorization.Claims) error
+
+	SetSession(ctx context.Context, sessionId string, session *UserSession) (err error)
+	DeleteSession(ctx context.Context, sessionId string) error
+
 	// Auth 判断是否有权限 判断path是否在GetSession中
 	Auth(ctx context.Context, path string) error
-
-	Refresh(ctx context.Context, refreshToken string, claims authorization.Claims) error
 }
 
 type claims struct{}

@@ -36,11 +36,12 @@ func NewMessage(data interface{}) (msg *Message, err error) {
 }
 
 type Mq interface {
-	CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
-	DeleteTopic(ctx context.Context, topic string) error
+	// rocketmq 端
+	//	不建议作为客户端可以直接操作topic等，所以遵循规范,kafka虽然提供但按时不对外暴露
+	//CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
+	//DeleteTopic(ctx context.Context, topic string) error
 
 	Send(ctx context.Context, topic string, key string, message *Message) error
 	BulkSend(ctx context.Context, topic string, key string, message []*Message) error
-
 	Subscribe(ctx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error)
 }
