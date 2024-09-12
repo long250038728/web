@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/authorization/session"
+	"github.com/long250038728/web/tool/sliceconv"
 )
 
 type Repository struct {
@@ -43,7 +44,6 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rp
 	}
 
 	refresh := refreshCla.Refresh
-
 	if refresh.Md5 != authorization.GetSessionId(refresh.Id) {
 		return nil, errors.New("refresh token error")
 	}
@@ -55,42 +55,17 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rp
 	return resp, err
 }
 
-func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth_rpc.UserResponse, error) {
+func (r *Repository) Logout(ctx context.Context) error {
+	claims, err := session.GetClaims(ctx)
+	if err == nil {
+		return err
+	}
 	cache, err := r.util.Cache()
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	//角色
-	roles, err := r.GetRoles(ctx, userInfo.Id)
-	if err != nil {
-		return nil, err
-	}
-	roleIds := make([]int32, 0, len(roles))
-	roleNames := make([]string, 0, len(roles))
-	for _, role := range roles {
-		roleIds = append(roleIds, role.Id)
-		roleNames = append(roleNames, role.Name)
-	}
-
-	//权限列表
-	permissions, err := r.GetPermissions(ctx, roleIds)
-	if err != nil {
-		return nil, err
-	}
-	permissionsPath := make([]string, 0, len(roles))
-	for _, permission := range permissions {
-		permissionsPath = append(permissionsPath, permission.Path)
-	}
-
-	//基本参数
-	claims := &session.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
-	sess := &session.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
-	accessToken, refreshToken, err := session.NewAuth(cache).Signed(ctx, claims, sess)
-	if err != nil {
-		return nil, err
-	}
-	return &auth_rpc.UserResponse{Id: userInfo.Id, Name: userInfo.Name, Telephone: userInfo.Telephone, Roles: roleNames, Permissions: permissionsPath, AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	sessionClient := session.NewAuth(cache)
+	return sessionClient.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
 }
 
 //======================================================================================================================
@@ -142,4 +117,41 @@ func (r *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*mo
 	}
 	var permissions []*model.Permission
 	return permissions, db.Where("id in ?", ids).Where("status = 1").Find(&permissions).Error
+}
+
+// ======================================================================================================================
+func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth_rpc.UserResponse, error) {
+	cache, err := r.util.Cache()
+	if err != nil {
+		return nil, err
+	}
+
+	//角色
+	roles, err := r.GetRoles(ctx, userInfo.Id)
+	if err != nil {
+		return nil, err
+	}
+	roleIds := sliceconv.Extract(roles, func(item *model.Role) int32 { return item.Id })
+	roleNames := sliceconv.Extract(roles, func(item *model.Role) string { return item.Name })
+
+	//权限列表
+	permissions, err := r.GetPermissions(ctx, roleIds)
+	if err != nil {
+		return nil, err
+	}
+	permissionsPath := sliceconv.Extract(permissions, func(item *model.Permission) string { return item.Path })
+
+	//基本参数
+	claims := &session.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
+	sess := &session.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
+
+	sessionClient := session.NewAuth(cache)
+	if err = sessionClient.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
+		return nil, err
+	}
+	accessToken, refreshToken, err := sessionClient.Signed(ctx, claims)
+	if err != nil {
+		return nil, err
+	}
+	return &auth_rpc.UserResponse{Id: userInfo.Id, Name: userInfo.Name, Telephone: userInfo.Telephone, Roles: roleNames, Permissions: permissionsPath, AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }

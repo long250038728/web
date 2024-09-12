@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/long250038728/web/tool/authorization"
+	"github.com/long250038728/web/tool/system_error"
 )
 
 type Session struct {
@@ -20,7 +21,7 @@ func (p *Session) GetSession(ctx context.Context, sessionId string) (session *Us
 		return nil, err
 	}
 	if len(sessionStr) == 0 {
-		return nil, errors.New("sessionId is empty")
+		return nil, system_error.SessionExpire
 	}
 	return session, json.Unmarshal([]byte(sessionStr), &session)
 }
@@ -42,4 +43,12 @@ func (p *Session) SetSession(ctx context.Context, sessionId string, session *Use
 		err = errors.New("session setting is err")
 	}
 	return
+}
+
+func (p *Session) DeleteSession(ctx context.Context, sessionId string) error {
+	if sessionId == "" {
+		return errors.New("sessionId is empty")
+	}
+	_, err := p.Store.Del(ctx, sessionId)
+	return err
 }
