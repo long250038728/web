@@ -29,8 +29,8 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 		fmt.Println(claims.Name)
 	}
 
-	if session, err := session.GetSession(ctx); err == nil {
-		fmt.Println(session.AuthList)
+	if sess, err := session.GetSession(ctx); err == nil {
+		fmt.Println(sess.AuthList)
 	}
 
 	type customer struct {

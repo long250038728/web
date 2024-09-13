@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	rmq_client "github.com/apache/rocketmq-clients/golang"
+	rmq "github.com/apache/rocketmq-clients/golang"
 	"github.com/apache/rocketmq-clients/golang/credentials"
 	v2 "github.com/apache/rocketmq-clients/golang/protocol/v2"
 	"os"
@@ -24,7 +24,7 @@ type Rocket struct {
 
 func NewRocketMq(config *RocketMqConfig) Mq {
 	os.Setenv("mq.consoleAppender.enabled", "true")
-	rmq_client.ResetLogger()
+	rmq.ResetLogger()
 	return &Rocket{
 		config: config,
 	}
@@ -35,13 +35,13 @@ func (mq *Rocket) Send(ctx context.Context, topic string, key string, message *M
 }
 
 func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, message []*Message) error {
-	producer, err := rmq_client.NewProducer(&rmq_client.Config{
+	producer, err := rmq.NewProducer(&rmq.Config{
 		Endpoint: mq.config.Endpoint,
 		Credentials: &credentials.SessionCredentials{
 			AccessKey:    mq.config.AccessKey,
 			AccessSecret: mq.config.SecretKey,
 		},
-	}, rmq_client.WithTopics(topic),
+	}, rmq.WithTopics(topic),
 	)
 	if err != nil {
 		return err
@@ -56,7 +56,7 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 		if err != nil {
 			return err
 		}
-		msg := &rmq_client.Message{
+		msg := &rmq.Message{
 			Topic: topic,
 			Body:  m.Data,
 		}
@@ -90,7 +90,7 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 		// * 注意创建topic时需要指定类型（顺序，延迟，普通等），如果类型不一致会发生失败
 		if head.MsgType == RocketTypeNORMAL || head.MsgType == RocketTypeFIFO || head.MsgType == RocketTypeDELAY {
 			if head.IsAsync {
-				producer.SendAsync(ctx, msg, func(ctx context.Context, receipts []*rmq_client.SendReceipt, err error) {
+				producer.SendAsync(ctx, msg, func(ctx context.Context, receipts []*rmq.SendReceipt, err error) {
 					fmt.Printf("%#v\n%v", receipts, err)
 				})
 			} else {
@@ -114,21 +114,21 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 //   ./mqadmin updateTopic  -n rmqnamesrv:9876 -t d_topic  -c DefaultCluster  -o true -a  +message.type=DELAY
 //其中<message_type>可以替换为NORMAL、FIFO、DELAY或TRANSACTION
 
-func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) {
+func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) error {
 	var (
-		awaitDuration           = time.Second * 5  // maximum waiting time for receive func
-		maxMessageNum     int32 = 16               // maximum number of messages received at one time
-		invisibleDuration       = time.Second * 20 // invisibleDuration should > 20s
+		awaitDuration     = time.Second * 5  // maximum waiting time for receive func
+		maxMessageNum     = 16               // maximum number of messages received at one time
+		invisibleDuration = time.Second * 20 // invisibleDuration should > 20s
 	)
 
 	//默认监听所有，但环境变量有值时监听环境变量的tag
-	filter := rmq_client.SUB_ALL
+	filter := rmq.SUB_ALL
 	if len(mq.config.Env) > 0 {
-		filter = rmq_client.NewFilterExpression(mq.config.Env)
+		filter = rmq.NewFilterExpression(mq.config.Env)
 	}
 
 	ctx := context.Background()
-	simpleConsumer, err := rmq_client.NewSimpleConsumer(&rmq_client.Config{
+	simpleConsumer, err := rmq.NewSimpleConsumer(&rmq.Config{
 		Endpoint:      mq.config.Endpoint,
 		ConsumerGroup: consumerGroup,
 		Credentials: &credentials.SessionCredentials{
@@ -136,19 +136,17 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 			AccessSecret: mq.config.SecretKey,
 		},
 	},
-		rmq_client.WithAwaitDuration(awaitDuration),
-		rmq_client.WithSubscriptionExpressions(map[string]*rmq_client.FilterExpression{
+		rmq.WithAwaitDuration(awaitDuration),
+		rmq.WithSubscriptionExpressions(map[string]*rmq.FilterExpression{
 			topic: filter,
 		}),
 	)
 	if err != nil {
-		_ = callback(ctx, nil, err)
+		return err
 	}
-	// start simpleConsumer
 	if err = simpleConsumer.Start(); err != nil {
-		_ = callback(ctx, nil, err)
+		return err
 	}
-	// graceful stop simpleConsumer
 	defer func() {
 		_ = simpleConsumer.GracefulStop()
 	}()
@@ -156,16 +154,17 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 	for {
 		select {
 		case <-subscribeCtx.Done():
-			return
+			return subscribeCtx.Err()
 		default:
 		}
 
-		mvs, err := simpleConsumer.Receive(subscribeCtx, maxMessageNum, invisibleDuration)
+		mvs, err := simpleConsumer.Receive(subscribeCtx, int32(maxMessageNum), invisibleDuration)
 		if err != nil {
-			if e, ok := err.(*rmq_client.ErrRpcStatus); ok && e.GetCode() == int32(v2.Code_MESSAGE_NOT_FOUND) {
+			if e, ok := err.(*rmq.ErrRpcStatus); ok && e.GetCode() == int32(v2.Code_MESSAGE_NOT_FOUND) {
 				continue
 			}
 			_ = callback(ctx, nil, err)
+			continue
 		}
 
 		for _, mv := range mvs {
@@ -173,6 +172,7 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 			if err = callback(ctx, &Message{Data: mv.GetBody(), Headers: nil}, nil); err != nil {
 				continue
 			}
+			//3次重试
 			for retry := 0; retry < 3; retry++ {
 				if commitErr := simpleConsumer.Ack(subscribeCtx, mv); commitErr == nil {
 					break
@@ -180,5 +180,4 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 			}
 		}
 	}
-
 }
