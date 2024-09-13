@@ -20,6 +20,18 @@ type MsgHeader struct {
 	DelayTimestamp time.Time `json:"delay_timestamp"` //delay
 }
 
+func NewMessageHeaderNORMAL() *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeNORMAL}
+}
+
+func NewMessageHeaderFIFO(messageGroup string) *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeFIFO, MessageGroup: messageGroup}
+}
+
+func NewMessageHeaderDELAY(delayTimestamp time.Time) *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeDELAY, DelayTimestamp: delayTimestamp}
+}
+
 func parseHeader(header []Header) (h *MsgHeader, err error) {
 	h = &MsgHeader{}
 	for _, head := range header {

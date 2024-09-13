@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	rmq_client "github.com/apache/rocketmq-clients/golang"
+	rmq "github.com/apache/rocketmq-clients/golang"
 	"github.com/apache/rocketmq-clients/golang/credentials"
 )
 
@@ -22,22 +22,22 @@ const (
 func main() {
 	// log to console
 	os.Setenv("mq.consoleAppender.enabled", "true")
-	rmq_client.ResetLogger()
+	rmq.ResetLogger()
 	// new producer instance
-	producer, err := rmq_client.NewProducer(&rmq_client.Config{
+	producer, err := rmq.NewProducer(&rmq.Config{
 		Endpoint: Endpoint,
 		Credentials: &credentials.SessionCredentials{
 			AccessKey:    AccessKey,
 			AccessSecret: SecretKey,
 		},
 	},
-		rmq_client.WithTransactionChecker(&rmq_client.TransactionChecker{
-			Check: func(msg *rmq_client.MessageView) rmq_client.TransactionResolution {
+		rmq.WithTransactionChecker(&rmq.TransactionChecker{
+			Check: func(msg *rmq.MessageView) rmq.TransactionResolution {
 				log.Printf("check transaction message: %v", msg)
-				return rmq_client.COMMIT
+				return rmq.COMMIT
 			},
 		}),
-		rmq_client.WithTopics(Topic),
+		rmq.WithTopics(Topic),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -51,7 +51,7 @@ func main() {
 	defer producer.GracefulStop()
 	for i := 0; i < 10; i++ {
 		// new a message
-		msg := &rmq_client.Message{
+		msg := &rmq.Message{
 			Topic: Topic,
 			Body:  []byte("this is a message : " + strconv.Itoa(i)),
 		}

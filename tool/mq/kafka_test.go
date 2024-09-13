@@ -14,7 +14,7 @@ var client Mq
 
 func init() {
 	var kafkaConf Config
-	configurator.NewYaml().MustLoadConfigPath("kafka.yaml", &kafkaConf)
+	configurator.NewYaml().MustLoadConfigPath("mq.yaml", &kafkaConf)
 	client = NewKafkaMq(&kafkaConf)
 }
 

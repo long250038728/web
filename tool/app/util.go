@@ -103,13 +103,13 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	}
 
 	//创建redis && locker
-	if config.redisConfig != nil && len(config.redisConfig.Address) > 0 {
-		util.cache = cache.NewRedisCache(config.redisConfig)
+	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
+		util.cache = cache.NewRedisCache(config.cacheConfig)
 	}
 
 	//创建mq
-	if config.kafkaConfig != nil && len(config.kafkaConfig.Address) > 0 && len(config.kafkaConfig.Address[0]) > 0 {
-		util.mq = mq.NewKafkaMq(config.kafkaConfig)
+	if config.mqConfig != nil && len(config.mqConfig.Address) > 0 && len(config.mqConfig.Address) > 0 {
+		util.mq = mq.NewKafkaMq(config.mqConfig)
 	}
 
 	//创建es

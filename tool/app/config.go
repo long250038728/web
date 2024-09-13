@@ -32,14 +32,14 @@ type Config struct {
 
 	dbConfig       *orm.Config
 	esConfig       *es.Config
-	redisConfig    *cache.Config
-	kafkaConfig    *mq.Config
+	cacheConfig    *cache.Config
+	mqConfig       *mq.Config
 	registerConfig *consul.Config
 	tracingConfig  *opentelemetry.Config
 }
 
 var configLoad = configurator.NewYaml()
-var defaultConfigs = []string{"db", "redis", "kafka", "es", "register", "tracing"}
+var defaultConfigs = []string{"db", "redis", "mq", "es", "register", "tracing"}
 
 // initConfig 获取config基本信息
 func initConfig(rootPath string, serviceName string) (config *Config, err error) {
@@ -79,8 +79,8 @@ func NewAppConfig(rootPath, serviceName string, configType int32, yaml ...string
 	//获取第三方中间件配置
 	configs := map[string]any{
 		"db":       &conf.dbConfig,
-		"redis":    &conf.redisConfig,
-		"kafka":    &conf.kafkaConfig,
+		"redis":    &conf.cacheConfig,
+		"kafka":    &conf.mqConfig,
 		"es":       &conf.esConfig,
 		"register": &conf.registerConfig,
 		"tracing":  &conf.tracingConfig,

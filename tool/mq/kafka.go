@@ -11,15 +11,15 @@ import (
 const envKey = "env"
 
 type Config struct {
-	Address []string `json:"address" yaml:"address"`
-	Env     string   `json:"env" yaml:"env"`
+	Address string `json:"address" yaml:"address"`
+	Env     string `json:"env" yaml:"env"`
 }
 
 type Kafka struct {
 	config *Config
 }
 
-func NewKafkaMq(config *Config) Mq {
+func NewKafkaMq(config *Config) *Kafka {
 	return &Kafka{
 		config: config,
 	}
@@ -36,11 +36,11 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 	default:
 	}
 
-	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
+	if m.config.Address == "" {
 		return errors.New("IP / Project Not Find")
 	}
 
-	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
+	conn, err := kafka.Dial("tcp", m.config.Address) // 未测试多主机地址
 	if err != nil {
 		return err
 	}
@@ -66,11 +66,11 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 	default:
 	}
 
-	if len(m.config.Address) == 0 || m.config.Address[0] == "" {
+	if m.config.Address == "" {
 		return errors.New("IP / Project Not Find")
 	}
 
-	conn, err := kafka.Dial("tcp", m.config.Address[0]) // 未测试多主机地址
+	conn, err := kafka.Dial("tcp", m.config.Address) // 未测试多主机地址
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 	}
 
 	w := &kafka.Writer{
-		Addr:                   kafka.TCP(m.config.Address...),
+		Addr:                   kafka.TCP(m.config.Address),
 		BatchSize:              len(messages),
 		RequiredAcks:           1,     //0:无需主节点写入成功  1:需要主节点写入成功  -1:所有的ISR节点写入成功
 		AllowAutoTopicCreation: false, //主题不存在不自动创建主题
@@ -128,12 +128,12 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 //======================================================================================================================
 
 // Subscribe 消费者
-func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) {
+func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) error {
 	// 创建Kafka消费者
 	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: m.config.Address, // Kafka broker地址
-		Topic:   topic,            // 消费的主题
-		GroupID: consumerGroup,    // 消费者组
+		Brokers: []string{m.config.Address}, // Kafka broker地址
+		Topic:   topic,                      // 消费的主题
+		GroupID: consumerGroup,              // 消费者组
 	})
 	defer func() {
 		_ = reader.Close()
@@ -146,8 +146,7 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup str
 		//如果外部关闭退出循环
 		select {
 		case <-subscribeCtx.Done():
-			_ = callback(ctx, nil, subscribeCtx.Err())
-			return
+			return subscribeCtx.Err()
 		default:
 		}
 
@@ -176,18 +175,13 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup str
 		}
 
 		// 成功才提交
-		err = callback(ctx, &Message{Data: kafkaMessage.Value, Headers: headers}, nil)
-		if err == nil {
-			MaxRetryNum := 3
-			ErrRetryNum := 0
-
-			//提交失败重试次数
-			for {
-				commitErr := reader.CommitMessages(subscribeCtx, kafkaMessage)
-				if commitErr == nil || ErrRetryNum >= MaxRetryNum {
-					break
-				}
-				ErrRetryNum++
+		if err = callback(ctx, &Message{Data: kafkaMessage.Value, Headers: headers}, nil); err != nil {
+			continue
+		}
+		//3次重试
+		for retry := 0; retry < 3; retry++ {
+			if commitErr := reader.CommitMessages(subscribeCtx, kafkaMessage); commitErr == nil {
+				break
 			}
 		}
 	}
