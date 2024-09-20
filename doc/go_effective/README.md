@@ -54,6 +54,27 @@
 * http body
   * 如果我们在没有读取的情况下关闭正文，默认的 HTTP 传输可能会关闭连接。 
   * 如果我们在读取之后关闭正文，默认的 HTTP 传输不会关闭连接；因此，它可以重复使用。
+* sql
+  * SetMaxOpenConns 数据库最大连接数
+  * SetMaxIdleConns 空闲连接最大数量
+  * SetConnMaxIdleTime 一个连接在关闭之前可以空闲的时间
+  * SetConnMaxLifetime 一个连接在关闭前可以保持最长的时间  
+* http 建议设置参数
+  * 客户端
+    * timeout
+      * net.Dialer.Timeout 等待拨号连接超时时间                   第一步拨号连接
+      * http.Transport.TLSHandshakeTimeout TLS超时时间          第二步TLS握手 （中间有一个发送请求的时间站在客户端这个时间是自己的）
+      * http.Transport.ResponseHeaderTimeout 响应头超时时间      第三步响应头返回
+      * http.Client.Timeout 整个客户端超时时间                    第四步响应放回
+    * other
+      * http.Transport.DisableKeepAlives 是否禁用重用连接
+      * http.Transport.IdleConnTimeout 默认90s意味着其他请求可以重用连接
+      * http.Transport.MaxIdleConns 设置连接池数量
+      * http.Transport.MaxIdleConnsPerHost 对同一个host连接池会保留几个连接
+  * 服务端
+    * timeout
+      * http.Server.ReadHeaderTimeout 读取请求头的最长时间限制
+      * http.Server.ReadTimeout 读取数据的响应时间
 
 
 ### 并发
