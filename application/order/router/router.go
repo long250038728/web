@@ -20,11 +20,7 @@ import (
 //}()
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
-	opts := []tool.MiddlewareOpt{
-		tool.Error( //设置错误（错误信息可从数据库获取文件获取）
-			[]*tool.MiddleErr{}, //可以通过数据库处理
-		),
-	}
+	var opts []tool.MiddlewareOpt
 
 	if cache, err := app.NewUtil().Cache(); err == nil {
 		opts = append(opts, tool.Limiter( //设置限流

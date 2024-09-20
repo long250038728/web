@@ -10,12 +10,12 @@ import (
 type OrderService struct {
 	order.UnimplementedOrderServer
 	rpc.GrpcHealth
-	domain *domain.OrderDomain
+	domain *domain.Domain
 }
 
 type OrderServerOpt func(s *OrderService)
 
-func SetDomain(domain *domain.OrderDomain) OrderServerOpt {
+func SetDomain(domain *domain.Domain) OrderServerOpt {
 	return func(s *OrderService) {
 		s.domain = domain
 	}

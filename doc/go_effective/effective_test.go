@@ -565,7 +565,7 @@ func TestJson(t *testing.T) {
 
 	// 嵌套类型，子类型实现了Marshaler接口后导致序列化/反序列化问题
 	t.Run("Marshaler interface", func(t *testing.T) {
-		//curr实现了  json.Marshaler接口  {"Msg":"ok","Code":200,"Time":"2024-07-28T21:26:23.97965+08:00"}
+		//curr实现了  json.Marshaler接口  {"Msg":"ok","code":200,"Time":"2024-07-28T21:26:23.97965+08:00"}
 		//curr未实现了json.Marshaler接口  "2024-07-28T21:26:45.669756+08:00"  (用的是time.Time中的MarshalJSON方法)
 		c := curr{Msg: "ok", Code: 200, Time: time.Now()}
 		b, _ := json.Marshal(&c)

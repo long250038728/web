@@ -10,17 +10,17 @@ import (
 	"github.com/long250038728/web/tool/server/rpc"
 )
 
-type OrderDomain struct {
-	orderRepository *repository.OrderRepository
+type Domain struct {
+	repository *repository.Repository
 }
 
-func NewDomain(userRepository *repository.OrderRepository) *OrderDomain {
-	return &OrderDomain{
-		orderRepository: userRepository,
+func NewDomain(repository *repository.Repository) *Domain {
+	return &Domain{
+		repository: repository,
 	}
 }
 
-func (d *OrderDomain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
+func (d *Domain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
 	register, err := app.NewUtil().Register()
 	if err != nil {
 		return nil, err

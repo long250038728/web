@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	auth2 "github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/limiter"
+	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -21,13 +22,13 @@ type Middleware struct {
 
 	auth    auth2.Auth
 	limiter limiter.Limiter
-	error   map[error]*MiddleErr
+	//error   map[error]*system_error.Err
 }
 
 func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 	middleware := &Middleware{
-		error: map[error]*MiddleErr{},
-		ctx:   context.Background(),
+		//error: map[error]*system_error.Err{},
+		ctx: context.Background(),
 	}
 	for _, opt := range opts {
 		opt(middleware)
@@ -127,6 +128,7 @@ func (m *Middleware) WriteJSON(data interface{}, err error) {
 	//记录请求响应
 	m.span.AddEvent(string(marshalByte))
 
+	//这里是Marshal 报错
 	if err != nil {
 		res.Code = "999999"
 		res.Message = err.Error()
@@ -178,16 +180,14 @@ func (m *Middleware) WriteSSE(ch <-chan string) {
 //========================================================================
 
 func (m *Middleware) response(data interface{}, err error) (res *Response) {
-	res = &Response{Code: "000000", Message: "success"}
+	res = &Response{Code: "000000", Message: "success", Data: data}
 	if err == nil {
-		res.Data = data
 		return
 	}
-
-	var middleErr *MiddleErr
+	var middleErr *system_error.Err
 	if ok := errors.As(err, &middleErr); ok == true {
-		res.Code = middleErr.Code
-		res.Message = middleErr.Message
+		res.Code = middleErr.Code()
+		res.Message = middleErr.Error()
 		return
 	}
 

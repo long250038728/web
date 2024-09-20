@@ -43,10 +43,7 @@ func NewAuth(store authorization.Store, opts ...Opt) Auth {
 // ===============================通过 Claims Session 生成token=============================
 
 // Signed token生成
-func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo, session *UserSession) (accessToken string, refreshToken string, err error) {
-	if err = p.SetSession(ctx, authorization.GetSessionId(userClaims.Id), session); err != nil {
-		return "", "", err
-	}
+func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
 	now := time.Now().Local()
 	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
 	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: authorization.GetSessionId(userClaims.Id)}}
@@ -69,7 +66,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	}
 	//获取Claims对象
 	claims := &AccessClaims{}
-	if err := p.ParseToken(accessToken, claims); err != nil {
+	if err := p.ParseToken(accessToken, claims, authorization.AccessToken); err != nil {
 		return ctx, err
 	}
 	if err := claims.Valid(); err != nil {
@@ -97,7 +94,7 @@ func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims aut
 		return ctx.Err()
 	default:
 	}
-	return p.ParseToken(refreshToken, claims)
+	return p.ParseToken(refreshToken, claims, authorization.RefreshToken)
 }
 
 // =================================业务判断===========================

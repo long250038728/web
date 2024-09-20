@@ -9,17 +9,17 @@ import (
 	"github.com/long250038728/web/tool/server/http"
 )
 
-type OrderRepository struct {
+type Repository struct {
 	util *app.Util
 }
 
-func NewRepository(util *app.Util) *OrderRepository {
-	return &OrderRepository{
+func NewRepository(util *app.Util) *Repository {
+	return &Repository{
 		util: util,
 	}
 }
 
-func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	//md, _ := metadata.FromOutgoingContext(ctx)
 	//d, _ := json.Marshal(md)
 	//fmt.Println(string(d))
@@ -29,8 +29,8 @@ func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHell
 		fmt.Println(claims.Name)
 	}
 
-	if session, err := session.GetSession(ctx); err == nil {
-		fmt.Println(session.AuthList)
+	if sess, err := session.GetSession(ctx); err == nil {
+		fmt.Println(sess.AuthList)
 	}
 
 	type customer struct {
