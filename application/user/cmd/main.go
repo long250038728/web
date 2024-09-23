@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	path := flag.String("config", "/Users/linlong/Desktop/web/config", "config path")
+	path := flag.String("path", "", "root path")
 	flag.Parse()
 	app.InitPathInfo(*path, protoc.UserService)
 
@@ -28,7 +28,7 @@ func Run() error {
 
 	// 定义服务
 	userService := service.NewService(
-		service.SetUserDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
+		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
 	)
 
 	opts := []app.Option{

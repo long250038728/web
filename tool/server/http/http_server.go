@@ -3,10 +3,10 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -25,12 +25,9 @@ type Server struct {
 
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
-
-	go func() {
-		log.Println(http.ListenAndServe("192.168.0.5:6060", nil))
-	}()
-
 	handler := gin.Default()
+	pprof.Register(handler, "dev/pprof")
+
 	svc := &Server{
 		server:      &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
 		handler:     handler,

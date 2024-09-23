@@ -5,32 +5,32 @@ import (
 	"fmt"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
-	auth2 "github.com/long250038728/web/tool/auth/auth"
+	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/server/http"
 )
 
-type OrderRepository struct {
+type Repository struct {
 	util *app.Util
 }
 
-func NewOrderRepository(util *app.Util) *OrderRepository {
-	return &OrderRepository{
+func NewRepository(util *app.Util) *Repository {
+	return &Repository{
 		util: util,
 	}
 }
 
-func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	//md, _ := metadata.FromOutgoingContext(ctx)
 	//d, _ := json.Marshal(md)
 	//fmt.Println(string(d))
 	//opentelemetry.NewSpan(ctx, "hello")
 
-	if claims, err := auth2.GetClaims(ctx); err == nil {
+	if claims, err := session.GetClaims(ctx); err == nil {
 		fmt.Println(claims.Name)
 	}
 
-	if session, err := auth2.GetSession(ctx); err == nil {
-		fmt.Println(session.AuthList)
+	if sess, err := session.GetSession(ctx); err == nil {
+		fmt.Println(sess.AuthList)
 	}
 
 	type customer struct {

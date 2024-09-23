@@ -77,9 +77,7 @@ func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
 	}
 
 	//创建socket 连接
-	return grpc.DialContext(
-		ctx,
-		target,
+	return grpc.NewClient(target,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
 		grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: c.register}), //服务发现

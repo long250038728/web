@@ -229,7 +229,6 @@ func (o *Task) BuildCheck(ctx context.Context, source, target, svcPath string) e
 
 func (o *Task) listCheck(ctx context.Context, source, target string) ([]*requestInfo, error) {
 	var address = make([]*requestInfo, 0, 100)
-
 	if o.git == nil {
 		return nil, errors.New("git client is null")
 	}
@@ -246,7 +245,7 @@ func (o *Task) listCheck(ctx context.Context, source, target string) ([]*request
 	}
 
 	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("/soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range productList {
@@ -258,6 +257,7 @@ func (o *Task) listCheck(ctx context.Context, source, target string) ([]*request
 		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
 	}
 	return address, nil
+
 }
 
 //============================================================================================

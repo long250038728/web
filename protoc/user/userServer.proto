@@ -7,10 +7,6 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
 
 service User{
-  rpc Login(LoginRequest) returns (UserResponse);
-  rpc Refresh(RefreshRequest) returns (UserResponse);
-
-
   rpc SayHello(RequestHello) returns (ResponseHello);
 }
 
@@ -22,24 +18,4 @@ message ResponseHello {
 }
 
 
-
-message LoginRequest {
-  string name = 1  [(gogoproto.moretags) = 'form:"name"', (gogoproto.jsontag) = 'name'];
-  string password = 2  [(gogoproto.moretags) = 'form:"password"', (gogoproto.jsontag) = 'password'];
-}
-
-message RefreshRequest {
-  string refresh_token = 1  [(gogoproto.moretags) = 'form:"refresh_token"', (gogoproto.jsontag) = 'refresh_token'];
-}
-
-message UserResponse {
-  string access_token = 1  [(gogoproto.moretags) = 'form:"access_token"', (gogoproto.jsontag) = 'access_token'];
-  string refresh_token = 2  [(gogoproto.moretags) = 'form:"refresh_token"', (gogoproto.jsontag) = 'refresh_token'];
-
-  int32 id = 10  [(gogoproto.moretags) = 'form:"id"', (gogoproto.jsontag) = 'id'];
-  string name = 11  [(gogoproto.moretags) = 'form:"name"', (gogoproto.jsontag) = 'name'];
-  string telephone = 12  [(gogoproto.moretags) = 'form:"telephone"', (gogoproto.jsontag) = 'telephone'];
-  repeated string roles = 13  [(gogoproto.moretags) = 'form:"roles"', (gogoproto.jsontag) = 'roles'];
-  repeated string permissions = 14  [(gogoproto.moretags) = 'form:"permissions"', (gogoproto.jsontag) = 'permissions'];
-}
 

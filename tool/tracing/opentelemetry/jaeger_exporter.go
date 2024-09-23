@@ -20,7 +20,3 @@ type SpanExporter interface {
 func NewJaegerExporter(conf *Config) (SpanExporter, error) {
 	return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(conf.Address)))
 }
-
-func NewJaegerExporterAddress(endpoint string) (*jaeger.Exporter, error) {
-	return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(endpoint)))
-}

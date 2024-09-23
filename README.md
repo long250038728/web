@@ -20,7 +20,9 @@
 5. 172.40.0.6 etcd
 6. 172.40.0.7 mysql
 7. 172.40.0.8 canal
-
+8. 172.40.0.9 rocketmq_svc
+9. 172.40.0.10 rocketmq_broker
+10. 172.40.0.11 rocketmq_dashboard
 
 ## docker运行
 1.docker network 创建
@@ -163,6 +165,27 @@ canal.mq.flatMessage = true
 kafka.bootstrap.servers = 159.75.1.200:9093
 ```
 
+7.rocketmq
+```
+docker run -itd --name rocketMqNameSrv \
+ --network=my-service-network  --ip=172.40.0.9 \
+ -p 9876:9876 \
+ apache/rocketmq:5.3.0   sh mqnamesrv
+
+docker run -d --name rocketMqBroker \
+  --network=my-service-network --ip=172.40.0.10 \
+  -p 10912:10912 -p 10911:10911 -p 10909:10909 \
+  -e "NAMESRV_ADDR=172.40.0.9:9876" \
+  apache/rocketmq:5.3.0 sh \
+  mqbroker
+  
+docker run -itd --name rocketmq-dashboard \
+ --network=my-service-network --ip=172.40.0.11 \
+ -e "JAVA_OPTS=-Drocketmq.namesrv.addr=172.40.0.9" \
+ -p 8080:8080 \
+ apacherocketmq/rocketmq-dashboard:latest
+```
+
 web服务应用
 ```
 docker pull golang:1.20 
@@ -170,13 +193,13 @@ docker pull golang:1.20
 docker run --network=my-service-network --name=user -e WEB="/app" -p 8001:8001  -p 6060:6060 -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/user/cmd/main.go -config /app/config
+go run application/user/cmd/main.go -path /app
 
 
 docker run --network=my-service-network --name=order -e WEB="/app" -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/order/cmd/main.go -config /app/config
+go run application/order/cmd/main.go -path /app
 
 curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
 ```

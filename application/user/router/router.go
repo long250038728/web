@@ -6,8 +6,8 @@ import (
 	"github.com/long250038728/web/application/user/internal/service"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/auth"
-	auth2 "github.com/long250038728/web/tool/auth/auth"
+	"github.com/long250038728/web/tool/authorization"
+	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/server/http/tool"
 	"google.golang.org/grpc"
@@ -20,11 +20,7 @@ import (
 //}()
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
-	opts := []tool.MiddlewareOpt{
-		tool.Error( //设置错误（错误信息可从数据库获取文件获取）
-			[]*tool.MiddleErr{}, //可以通过数据库处理
-		),
-	}
+	var opts []tool.MiddlewareOpt
 
 	if cache, err := app.NewUtil().Cache(); err == nil {
 		opts = append(opts, tool.Limiter( //设置限流
@@ -34,9 +30,9 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 			),
 		))
 		opts = append(opts, tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
-			auth2.NewAuth(
+			session.NewAuth(
 				cache,
-				auth2.WhiteList(auth.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
+				session.WhiteList(authorization.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
 			),
 		))
 	}

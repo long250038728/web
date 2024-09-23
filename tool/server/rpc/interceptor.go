@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/auth/auth"
+	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -14,10 +14,11 @@ func serverInterceptor() grpc.UnaryServerInterceptor {
 		var span *opentelemetry.Span
 		cache, err := app.NewUtil().Cache()
 
+		//接收grpc的md数据
 		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
 			//写入用户信息
 			if authorization, ok := md["authorization"]; ok && len(authorization) == 1 {
-				ctx, _ = auth.NewAuth(cache).Parse(ctx, authorization[0])
+				ctx, _ = session.NewAuth(cache).Parse(ctx, authorization[0])
 			}
 
 			//写入链路
