@@ -43,7 +43,7 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 	}
 
 	//基础处理 （bind绑定  及链路 处理）
-	if err := middleware.bind(request); err != nil {
+	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
 		return
 	}
@@ -70,7 +70,7 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 	}
 
 	//基础处理 （bind绑定  及链路 处理）
-	if err := middleware.bind(request); err != nil {
+	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
 		return
 	}
@@ -106,7 +106,7 @@ func (m *MiddlewarePool) SSE(gin *gin.Context, request any, function HttpFunc) {
 	}
 
 	//基础处理 （bind绑定  及链路 处理）
-	if err := middleware.bind(request); err != nil {
+	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
 		return
 	}

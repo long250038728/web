@@ -1,6 +1,8 @@
 package sliceconv
 
-import "golang.org/x/exp/constraints"
+import (
+	"golang.org/x/exp/constraints"
+)
 
 // IndexOf 查找元素是否在切片中存在(值通过闭包函数处理)
 func IndexOf[T any](slice []T, condition func(T) bool) (T, int) {
@@ -24,7 +26,7 @@ func Sum[T any, U constraints.Ordered](slice []T, mapper func(T) (val U)) U {
 
 // Change 遍历切片,返回新的切片(值通过闭包函数处理)
 func Change[T, U any](slice []T, mapper func(T) U) []U {
-	result := make([]U, 0, len(slice))
+	result := make([]U, len(slice), len(slice))
 	for i, item := range slice {
 		result[i] = mapper(item)
 	}
@@ -70,7 +72,7 @@ func Map[T, X any, U comparable](slice []T, mapper func(item T) (key U, value X)
 }
 
 // Sort 切片排序
-func Sort[T constraints.Ordered](slice []T, mapper func(val T, val2 T) bool) []T {
+func Sort[T comparable](slice []T, mapper func(val T, val2 T) bool) []T {
 	for i := 0; i < len(slice)-1; i++ {
 		for j := 0; j < len(slice)-i-1; j++ {
 			if mapper(slice[j], slice[j+1]) {
