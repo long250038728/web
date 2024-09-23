@@ -14,6 +14,7 @@ func serverInterceptor() grpc.UnaryServerInterceptor {
 		var span *opentelemetry.Span
 		cache, err := app.NewUtil().Cache()
 
+		//接收grpc的md数据
 		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
 			//写入用户信息
 			if authorization, ok := md["authorization"]; ok && len(authorization) == 1 {

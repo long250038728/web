@@ -5,6 +5,12 @@ import (
 	"testing"
 )
 
+type simple struct {
+	Name string
+	Age  int
+	Sex  int
+}
+
 func TestChunk(t *testing.T) {
 	data := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	want := [][]int{
@@ -44,11 +50,6 @@ func TestChange(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-	type simple struct {
-		Name string
-		Age  int
-		Sex  int
-	}
 	data := []*simple{
 		{Name: "h", Age: 1},
 		{Name: "e", Age: 2},
@@ -69,11 +70,6 @@ func TestMap(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	type simple struct {
-		Name string
-		Age  int
-		Sex  int
-	}
 	data := []*simple{
 		{Name: "h", Age: 1},
 		{Name: "e", Age: 2},
@@ -90,8 +86,43 @@ func TestSum(t *testing.T) {
 
 func TestSort(t *testing.T) {
 	data := []int{4, 3, 1, 5, 6, 9, 8, 7, 2}
+	want := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
 	got := Sort(data, func(val int, val2 int) bool {
 		return val > val2
 	})
-	t.Log(got)
+	t.Log(reflect.DeepEqual(want, got))
+
+	data2 := []*simple{
+		{Name: "o", Age: 5},
+		{Name: "h", Age: 1},
+		{Name: "l", Age: 4},
+		{Name: "l", Age: 3},
+		{Name: "e", Age: 2},
+	}
+	want2 := []*simple{
+		{Name: "h", Age: 1},
+		{Name: "e", Age: 2},
+		{Name: "l", Age: 3},
+		{Name: "l", Age: 4},
+		{Name: "o", Age: 5},
+	}
+	got2 := Sort(data2, func(val *simple, val2 *simple) bool {
+		return val.Age > val2.Age
+	})
+	t.Log(reflect.DeepEqual(want2, got2))
+}
+
+func TestExtract(t *testing.T) {
+	data := []*simple{
+		{Name: "h", Age: 1},
+		{Name: "e", Age: 2},
+		{Name: "l", Age: 3},
+		{Name: "l", Age: 4},
+		{Name: "o", Age: 5},
+	}
+	want := []string{"h", "e", "l", "l", "o"}
+	got := Extract(data, func(t *simple) string {
+		return t.Name
+	})
+	t.Log(reflect.DeepEqual(want, got))
 }

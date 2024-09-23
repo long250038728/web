@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	auth2 "github.com/long250038728/web/tool/authorization/session"
+	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
@@ -18,18 +18,13 @@ import (
 type Middleware struct {
 	ginContext *gin.Context
 	span       *opentelemetry.Span
-	ctx        context.Context
 
-	auth    auth2.Auth
+	auth    session.Auth
 	limiter limiter.Limiter
-	//error   map[error]*system_error.Err
 }
 
 func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
-	middleware := &Middleware{
-		//error: map[error]*system_error.Err{},
-		ctx: context.Background(),
-	}
+	middleware := &Middleware{}
 	for _, opt := range opts {
 		opt(middleware)
 	}
@@ -38,36 +33,32 @@ func NewMiddleware(opts ...MiddlewareOpt) *Middleware {
 
 func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
 	m.ginContext = ginContext
-	m.ctx = ginContext.Request.Context()
-
-	//从请求里面获取生成新的ctx
-	ctx := opentelemetry.ExtractHttp(ginContext.Request.Context(), ginContext.Request)
+	authorization := ginContext.GetHeader("Authorization")
 
 	//生成一个新的带有span的context
-	span := opentelemetry.NewSpan(ctx, ginContext.Request.RequestURI) //记录请求头
+	// 1. 以ginContext.Request.Context() 获取ctx上下文 (也可以通过context.Background()创建)
+	// 2. 通过 telemetry 提取 http请求头中的参数生成一个名称为请求URI的 span (如果请求头中有traceparent 则生成一个子span，如果无则生成一个root span)
+	// 3. 通过span 获取新的 ctx 以后续使用
+	span := opentelemetry.NewSpan(opentelemetry.ExtractHttp(ginContext.Request.Context(), ginContext.Request), ginContext.Request.RequestURI) //记录请求头
+	ctx := span.Context()
+	m.span = span
 
-	ctx = span.Context()
+	mCarrier := map[string]string{"authorization": authorization} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
+	opentelemetry.InjectMap(ctx, mCarrier)                        // 把 telemetry的id等信息写入mCarrier
 
-	//把链路信息生成到metadata中
-	mCarrier := map[string]string{}
-	mCarrier["authorization"] = ginContext.GetHeader("Authorization")
-	opentelemetry.InjectMap(span.Context(), mCarrier) //通过span对象生成map放入metadata中（之后的grpc中获取）
-
-	//把基础信息写到ctx及链路中
-	ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
 	_ = span.Add(mCarrier)
 	ginContext.Header("traceparent", mCarrier["traceparent"])
 
-	//限流
+	//限流(有authorization信息则以人为单位)
 	if m.limiter != nil {
-		if err := m.limiter.Allow(ctx, "http"); err != nil {
+		if err := m.limiter.Allow(ctx, "http:"+authorization); err != nil {
 			return ctx, err
 		}
 	}
 
 	//授权
 	if m.auth != nil {
-		parseCtx, err := m.auth.Parse(ctx, ginContext.GetHeader("Authorization"))
+		parseCtx, err := m.auth.Parse(ctx, authorization)
 		if err != nil {
 			return ctx, err
 		}
@@ -77,13 +68,12 @@ func (m *Middleware) Context(ginContext *gin.Context) (context.Context, error) {
 		ctx = parseCtx
 	}
 
-	m.ctx = ctx
-	m.span = span
-
-	return m.ctx, nil
+	//把所有信息写入metadata中并生成新的ctx
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
+	return ctx, nil
 }
 
-func (m *Middleware) bind(request any) error {
+func (m *Middleware) Bind(request any) error {
 	var err error
 	if m.ginContext.Request.Method == http.MethodGet {
 		err = m.ginContext.BindQuery(request)
