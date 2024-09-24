@@ -101,9 +101,9 @@ func TestOldMaterialExchange(t *testing.T) {
 		t.Id = numId
 		numId += 1
 
-		t.ChagreType = 1
-		if t.ChagreTypeName == "按件" {
-			t.ChagreType = 2
+		t.ChargeType = 1
+		if t.ChargeTypeName == "按件" {
+			t.ChargeType = 2
 		}
 
 		t.Relations = make([]*OldMaterialExchangeRelationGoods, 0, 100)
@@ -138,7 +138,7 @@ func GetOldMaterialExchangeExcel() (record *OldMaterialExchangeRecordExcel, exch
 	var excelHeader = []excel.Header{
 		{Key: "number", Name: "旧料编码", Type: "string"},
 		{Key: "name", Name: "旧料名称", Type: "string"},
-		{Key: "chagre_type_name", Name: "计价方式", Type: "string"},       //chagre_type_name
+		{Key: "charge_type_name", Name: "计价方式", Type: "string"},       //charge_type_name
 		{Key: "gold_weight_limit_name", Name: "是否换大", Type: "string"}, //gold_weight_limit_name
 		{Key: "is_original_name", Name: "是否本厂", Type: "string"},       //is_original_name
 		{Key: "pay_amount_percent", Name: "实收比例", Type: "string"},
@@ -162,7 +162,7 @@ func GetOldMaterialExchangeExcel() (record *OldMaterialExchangeRecordExcel, exch
 		{Key: "price", Name: "旧料金价", Type: "string"},
 		{Key: "label_discount", Name: "标价折扣", Type: "string"},
 		{Key: "number", Name: "新品数量", Type: "string"},
-		{Key: "chagre_type_name", Name: "计价方式", Type: "string"},
+		{Key: "charge_type_name", Name: "计价方式", Type: "string"},
 		{Key: "relations_name", Name: "可兑换旧料", Type: "string"},
 	}
 	err = r.Read("Sheet2", excelHeader, &exchangeGoods)
@@ -237,7 +237,7 @@ type OldMaterialExchangeRelationExcel struct {
 	// 分类名称
 	GoodsTypeName string `protobuf:"bytes,3,opt,name=goods_type_name,json=goodsTypeName,proto3" json:"goods_type_name"`
 	// 计价方式
-	ChagreType int32 `protobuf:"varint,4,opt,name=chagre_type,json=chagreType,proto3" json:"chagre_type"`
+	ChargeType int32 `protobuf:"varint,4,opt,name=charge_type,json=chargeType,proto3" json:"charge_type"`
 	// 旧料金价
 	Price string `protobuf:"bytes,5,opt,name=price,proto3" json:"price"`
 	// 标价折扣
@@ -248,7 +248,7 @@ type OldMaterialExchangeRelationExcel struct {
 	Relations []*OldMaterialExchangeRelationGoods `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations"`
 
 	// 计价方式
-	ChagreTypeName string `protobuf:"varint,4,opt,name=chagre_type,json=chagreType,proto3" json:"chagre_type_name"`
+	ChargeTypeName string `protobuf:"varint,4,opt,name=charge_type_name,json=ChargeTypeName,proto3" json:"charge_type_name"`
 
 	//可兑换旧料
 	RelationsName string `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations_name"`
