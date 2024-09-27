@@ -29,8 +29,8 @@ func TestOldMaterialExchange(t *testing.T) {
 		return
 	}
 
-	Types := sliceconv.Map(goodsTypes, func(item *GoodsType) (key string, value int32) {
-		return item.Name, item.Id
+	Types := sliceconv.Map(goodsTypes, func(item *GoodsType) (key string, value *GoodsType) {
+		return item.Name, item
 	})
 	//Qualitys := sliceconv.Map(goodsQualitys, func(item *GoodsQuality) (key string, value int32) {
 	//	return item.Name, item.Id
@@ -94,29 +94,25 @@ func TestOldMaterialExchange(t *testing.T) {
 		GoodsTypeId, ok := Types[t.GoodsTypeName]
 		if !ok {
 			//panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
-			GoodsTypeId = 99999
+			GoodsTypeId = &GoodsType{Id: 99999, Name: "xxxxxx", SaleChargeType: 1}
 		}
-		t.GoodsTypeId = GoodsTypeId
+		t.GoodsTypeId = GoodsTypeId.Id
+		t.ChargeType = GoodsTypeId.SaleChargeType
 
 		t.Id = numId
 		numId += 1
 
-		t.ChargeType = 1
-		if t.ChargeTypeName == "按件" {
-			t.ChargeType = 2
-		}
-
 		t.Relations = make([]*OldMaterialExchangeRelationGoods, 0, 100)
 
-		relation := strings.Split(t.RelationsName, "，")
+		relation := strings.Split(t.RelationsName, ",")
 		for _, ra := range relation {
-			GoodsTypeId, ok := Types[ra]
+			settingData, ok := Setting[ra]
 			if !ok {
 				//panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
-				GoodsTypeId = 99999
+				settingData = &OldMaterialSetting{Id: 99999, Number: "xxxxx", Name: "xxxxx"}
 			}
 			t.Relations = append(t.Relations, &OldMaterialExchangeRelationGoods{
-				GoodsTypeId, ra,
+				GoodsTypeId: settingData.Id, GoodsTypeName: settingData.Name, GoodsTypeNumber: settingData.Number,
 			})
 		}
 		return t
@@ -158,11 +154,10 @@ func GetOldMaterialExchangeExcel() (record *OldMaterialExchangeRecordExcel, exch
 		return nil, nil, errors.New("数据有误")
 	}
 	excelHeader = []excel.Header{
-		{Key: "goods_type_name", Name: "新品分类", Type: "string"},
+		{Key: "goods_type_name", Name: "商品分类", Type: "string"},
 		{Key: "price", Name: "旧料金价", Type: "string"},
 		{Key: "label_discount", Name: "标价折扣", Type: "string"},
 		{Key: "number", Name: "新品数量", Type: "string"},
-		{Key: "charge_type_name", Name: "计价方式", Type: "string"},
 		{Key: "relations_name", Name: "可兑换旧料", Type: "string"},
 	}
 	err = r.Read("Sheet2", excelHeader, &exchangeGoods)
@@ -246,9 +241,6 @@ type OldMaterialExchangeRelationExcel struct {
 	Number string `protobuf:"bytes,7,opt,name=number,proto3" json:"number"`
 	//可兑换旧料
 	Relations []*OldMaterialExchangeRelationGoods `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations"`
-
-	// 计价方式
-	ChargeTypeName string `protobuf:"varint,4,opt,name=charge_type_name,json=ChargeTypeName,proto3" json:"charge_type_name"`
 
 	//可兑换旧料
 	RelationsName string `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations_name"`

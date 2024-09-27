@@ -15,8 +15,9 @@ func GetMaterialSetting(merchantId int32) (list []*OldMaterialSetting, err error
 }
 
 type GoodsType struct {
-	Id   int32
-	Name string
+	Id             int32
+	Name           string
+	SaleChargeType int32
 }
 type GoodsQuality struct {
 	Id   int32
@@ -141,4 +142,6 @@ type OldMaterialExchangeRelationGoods struct {
 	GoodsTypeId int32 `protobuf:"varint,2,opt,name=goods_type_id,json=goodsTypeId,proto3" json:"goods_type_id"`
 	// 分类名称
 	GoodsTypeName string `protobuf:"bytes,3,opt,name=goods_type_name,json=goodsTypeName,proto3" json:"goods_type_name"`
+	// 分类名称
+	GoodsTypeNumber string `protobuf:"bytes,4,opt,name=goods_type_number,json=goodsTypeNumber,proto3" json:"goods_type_number"`
 }

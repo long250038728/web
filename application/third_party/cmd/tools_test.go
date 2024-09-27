@@ -11,7 +11,7 @@ import (
 )
 
 var merchantId int32 = 240
-var exchangeId int32 = 99999
+var exchangeId int32 = 1
 var excelFile = "/Users/linlong/Desktop/xx.xlsx"
 
 var db *orm.Gorm
@@ -19,7 +19,7 @@ var db *orm.Gorm
 func init() {
 	var dbConfig orm.Config
 	var err error
-	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
+	configurator.NewYaml().MustLoadConfigPath("online/db.yaml", &dbConfig)
 	db, err = orm.NewGorm(&dbConfig)
 	if err != nil {
 		panic(err)
