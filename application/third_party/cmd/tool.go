@@ -102,7 +102,6 @@ func main() {
 	rootCmd.AddCommand(branch())
 	rootCmd.AddCommand(pr())
 	rootCmd.AddCommand(list())
-	rootCmd.AddCommand(online())
 	rootCmd.AddCommand(json())
 	rootCmd.AddCommand(action())
 	rootCmd.AddCommand(completion())
@@ -217,67 +216,6 @@ func list() *cobra.Command {
 			}
 			fmt.Println("有", len(address), "个PR项目")
 			fmt.Println(address)
-		},
-	}
-}
-
-// online
-func online() *cobra.Command {
-	return &cobra.Command{
-		Use:   "online [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
-		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件(默认:./svc.yaml)】",
-		Long:  "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
-		Args:  cobra.MinimumNArgs(2),
-		Run: func(cmd *cobra.Command, args []string) {
-			source := args[0]
-			target := args[1]
-			conf := "./svc.yaml"
-			if len(args) == 3 {
-				conf = args[2]
-			}
-
-			if len(conf) > 0 {
-				if err := configurator.NewYaml().Load(conf, &services); err != nil {
-					fmt.Println(err)
-					return
-				}
-			}
-
-			var address = make([]string, 0, len(productList))
-
-			for _, addr := range productList {
-				list, err := gitClient.GetPR(ctx, addr, source, target)
-				if err != nil {
-					continue
-				}
-				if len(list) != 1 {
-					continue
-				}
-
-				if addr == "zhubaoe-go/kobe" && len(services.Kobe) == 0 {
-					fmt.Println("有kobe项目，但是未添加服务")
-					return
-				}
-				if addr == "zhubaoe/marx" && len(services.Marx) == 0 {
-					fmt.Println("有marx项目，但是未添加服务")
-					return
-				}
-				address = append(address, list[0].Url)
-			}
-
-			b, err := client.NewPrGen(gitConfig.Token, fmt.Sprintf("%s:%s", jenkinsConfig.Username, jenkinsConfig.Password)).GenMerge(address, services)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-
-			err = os.WriteFile("./online.md", b, os.ModePerm)
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			fmt.Println("文件生成./online.md")
-			fmt.Println(string(b))
 		},
 	}
 }

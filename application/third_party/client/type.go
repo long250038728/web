@@ -4,8 +4,7 @@ type requestInfo struct {
 	Type    int32          `json:"type"`
 	Project string         `json:"project"`
 	Params  map[string]any `json:"params"`
-	//Num     int32          `json:"num"`
-	Success bool `json:"success"`
+	Success bool           `json:"success"`
 }
 
 const (
@@ -33,4 +32,11 @@ var productList = []string{
 	"fissiongeek/h5-sales",
 	"zhubaoe/plato",
 	"zhubaoe/hume",
+}
+
+type Svc struct {
+	Kobe  []string `json:"kobe" yaml:"kobe"`
+	Marx  []string `json:"marx" yaml:"marx"`
+	Shell string   `json:"shell" yaml:"shell"`
+	SQL   string   `json:"sql" yaml:"sql"`
 }
