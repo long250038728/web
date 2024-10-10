@@ -116,6 +116,39 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 		request.SetBasicAuth(c.username, c.password)
 	}
 
+	// 设置 cookies
+	cookies := []*http.Cookie{
+		{
+			Name:  "_ga",
+			Value: "GA1.2.2002000608.1686045235",
+		},
+		{
+			Name:  "Hm_lvt_275b44e62899a0fb992899d723470c22",
+			Value: "1713424940",
+		},
+		{
+			Name:  "PHPSESSID",
+			Value: "392hu7jqtadho0bokij446k1i5",
+		},
+		{
+			Name:  "merchant_code",
+			Value: "SC583267",
+		},
+		{
+			Name:  "token",
+			Value: "Pd9A2A8e8fbD1se81728436284",
+		},
+		{
+			Name:  "_gid",
+			Value: "GA1.2.558930651.1728357879",
+		},
+	}
+
+	// 将 cookies 添加到请求
+	for _, cookie := range cookies {
+		request.AddCookie(cookie)
+	}
+
 	if !c.isTracing {
 		return c.request(request)
 	}

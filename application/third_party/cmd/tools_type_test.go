@@ -1,7 +1,7 @@
 package main
 
 func GetGoodsType(merchantId int32) (list []*GoodsType, err error) {
-	err = db.Where("merchant_id = ?", merchantId).Where("status = ?", 1).Find(&list).Error
+	err = db.Where("merchant_id = ?", merchantId).Debug().Where("status IN ? ", []int32{1, 2}).Find(&list).Error
 	return
 }
 func GetGoodsQuality(merchantId int32) (list []*GoodsQuality, err error) {

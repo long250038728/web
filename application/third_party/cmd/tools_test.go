@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/excel"
 	"github.com/long250038728/web/tool/persistence/orm"
@@ -10,9 +11,9 @@ import (
 	"time"
 )
 
-var merchantId int32 = 240
+var merchantId int32 = 1620
 var exchangeId int32 = 1
-var excelFile = "/Users/linlong/Desktop/xx.xlsx"
+var excelFile = "/Users/linlong/Desktop/xxx/2.xlsx"
 
 var db *orm.Gorm
 
@@ -55,12 +56,12 @@ func TestOldMaterialSetting(t *testing.T) {
 	newExcelData := sliceconv.Change(excelData, func(t *OldMaterialSettingExcel) *OldMaterialSettingExcel {
 		GoodsTypeId, ok := Types[t.GoodsTypeName]
 		if !ok {
-			//panic(fmt.Sprintf("%s不存在", t.GoodsTypeName))
+			panic(fmt.Sprintf("GoodsTypeId %s不存在", t.GoodsTypeName))
 			GoodsTypeId = 99999
 		}
 		QualityId, ok := Qualitys[t.QualityName]
 		if !ok {
-			//panic(fmt.Sprintf("Quality %s 不存在", t.GoodsTypeName))
+			panic(fmt.Sprintf("Quality %s 不存在", t.QualityName))
 			QualityId = 99999
 		}
 		t.MerchantId = merchantId
@@ -96,7 +97,7 @@ func TestOldMaterialSetting(t *testing.T) {
 	})
 
 	t.Log(dbData)
-	t.Log(db.Save(dbData).Error)
+	//t.Log(db.Save(dbData).Error)
 }
 
 func GetOldMaterialSettingExcel() (list []*OldMaterialSettingExcel, err error) {

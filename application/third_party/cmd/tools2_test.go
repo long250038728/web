@@ -3,6 +3,7 @@ package main
 import (
 	json2 "encoding/json"
 	"errors"
+	"fmt"
 	"github.com/long250038728/web/tool/excel"
 	"github.com/long250038728/web/tool/sliceconv"
 	"github.com/long250038728/web/tool/struct_map"
@@ -11,7 +12,16 @@ import (
 	"time"
 )
 
-func TestOldMaterialExchange(t *testing.T) {
+func TestOldMaterialExchangeAll(t *testing.T) {
+	for i := 1; i <= 66; i++ {
+		excelFile = fmt.Sprintf("/Users/linlong/Desktop/xxx/%d.xlsx", i)
+		t.Log(excelFile)
+		AAA(t, excelFile)
+	}
+}
+
+func AAA(t *testing.T, f string) {
+
 	goodsTypes, err := GetGoodsType(merchantId)
 	if err != nil {
 		t.Error(err)
@@ -40,7 +50,11 @@ func TestOldMaterialExchange(t *testing.T) {
 		return item.Number, item
 	})
 
-	excelData, record, err := GetOldMaterialExchangeExcel()
+	Setting2 := sliceconv.Map(materialSetting, func(item *OldMaterialSetting) (key string, value *OldMaterialSetting) {
+		return item.Name, item
+	})
+
+	excelData, record, err := GetOldMaterialExchangeExcel(f)
 	if err != nil {
 		t.Error(err)
 		return
@@ -66,15 +80,19 @@ func TestOldMaterialExchange(t *testing.T) {
 		return
 	}
 
-	//if exchangeId == 9999 {
-	//	panic(fmt.Sprintf("exchangeId %d", 9999))
-	//}
+	if exchangeId == 9999 {
+		panic(fmt.Sprintf("exchangeId %d", 9999))
+	}
 
 	r.MerchantId = merchantId
 	r.MaterialExchangeId = exchangeId
 	r.CreateTime = int32(time.Now().Local().Unix())
 	r.UpdateTime = r.CreateTime
 	r.Status = 1
+
+	if r.Number == "EQJY" {
+		r.Number = "EQJM"
+	}
 
 	settingInfo, ok := Setting[r.Number]
 	if ok {
@@ -85,15 +103,22 @@ func TestOldMaterialExchange(t *testing.T) {
 		r.MaterialSettingId = 99999
 		r.GoodsTypeId = 99999
 		r.GoodsTypeName = "99999"
-		//panic(fmt.Sprintf("% setting 找不到", r.Number))
-		//return
+		panic(fmt.Sprintf("%s setting 找不到", r.Number))
 	}
+
+	errList := make([]string, 0, 10000)
 
 	var numId int32 = 1
 	newExcelData := sliceconv.Change(record, func(t *OldMaterialExchangeRelationExcel) *OldMaterialExchangeRelationExcel {
+
+		if t.GoodsTypeName == "黄金（精品)" {
+			t.GoodsTypeName = "黄金（精品）"
+		}
 		GoodsTypeId, ok := Types[t.GoodsTypeName]
+
 		if !ok {
-			//panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
+			panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
+			//errList = append(errList, t.GoodsTypeName)
 			GoodsTypeId = &GoodsType{Id: 99999, Name: "xxxxxx", SaleChargeType: 1}
 		}
 		t.GoodsTypeId = GoodsTypeId.Id
@@ -104,11 +129,19 @@ func TestOldMaterialExchange(t *testing.T) {
 
 		t.Relations = make([]*OldMaterialExchangeRelationGoods, 0, 100)
 
+		if t.RelationsName == "" {
+			return t
+		}
+
 		relation := strings.Split(t.RelationsName, ",")
 		for _, ra := range relation {
-			settingData, ok := Setting[ra]
+			if ra == "免损外足金" {
+				ra = "免损外足旧金"
+			}
+
+			settingData, ok := Setting2[ra]
 			if !ok {
-				//panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
+				panic(fmt.Sprintf("setting2 %s不存在", ra))
 				settingData = &OldMaterialSetting{Id: 99999, Number: "xxxxx", Name: "xxxxx"}
 			}
 			t.Relations = append(t.Relations, &OldMaterialExchangeRelationGoods{
@@ -124,12 +157,13 @@ func TestOldMaterialExchange(t *testing.T) {
 	}
 	r.Data = string(b)
 
+	t.Log(errList)
 	t.Log(r)
-	//t.Log(db.Save(r).Error)
+	t.Log(db.Save(r).Error)
 
 }
 
-func GetOldMaterialExchangeExcel() (record *OldMaterialExchangeRecordExcel, exchangeGoods []*OldMaterialExchangeRelationExcel, err error) {
+func GetOldMaterialExchangeExcel(f string) (record *OldMaterialExchangeRecordExcel, exchangeGoods []*OldMaterialExchangeRelationExcel, err error) {
 	var recordList []*OldMaterialExchangeRecordExcel
 	var excelHeader = []excel.Header{
 		{Key: "number", Name: "旧料编码", Type: "string"},
@@ -144,7 +178,7 @@ func GetOldMaterialExchangeExcel() (record *OldMaterialExchangeRecordExcel, exch
 		{Key: "free_labour_cycle", Name: "免费工费年限", Type: "string"},
 		{Key: "old_num", Name: "旧料数量", Type: "string"},
 	}
-	r := excel.NewRead(excelFile)
+	r := excel.NewRead(f)
 	defer r.Close()
 
 	if err = r.Read("Sheet1", excelHeader, &recordList); err != nil {

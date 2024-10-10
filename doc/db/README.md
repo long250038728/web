@@ -73,7 +73,6 @@ mysql重要的系统参数
   * innodb_log_buffer_size redo缓存大小
   * innodb_flush_log_at_trx_commit redo刷盘时机
 
-
 ## sql mode
 严格模式
 * ONLY_FULL_GROUP_BY : SELECT的字段要么也出现GROUP BY中，要么使用聚合函数
@@ -102,7 +101,6 @@ show variables like '%char%';
 * character_set_connection 连接字符集（当character_set_connection与character_set_client不一致，会转换为character_set_connection字符集）
 * character_set_results 返回客户端结果字符集
 * character_set_filesystem 文件名字符集
-
 
 ## 大表DDL
 ```
@@ -163,6 +161,51 @@ Metadata(元数据修改不影响实际存储不会导致大DDL)
 * 删除表时需要确定确实没有任何业务会访问这个表了再删除，优先建议先改表名后再删除
 * 即使你执行的 DDL 只需要修改元数据，在 DDL 执行开始和执行结束的时候，也是需要短暂地获取元数据锁的，如果数据库中有别的长事务提前获取了元数据锁，那么 DDL 就会被阻塞，而 DDL 被阻塞后，后续其他会话访问同一个表时，也会被阻塞。因此在 DDL 执行的过程中，需要注意观察数据库的整体状况，特别是要注意有没有会话在等待元数据锁。
 
+## 执行计划
+```
+-- 需要特别留意type，key，rows，filtered，extra 这几个字段
+explain [format=json] sql
+```
+### 返回字段及含义
+* select_type :
+  * SIMPLE 表示查询中没有使用任何复杂的子查询或联合(一般是这个)
+  * PRIMARY 表示主查询，即包含其他子查询的查询。(可能被优化器优化为SIMPLE)
+  * SUBQUERY 表示一个子查询。(可能被优化器优化为SIMPLE)
+  * DERIVED 表示派生表，通常是从子查询中生成的临时表。(可能被优化器优化为SIMPLE)
+  * UNION 表示联合查询的结果
+  * UNION RESULT 联合查询的最终结果集
+* table : 指定的表名或别名
+* partitions : 表分区
+* type :
+  * const: 唯一索引 等值匹配
+  * eq_ref: 唯一索引 (匹配索引字段的值来自驱动表，不是固定的常量) 等值匹配
+  * ref: 普通索引字段
+  * ref_or_null: 索引字段的条件使用了 or 或 in  空值null
+  * range: 索引字段上的范围条件查询数据
+  * index: 查找索引中的每一行数据
+  * All: 查找表中的每一行数据
+  * index_merge: 使用多个索引来查询数据
+* possible_keys : 可能会使用到的索引
+* key : 最终使用的索引
+* key_len : 索引的长度信息 （varchar、char = 长度 * 字符集长度 ， 如果是varchar会额外加2 ，如果字段可以为则再加1）
+* ref: 显示所以查找的值
+  * const 常量匹配
+  * 表.xx 使用驱动表的某个字段匹配
+  * func 使用某个函数计算结果匹配
+* rows : 预估扫描的行数
+* filtered : 结果行占扫描行的比例
+* extra : 其他额外信息
+  * Using index 使用了覆盖索引 (无需回表)
+  * Using temporary 使用临时表
+  * Using index for skip scan 查询条件没有传入索引的前缀字段，又用到了覆盖索引时
+  * Using index condition 使用索引下推
+  * Using filesort 使用文件排序
+  * Using join buffer (hash join) 使用hash join
+  * Using join buffer (Batched Key Access) 使用BKA join
+  * Using MRR 减少回表查询数据时随机 IO，对主键id进行排序回表
+
+
+
 ## 常见命令
 ```
 -- 整理表的碎片
@@ -170,3 +213,15 @@ OPTIMIZE TABLE table_name;
 -- 采集数据重新刷新
 ANALYZE TABLE;
 ```
+
+top 
+mpstat  -P ALL 3
+
+free -m
+cat /proc/meminfo
+ps aux | head -1; ps aux | sort -nr -k +6 | head
+vmstat 3
+
+iostat
+iotop
+
