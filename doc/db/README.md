@@ -162,9 +162,39 @@ Metadata(元数据修改不影响实际存储不会导致大DDL)
 * 即使你执行的 DDL 只需要修改元数据，在 DDL 执行开始和执行结束的时候，也是需要短暂地获取元数据锁的，如果数据库中有别的长事务提前获取了元数据锁，那么 DDL 就会被阻塞，而 DDL 被阻塞后，后续其他会话访问同一个表时，也会被阻塞。因此在 DDL 执行的过程中，需要注意观察数据库的整体状况，特别是要注意有没有会话在等待元数据锁。
 
 ## 执行计划
+执行流程
+  1. 根据sql文件进行解析，生成sql语法树
+  2. 优化器根据sql语法树，表和索引的结构跟统计信息，生成执行计划
+  3. sql执行引擎根据执行计划。按一定的步骤，调用存储引擎接口获取数据，执行表连接、排序等操作，
+  4. 生成结果集返回
+
+b+树
+  * 数据是由page组成 page大小为16k(由参数innodb_page_size设置)，同时innodb对每行长度有一定限制不可超过page的一半。
+  * b+树中root节点及中间节点只存放key值(主键id或索引key)，key值是有序page树排列的。
+  * 两个相邻叶子节点是通过链式连接（为了解决区间读取的数据）
+  * 主键索引叶子节点存放整行数据，二级索引叶子节点存放主键数据（目的是为了索引小可快速找到行数据，可通过二级索引快速找到主键，通过一级索引可以快速找到行数据）
+  * 索引
+    * 通过索引的有序性避免需要重新排序
+    * 使用覆盖索引避免回表，通过索引下推的提高server层条件判断
+    * 表连接时被驱动表最好是主键索引，其次是二级索引，避免全表匹配
+  * 索引失效的场景: 
+    1. 不满足最左匹配原则
+    2. 索引key值进行了函数运算
+    3. 索引key值被隐射转换(定义为string类型，条件值为int类型)
+    4. 使用了不支持的运算符(!= , or 等)
+
 ```
 -- 需要特别留意type，key，rows，filtered，extra 这几个字段
 explain [format=json] sql
+-- 在MySQL 8.0 及更高版本提供的功能。它不仅显示查询的执行计划，还实际执行查询并给出运行时的分析结果
+explian ANALYZE sql  
+
+-- 打开优化追踪
+SET optimizer_trace="enabled=on";
+-- 执行sql
+SELECT * FROM sql;
+-- 查看SQL执行优化
+SELECT * FROM information_schema.OPTIMIZER_TRACE;
 ```
 ### 返回字段及含义
 * select_type :
@@ -200,8 +230,13 @@ explain [format=json] sql
   * Using index for skip scan 查询条件没有传入索引的前缀字段，又用到了覆盖索引时
   * Using index condition 使用索引下推
   * Using filesort 使用文件排序
-  * Using join buffer (hash join) 使用hash join
-  * Using join buffer (Batched Key Access) 使用BKA join
+  * Using join buffer (xxxx) ———— 优化器一般会使用BNL，BKA，HASH
+    * Nested-Loop Join: (NLJ)性能最差，对每一行外表的记录都去表匹配查找  (低版本就有)
+    * Block Nested-Loop Join (BNL): Nested-Loop Join 的优化版本，它会把外表的数据块存储在内存中，并在内存中逐块处理内表的查找  (低版本就有)
+    * Index Nested-Loop Join (INLJ): 每当从外表中取得一行记录时，直接利用索引在内表中进行查找  (低版本就有)
+    * Batched Key Access (BKA): 对 INLJ 的进一步优化.收集一批键（即多条记录），直接利用索引在内表中进行查找 (低版本就有)
+    * Hash Join：以哈希表的形式存储，并根据哈希表快速匹配另一张表的数据   (8.0版本之后)
+    * Sort-Merge Join (SMJ) 通过排序两个结果集有序后合并  (8.0版本之后)
   * Using MRR 减少回表查询数据时随机 IO，对主键id进行排序回表
 
 
