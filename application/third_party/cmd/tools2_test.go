@@ -14,7 +14,7 @@ import (
 
 func TestOldMaterialExchangeAll(t *testing.T) {
 	for i := 1; i <= 66; i++ {
-		excelFile = fmt.Sprintf("/Users/linlong/Desktop/xxx/%d.xlsx", i)
+		excelFile = fmt.Sprintf("/Users/linlong/Desktop/xlsx/xxx/%d.xlsx", i)
 		t.Log(excelFile)
 		AAA(t, excelFile)
 	}
@@ -159,7 +159,7 @@ func AAA(t *testing.T, f string) {
 
 	t.Log(errList)
 	t.Log(r)
-	t.Log(db.Save(r).Error)
+	//t.Log(db.Save(r).Error)
 
 }
 
