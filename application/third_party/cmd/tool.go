@@ -257,6 +257,23 @@ func action() *cobra.Command {
 		Long:  "上线操作",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+
+			path := "./"
+			if len(args) >= 1 {
+				path = args[0]
+
+				// 使用 os.Stat 获取文件信息
+				info, err := os.Stat(path)
+				if err != nil {
+					fmt.Println("the path is error :", path)
+					return
+				}
+				if !info.IsDir() {
+					fmt.Println("the path is not dir :", path)
+					return
+				}
+			}
+
 			ctx := context.Background()
 			if err := client.NewTaskClient(
 				client.SetGit(gitClient),
@@ -264,6 +281,7 @@ func action() *cobra.Command {
 				client.SetOrm(ormClient),
 				client.SetRemoteShell(sshClient),
 				client.SetQyHook(hookClient, tels),
+				client.SetOutPath(path),
 			).Request(ctx); err != nil {
 				fmt.Println("error :", err)
 			}
@@ -286,6 +304,23 @@ func cron() *cobra.Command {
 
 			h := args[0]
 			m := args[1]
+
+			path := "./"
+			if len(args) >= 3 {
+				path = args[2]
+
+				// 使用 os.Stat 获取文件信息
+				info, err := os.Stat(path)
+				if err != nil {
+					fmt.Println("the path is error :", path)
+					return
+				}
+				if !info.IsDir() {
+					fmt.Println("the path is not dir :", path)
+					return
+				}
+			}
+
 			if _, err := strconv.Atoi(h); err != nil {
 				fmt.Println("hour cron is error :", err)
 				return
@@ -316,6 +351,7 @@ func cron() *cobra.Command {
 					client.SetOrm(ormClient),
 					client.SetRemoteShell(sshClient),
 					client.SetQyHook(hookClient, tels),
+					client.SetOutPath(path),
 				).Request(ctx)
 			})
 
