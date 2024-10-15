@@ -73,7 +73,6 @@ mysql重要的系统参数
   * innodb_log_buffer_size redo缓存大小
   * innodb_flush_log_at_trx_commit redo刷盘时机
 
-
 ## sql mode
 严格模式
 * ONLY_FULL_GROUP_BY : SELECT的字段要么也出现GROUP BY中，要么使用聚合函数
@@ -102,7 +101,6 @@ show variables like '%char%';
 * character_set_connection 连接字符集（当character_set_connection与character_set_client不一致，会转换为character_set_connection字符集）
 * character_set_results 返回客户端结果字符集
 * character_set_filesystem 文件名字符集
-
 
 ## 大表DDL
 ```
@@ -163,6 +161,93 @@ Metadata(元数据修改不影响实际存储不会导致大DDL)
 * 删除表时需要确定确实没有任何业务会访问这个表了再删除，优先建议先改表名后再删除
 * 即使你执行的 DDL 只需要修改元数据，在 DDL 执行开始和执行结束的时候，也是需要短暂地获取元数据锁的，如果数据库中有别的长事务提前获取了元数据锁，那么 DDL 就会被阻塞，而 DDL 被阻塞后，后续其他会话访问同一个表时，也会被阻塞。因此在 DDL 执行的过程中，需要注意观察数据库的整体状况，特别是要注意有没有会话在等待元数据锁。
 
+## 执行计划
+执行流程
+  1. 根据sql文件进行解析，生成sql语法树
+  2. 优化器根据sql语法树，表和索引的结构跟统计信息，生成执行计划
+  3. sql执行引擎根据执行计划。按一定的步骤，调用存储引擎接口获取数据，执行表连接、排序等操作，
+  4. 生成结果集返回
+
+b+树
+  * 数据是由page组成 page大小为16k(由参数innodb_page_size设置)，同时innodb对每行长度有一定限制不可超过page的一半。
+  * b+树中root节点及中间节点只存放key值(主键id或索引key)，key值是有序page树排列的。
+  * 两个相邻叶子节点是通过链式连接（为了解决区间读取的数据）
+  * 主键索引叶子节点存放整行数据，二级索引叶子节点存放主键数据（目的是为了索引小可快速找到行数据，可通过二级索引快速找到主键，通过一级索引可以快速找到行数据）
+  * 索引
+    * 通过索引的有序性避免需要重新排序
+    * 使用覆盖索引避免回表，通过索引下推的提高server层条件判断
+    * 表连接时被驱动表最好是主键索引，其次是二级索引，避免全表匹配
+  * 索引失效的场景: 
+    1. 不满足最左匹配原则
+    2. 索引key值进行了函数运算
+    3. 索引key值被隐射转换(定义为string类型，条件值为int类型)
+    4. 使用了不支持的运算符(!= , or 等)
+
+```
+-- 需要特别留意type，key，rows，filtered，extra 这几个字段
+explain [format=json] sql
+-- 在MySQL 8.0 及更高版本提供的功能。它不仅显示查询的执行计划，还实际执行查询并给出运行时的分析结果
+explian ANALYZE sql  
+
+-- 打开优化追踪
+SET optimizer_trace="enabled=on";
+-- 执行sql
+SELECT * FROM sql;
+-- 查看SQL执行优化
+SELECT * FROM information_schema.OPTIMIZER_TRACE;
+```
+### 返回字段及含义
+* select_type :
+  * SIMPLE 表示查询中没有使用任何复杂的子查询或联合(一般是这个)
+     * 优化器对子连接可能会进行半连接优化sql,需要满足一下条件
+       1. 子查询没有union
+       2. 子查询没有having
+       3. 子查询没有使用函数（avg，sum等）
+       4. 子查询不允许使用limit
+       5. 主查询与子查询没有使用STRAIGHT_JOIN（强制指定左表连接右表）
+       6. 主查询及子查询不超过表最大连接数量（61个）
+  * PRIMARY 表示主查询，即包含其他子查询的查询。(可能被优化器优化为SIMPLE)
+  * SUBQUERY 表示一个子查询。(可能被优化器优化为SIMPLE)
+  * DERIVED 表示派生表，通常是从子查询中生成的临时表。(可能被优化器优化为SIMPLE)
+  * UNION 表示联合查询的结果
+  * UNION RESULT 联合查询的最终结果集
+* table : 指定的表名或别名
+* partitions : 表分区
+* type :
+  * const: 唯一索引 等值匹配
+  * eq_ref: 唯一索引 (匹配索引字段的值来自驱动表，不是固定的常量) 等值匹配
+  * ref: 普通索引字段
+  * ref_or_null: 索引字段的条件使用了 or 或 in  空值null
+  * range: 索引字段上的范围条件查询数据
+  * index: 查找索引中的每一行数据
+  * All: 查找表中的每一行数据
+  * index_merge: 使用多个索引来查询数据
+* possible_keys : 可能会使用到的索引
+* key : 最终使用的索引
+* key_len : 索引的长度信息 （varchar、char = 长度 * 字符集长度 ， 如果是varchar会额外加2 ，如果字段可以为null则再加1）
+* ref: 显示所以查找的值
+  * const 常量匹配
+  * 表.xx 使用驱动表的某个字段匹配
+  * func 使用某个函数计算结果匹配
+* rows : 预估扫描的行数
+* filtered : 结果行占扫描行的比例
+* extra : 其他额外信息
+  * Using index 使用了覆盖索引 (无需回表)
+  * Using temporary 使用临时表
+  * Using index for skip scan 查询条件没有传入索引的前缀字段，又用到了覆盖索引时
+  * Using index condition 使用索引下推
+  * Using filesort 使用文件排序
+  * Using join buffer (xxxx) ———— 优化器一般会使用BNL/hash，BKA
+    * Nested-Loop Join: (NLJ)性能最差，对每一行外表的记录都去表匹配查找  (低版本就有)
+    * Block Nested-Loop Join (BNL): Nested-Loop Join 的优化版本，它会把外表的数据块存储在内存中，并在内存中逐块处理内表的查找  (低版本就有)
+    * Hash Join：以哈希表的形式存储，并根据哈希表快速匹配另一张表的数据   (8.0版本之后，用于替换BNL算法，hash从O(N)改为O(1))
+    * Index Nested-Loop Join (INLJ): 每当从外表中取得一行记录时，直接利用索引在内表中进行查找  (低版本就有)
+    * Batched Key Access (BKA): 对 INLJ 的进一步优化.收集一批键（即多条记录），内表中进行查找 (低版本就有)
+    * Sort-Merge Join (SMJ) 通过排序两个结果集有序后合并  (8.0版本之后)
+  * Using MRR 减少回表查询数据时随机 IO，对主键id进行排序回表
+
+
+
 ## 常见命令
 ```
 -- 整理表的碎片
@@ -170,3 +255,15 @@ OPTIMIZE TABLE table_name;
 -- 采集数据重新刷新
 ANALYZE TABLE;
 ```
+
+top 
+mpstat  -P ALL 3
+
+free -m
+cat /proc/meminfo
+ps aux | head -1; ps aux | sort -nr -k +6 | head
+vmstat 3
+
+iostat
+iotop
+
