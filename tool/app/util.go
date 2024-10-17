@@ -34,6 +34,7 @@ type Util struct {
 
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
 	db       *orm.Gorm
+	dbRead   *orm.Gorm
 	es       *es.ES
 	exporter opentelemetry.SpanExporter
 
@@ -101,6 +102,11 @@ func NewUtilConfig(config *Config) (*Util, error) {
 			return nil, err
 		}
 	}
+	if config.dbReadConfig != nil && len(config.dbReadConfig.Address) > 0 {
+		if util.dbRead, err = orm.NewGorm(config.dbReadConfig); err != nil {
+			return nil, err
+		}
+	}
 
 	//创建redis && locker
 	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
@@ -136,11 +142,20 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	return util, nil
 }
 
+// Db 读写库
 func (u *Util) Db(ctx context.Context) (*orm.Gorm, error) {
 	if u.db == nil {
 		return nil, errors.New("db is not initialized")
 	}
 	return &orm.Gorm{DB: u.db.DB.WithContext(ctx)}, nil
+}
+
+// DbReadOnly 只读库
+func (u *Util) DbReadOnly(ctx context.Context) (*orm.Gorm, error) {
+	if u.dbRead == nil {
+		return nil, errors.New("db read is not initialized")
+	}
+	return &orm.Gorm{DB: u.dbRead.DB.WithContext(ctx)}, nil
 }
 
 func (u *Util) Es() (*es.ES, error) {

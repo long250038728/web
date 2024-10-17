@@ -83,7 +83,7 @@ func (r *EtcdCenter) Watch(ctx context.Context, key string, callback func(change
 }
 
 func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string) error {
-	var defaultConfigs = []string{"db", "redis", "kafka", "es", "register", "tracing"}
+	var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
 	if len(yaml) == 0 {
 		yaml = defaultConfigs
 	}

@@ -210,6 +210,9 @@ func TestIndexInsert(t *testing.T) {
 		},
 	}
 
+	// BodyJson(body interface{})
+	//   当 body.type != string 时进行json序列化
+	//   统一使用[]bytes 进行处理
 	_, err := persistence.Index().Index(indexName).BodyJson(doc1).Do(context.Background())
 	if err != nil {
 		return
@@ -239,6 +242,9 @@ func TestIndexBulkInsert(t *testing.T) {
 		"num":    1,
 	}
 
+	// Doc(body interface{})
+	//   当 body.type != string 时进行json序列化
+	//   统一使用[]bytes 进行处理
 	bulk := persistence.Bulk()
 	bulk.Add(
 		elastic.NewBulkCreateRequest().Index(indexName).Doc(doc1), //type: create 如果存在则报错
@@ -260,6 +266,8 @@ func TestIndexBulkInsert(t *testing.T) {
 
 func TestUpdateDoc(t *testing.T) {
 	ctx := context.Background()
+
+	//persistence.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Script(elastic.NewScriptInline("")).Do(ctx)
 	do, err := persistence.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Doc(map[string]interface{}{"gender": "update"}).Do(ctx)
 	if err != nil {
 		t.Log(err)
@@ -417,15 +425,15 @@ func TestIndexSearchMerchantGoodsType(t *testing.T) {
 }
 
 func TestUpdateByQuery(t *testing.T) {
-	//Query := elastic.NewBoolQuery().Must(
-	//	elastic.NewTermsQuery("type", 1),
-	//	elastic.NewExistsQuery("hello"),
-	//)
+	Query := elastic.NewBoolQuery().Must(
+		elastic.NewTermsQuery("type", 1),
+		elastic.NewExistsQuery("hello"),
+	)
 
 	//对es进行添加script操作，新增一个字段值为field
 	do, err := persistence.UpdateByQuery().
 		Index(indexName).
-		//Query(Query).
+		Query(Query).
 		Script(elastic.NewScript("ctx._source.address = ctx._source.name")).
 		Do(context.Background())
 	if err != nil {

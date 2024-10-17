@@ -246,7 +246,19 @@ SELECT * FROM information_schema.OPTIMIZER_TRACE;
     * Sort-Merge Join (SMJ) 通过排序两个结果集有序后合并  (8.0版本之后)
   * Using MRR 减少回表查询数据时随机 IO，对主键id进行排序回表
 
+## binlog
+```
+-- 查看binlog 信息
+show master logs;
+show master status;
+show binlog events;
 
+-- 查看binlog_format的格式
+SHOW VARIABLES LIKE 'binlog_format';
+
+-- --verbose 查询binlog中执行内容
+mysqlbinlog --verbose  ./binlog.000011
+```
 
 ## 常见命令
 ```

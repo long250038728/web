@@ -31,6 +31,7 @@ type Config struct {
 	IP         string `json:"IP" yaml:"IP"`
 
 	dbConfig       *orm.Config
+	dbReadConfig   *orm.Config
 	esConfig       *es.Config
 	cacheConfig    *cache.Config
 	mqConfig       *mq.Config
@@ -39,7 +40,7 @@ type Config struct {
 }
 
 var configLoad = configurator.NewYaml()
-var defaultConfigs = []string{"db", "redis", "mq", "es", "register", "tracing"}
+var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
 
 // initConfig 获取config基本信息
 func initConfig(rootPath string, serviceName string) (config *Config, err error) {
@@ -79,8 +80,9 @@ func NewAppConfig(rootPath, serviceName string, configType int32, yaml ...string
 	//获取第三方中间件配置
 	configs := map[string]any{
 		"db":       &conf.dbConfig,
+		"db_read":  &conf.dbReadConfig,
 		"redis":    &conf.cacheConfig,
-		"kafka":    &conf.mqConfig,
+		"mq":       &conf.mqConfig,
 		"es":       &conf.esConfig,
 		"register": &conf.registerConfig,
 		"tracing":  &conf.tracingConfig,

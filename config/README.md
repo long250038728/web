@@ -12,9 +12,10 @@
 
 文件
 ```
-db.yaml           // 数据库                        
+db.yaml           // 数据库       
+db_read.yaml      // 数据库(只读)                    
 es.yaml           // ES     
-kafka.yaml        // 消息队列   
+mq.yaml           // 消息队列   
 redis.yaml        // 缓存     
 register.yaml     // 服务注册 
 tracing.yaml      // 链路    
