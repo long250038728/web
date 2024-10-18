@@ -21,7 +21,6 @@ func TestOldMaterialExchangeAll(t *testing.T) {
 }
 
 func AAA(t *testing.T, f string) {
-
 	goodsTypes, err := GetGoodsType(merchantId)
 	if err != nil {
 		t.Error(err)
@@ -159,7 +158,7 @@ func AAA(t *testing.T, f string) {
 
 	t.Log(errList)
 	t.Log(r)
-	//t.Log(db.Save(r).Error)
+	t.Log(db.Save(r).Error)
 
 }
 

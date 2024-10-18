@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-var merchantId int32 = 1585
-var exchangeId int32 = 4
+var merchantId int32 = 5652
+var exchangeId int32 = 69
 var excelFile = "/Users/linlong/Desktop/xlsx/bb.xlsx"
 
 var db *orm.Gorm

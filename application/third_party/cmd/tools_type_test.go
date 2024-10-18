@@ -128,6 +128,8 @@ type OldMaterialExchangeRecord struct {
 	GoldPriceFloatingType int32 `gorm:"column:gold_price_floating_type;type:int(11);" json:"gold_price_floating_type"`
 	// 旧料金价上下浮动值
 	GoldPriceFloatingValue string `gorm:"column:gold_price_floating_value;type:int(11);" json:"gold_price_floating_value"`
+	/* 品牌id */
+	BrandId int32 `gorm:"column:brand_id;type:int(11);" json:"brand_id"`
 }
 
 type OldMaterialExchangeRelation struct {

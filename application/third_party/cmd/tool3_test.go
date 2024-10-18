@@ -24,7 +24,9 @@ func TestRecord(t *testing.T) {
 	//})
 
 	var list []*OldMaterialExchangeRecord
-	if err := db.Find(&list).Error; err != nil {
+	if err := db.
+		//Where("merchant_id = ?", merchantId).
+		Find(&list).Error; err != nil {
 		t.Error(err)
 		return
 	}
