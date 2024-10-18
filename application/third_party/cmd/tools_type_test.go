@@ -117,6 +117,17 @@ type OldMaterialExchangeRecord struct {
 	DeleteTime int32 `gorm:"column:delete_time;type:int(11);" json:"delete_time"`
 	/* 状态 1-正常  2-删除 */
 	Status int32 `gorm:"column:status;type:int(11);" json:"status"`
+
+	// 旧料金价类型  1:设定具体金价   2:按金价类型
+	PriceType int32 `gorm:"column:price_type;type:int(11);" json:"price_type"`
+	// 旧料金价
+	Price string `gorm:"column:price;type:int(11);" json:"price"`
+	// 旧料金价名称
+	GoldPriceName string `gorm:"column:gold_price_name;type:int(11);" json:"gold_price_name"`
+	// 旧料金价浮动 1加 2减
+	GoldPriceFloatingType int32 `gorm:"column:gold_price_floating_type;type:int(11);" json:"gold_price_floating_type"`
+	// 旧料金价上下浮动值
+	GoldPriceFloatingValue string `gorm:"column:gold_price_floating_value;type:int(11);" json:"gold_price_floating_value"`
 }
 
 type OldMaterialExchangeRelation struct {
@@ -126,7 +137,7 @@ type OldMaterialExchangeRelation struct {
 	// 分类名称
 	GoodsTypeName string `protobuf:"bytes,3,opt,name=goods_type_name,json=goodsTypeName,proto3" json:"goods_type_name"`
 	// 计价方式
-	ChagreType int32 `protobuf:"varint,4,opt,name=chagre_type,json=chagreType,proto3" json:"chagre_type"`
+	ChargeType int32 `protobuf:"varint,4,opt,name=charge_type,json=chargeType,proto3" json:"charge_type"`
 	// 旧料金价
 	Price string `protobuf:"bytes,5,opt,name=price,proto3" json:"price"`
 	// 标价折扣
@@ -135,6 +146,17 @@ type OldMaterialExchangeRelation struct {
 	Number string `protobuf:"bytes,7,opt,name=number,proto3" json:"number"`
 	// 可兑换旧料
 	Relations []*OldMaterialExchangeRelationGoods `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations"`
+	// 新品数量
+	IsFreeLabour int32 `protobuf:"bytes,7,opt,name=is_free_labour,proto3" json:"is_free_labour"`
+
+	// 旧料金价类型  1:设定具体金价   2:按金价类型
+	PriceType int32 `gorm:"column:price_type;type:int(11);" json:"price_type"`
+	// 旧料金价名称
+	GoldPriceName string `gorm:"column:gold_price_name;type:int(11);" json:"gold_price_name"`
+	// 旧料金价浮动 1加 2减
+	GoldPriceFloatingType int32 `gorm:"column:gold_price_floating_type;type:int(11);" json:"gold_price_floating_type"`
+	// 旧料金价上下浮动值
+	GoldPriceFloatingValue string `gorm:"column:gold_price_floating_value;type:int(11);" json:"gold_price_floating_value"`
 }
 
 type OldMaterialExchangeRelationGoods struct {

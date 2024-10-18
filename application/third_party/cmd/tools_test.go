@@ -20,7 +20,7 @@ var db *orm.Gorm
 func init() {
 	var dbConfig orm.Config
 	var err error
-	configurator.NewYaml().MustLoadConfigPath("online/db.yaml", &dbConfig)
+	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
 	db, err = orm.NewGorm(&dbConfig)
 	if err != nil {
 		panic(err)
