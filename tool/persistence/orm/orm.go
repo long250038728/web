@@ -19,6 +19,8 @@ type Config struct {
 
 	User     string `json:"user" yaml:"user"`
 	Password string `json:"password" yaml:"password"`
+
+	ReadOnly bool `json:"read_only" yaml:"read_only"`
 }
 
 type Gorm struct {
@@ -53,6 +55,11 @@ func NewGorm(config *Config) (*Gorm, error) {
 	//回调
 	callback(db)
 
+	//设置只读
+	if config.ReadOnly == true {
+		ReadOnlySetting(db)
+	}
+
 	return &Gorm{db}, nil
 }
 
@@ -80,6 +87,22 @@ func callback(db *gorm.DB) {
 	_ = db.Callback().Query().After("gorm:query").Register("curr:after", afterCallBack)
 	_ = db.Callback().Delete().After("gorm:delete").Register("curr:after", afterCallBack)
 	_ = db.Callback().Update().After("gorm:update").Register("curr:after", afterCallBack)
+}
+
+// ReadOnlySetting 设置只读
+func ReadOnlySetting(db *gorm.DB) {
+	_ = db.Callback().Create().Before("gorm:create").Register("read_only_create", func(db *gorm.DB) {
+		_ = db.AddError(errors.New("read-only mode: create operation is not allowed"))
+	})
+	_ = db.Callback().Update().Before("gorm:update").Register("read_only_update", func(db *gorm.DB) {
+		_ = db.AddError(errors.New("read-only mode: update operation is not allowed"))
+	})
+	_ = db.Callback().Delete().Before("gorm:delete").Register("read_only_delete", func(db *gorm.DB) {
+		_ = db.AddError(errors.New("read-only mode: delete operation is not allowed"))
+	})
+	_ = db.Callback().Raw().Before("gorm:raw").Register("read_only_raw", func(db *gorm.DB) {
+		_ = db.AddError(errors.New("read-only mode: raw operation is not allowed"))
+	})
 }
 
 // beforeCallBack 开始回调

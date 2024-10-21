@@ -1,6 +1,7 @@
 package orm
 
 import (
+	"errors"
 	"github.com/long250038728/web/tool/configurator"
 	"gorm.io/gorm"
 	"testing"
@@ -164,4 +165,67 @@ func TestParser(t *testing.T) {
 	}
 	sql, err := db.Parser("/Users/linlong/Desktop/zhubaoe/russell/2024/sm0703/lzh.sql")
 	t.Log(sql, err)
+}
+
+func TestOnlyReadGorm(t *testing.T) {
+	dbConfig.ReadOnly = true
+	db, err := NewGorm(&dbConfig)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Run("create", func(t *testing.T) {
+		err := db.Create(&model).Error
+		if err == nil {
+			t.Error(errors.New("can create"))
+			return
+		}
+		t.Log("ok")
+	})
+
+	t.Run("update", func(t *testing.T) {
+		err := db.Table("zby_user").Where("id = ?", 649650).Update("name", "荔枝").Error
+		if err == nil {
+			t.Error(errors.New("can update"))
+			return
+		}
+		t.Log("ok")
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		err := db.Where("id = ?", 649650).Delete(&model).Error
+		if err == nil {
+			t.Error(errors.New("can delete"))
+			return
+		}
+		t.Log("ok")
+	})
+
+	t.Run("update_exec", func(t *testing.T) {
+		err := db.Exec("UPDATE zby_user SET name = ? WHERE id IN ?", "荔枝", []int64{649650}).Error
+		if err == nil {
+			t.Error(errors.New("can update_exec"))
+			return
+		}
+		t.Log("ok")
+	})
+
+	t.Run("select", func(t *testing.T) {
+		err := db.Where("id = ?", 649650).Order("update_time desc").Limit(1).Find(&model).Error
+		if err != nil {
+			t.Error(errors.New("not can select"))
+			return
+		}
+		t.Log("ok")
+	})
+
+	t.Run("raw_select", func(t *testing.T) {
+		err := db.Raw("SELECT * FROM zby_user WHERE id = ?", 649650).Scan(&model).Error //原生sql查询用scan
+		if err != nil {
+			t.Error(errors.New("can raw_select"))
+			return
+		}
+		t.Log("ok")
+	})
 }

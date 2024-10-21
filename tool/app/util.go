@@ -103,6 +103,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 		}
 	}
 	if config.dbReadConfig != nil && len(config.dbReadConfig.Address) > 0 {
+		config.dbReadConfig.ReadOnly = true
 		if util.dbRead, err = orm.NewGorm(config.dbReadConfig); err != nil {
 			return nil, err
 		}
