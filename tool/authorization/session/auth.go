@@ -3,10 +3,11 @@ package session
 import (
 	"context"
 	"errors"
-	"github.com/golang-jwt/jwt"
-	"github.com/long250038728/web/tool/authorization"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/long250038728/web/tool/authorization"
 )
 
 type Opt func(r *CacheAuth)

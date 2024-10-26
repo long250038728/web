@@ -180,11 +180,10 @@ b+树
     * 当explain时出现merge_index时代表使用了多个索引查询数据后进行合并，应该优化索引
   * 索引失效/性能差的场景: 
     1. 不满足最左匹配原则
-    2. 索引key值进行了函数运算
+    2. 索引key值进行了函数运算或公式计算
     3. 索引key值被隐射转换(定义为string类型，条件值为int，或连表时表字符集类型不一致(建议都用utf8mb4))
-       * 
        * 索引值由于sting转int后，索引排序是不一致可能会破坏索引的有序性。（"109"跟"11"字符串比较会觉得"11"较大）
-    4. 普通索引(唯一索引除外)使用了不支持的运算符(!= , or 等)
+    4. 普通索引(唯一索引除外)使用了不支持的运算符(like前通配符 , != , or 等)
     5. mysql8.0之前不支持exists子查询无法进行半连接优化(性能差)
     6. in条件值过多时会导致全表扫描（消耗的内存太多超出了限制，因此放弃使用range执行计划最终使用了全表扫描）
        * 当使用多个in时如a in (1,2) ,b in (4,5) 优化器会改为 (a=1 and b=4) or (a=1 and b=5) or (a=2 and b=4) or (a=2 and b=5)
@@ -240,7 +239,10 @@ SELECT * FROM information_schema.OPTIMIZER_TRACE;
 * extra : 其他额外信息
   * Using index 使用了覆盖索引 (无需回表)
   * Using temporary 使用临时表
-  * Using index for skip scan 查询条件没有传入索引的前缀字段，又用到了覆盖索引时
+  * Using index for skip scan 查询条件没有传入索引的前缀字段，又用到了覆盖索引时(8.0.13版本开始支持)
+    * select中选择的字段不能包含非索引字段。
+    * SQL 语句不能包含group by或distinct语法。
+    * 只支持单表查询，不能用于多表联接
   * Using index condition 使用索引下推
   * Using filesort 使用文件排序
   * Using join buffer (xxxx) ———— 优化器一般会使用BNL/hash，BKA
