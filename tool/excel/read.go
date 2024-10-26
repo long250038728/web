@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/xuri/excelize/v2"
 	"strconv"
+	"strings"
 )
 
 // Read excel工具
@@ -48,6 +49,9 @@ func (r *Read) matchHeader(cols []string, headers []Header) []Header {
 	//根据表格中每个col值 ，对传入的header进行排序
 	var cellHeader = make([]Header, 0, len(cols))
 	for _, headerName := range cols {
+		//对headerName字符替换空格
+		var headerName = strings.ReplaceAll(headerName, " ", "")
+
 		h, ok := headHash[headerName]
 		if ok {
 			cellHeader = append(cellHeader, h)

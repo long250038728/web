@@ -14,7 +14,7 @@ import (
 
 func TestOldMaterialExchangeAll(t *testing.T) {
 	for i := 1; i <= 66; i++ {
-		excelFile = fmt.Sprintf("/Users/linlong/Desktop/xlsx/xxx/%d.xlsx", i)
+		excelFile = fmt.Sprintf("/Users/linlong/Desktop/wby/%d.xlsx", i)
 		t.Log(excelFile)
 		AAA(t, excelFile)
 	}
@@ -67,9 +67,12 @@ func AAA(t *testing.T, f string) {
 	if excelData.ChargeTypeName == "按件" {
 		excelData.ChargeType = 2
 	}
-	if excelData.IsOriginalName == "外厂" {
-		excelData.IsOriginal = 2
+	if excelData.ChargeTypeName == "件" {
+		excelData.ChargeType = 2
 	}
+	//if excelData.IsOriginalName == "外厂" {
+	//	excelData.IsOriginal = 2
+	//}
 	if excelData.GoldWeightLimitName != "换大" {
 		excelData.GoldWeightLimit = 2
 	}
@@ -85,12 +88,12 @@ func AAA(t *testing.T, f string) {
 
 	r.MerchantId = merchantId
 	r.MaterialExchangeId = exchangeId
+	r.BrandId = brandId
 	r.CreateTime = int32(time.Now().Local().Unix())
 	r.UpdateTime = r.CreateTime
 	r.Status = 1
-
-	if r.Number == "EQJY" {
-		r.Number = "EQJM"
+	if r.FreeLabourCycle == "" {
+		r.FreeLabourCycle = "0"
 	}
 
 	settingInfo, ok := Setting[r.Number]
@@ -98,6 +101,7 @@ func AAA(t *testing.T, f string) {
 		r.MaterialSettingId = settingInfo.Id
 		r.GoodsTypeId = settingInfo.GoodsTypeId
 		r.GoodsTypeName = settingInfo.GoodsTypeName
+		r.IsOriginal = settingInfo.IsOriginal
 	} else {
 		r.MaterialSettingId = 99999
 		r.GoodsTypeId = 99999
@@ -110,10 +114,37 @@ func AAA(t *testing.T, f string) {
 	var numId int32 = 1
 	newExcelData := sliceconv.Change(record, func(t *OldMaterialExchangeRelationExcel) *OldMaterialExchangeRelationExcel {
 
-		if t.GoodsTypeName == "黄金（精品)" {
-			t.GoodsTypeName = "黄金（精品）"
+		//// 新品数量
+		//IsFreeLabour int32 `protobuf:"bytes,7,opt,name=is_free_labour,proto3" json:"is_free_labour"`
+		//
+		//// 旧料金价类型  1:设定具体金价   2:按金价类型
+		//PriceType int32 `gorm:"column:price_type;type:int(11);" json:"price_type"`
+		//// 旧料金价名称
+		//GoldPriceName string `gorm:"column:gold_price_name;type:int(11);" json:"gold_price_name"`
+		//// 旧料金价浮动 1加 2减
+		//GoldPriceFloatingType int32 `gorm:"column:gold_price_floating_type;type:int(11);" json:"gold_price_floating_type"`
+		//// 旧料金价上下浮动值
+		//GoldPriceFloatingValue string `gorm:"column:gold_price_floating_value;type:int(11);" json:"gold_price_floating_value"`
+
+		//if t.GoodsTypeName == "黄金（精品)" {
+		//	t.GoodsTypeName = "黄金（精品）"
+		//}
+
+		if t.GoodsTypeName == "硬金路路通" {
+			t.GoodsTypeName = "硬金件路路通"
 		}
+		if t.GoodsTypeName == "14K金" {
+			t.GoodsTypeName = "14K"
+		}
+
 		GoodsTypeId, ok := Types[t.GoodsTypeName]
+		t.PriceType = 1
+		t.GoldPriceFloatingType = 1
+
+		t.IsFreeLabour = 0
+		if t.IsFreeLabourName == "是" {
+			t.IsFreeLabour = 1
+		}
 
 		if !ok {
 			panic(fmt.Sprintf("GoodsTypeName %s不存在", t.GoodsTypeName))
@@ -132,8 +163,17 @@ func AAA(t *testing.T, f string) {
 			return t
 		}
 
+		t.RelationsName = strings.ReplaceAll(t.RelationsName, "，", ",")
 		relation := strings.Split(t.RelationsName, ",")
 		for _, ra := range relation {
+			if ra == "外足金" {
+				ra = "外足旧金"
+			}
+
+			if ra == "本足金" {
+				ra = "本足旧金"
+			}
+
 			if ra == "免损外足金" {
 				ra = "免损外足旧金"
 			}
@@ -158,7 +198,7 @@ func AAA(t *testing.T, f string) {
 
 	t.Log(errList)
 	t.Log(r)
-	t.Log(db.Save(r).Error)
+	//t.Log(db.Save(r).Error)
 
 }
 
@@ -167,15 +207,15 @@ func GetOldMaterialExchangeExcel(f string) (record *OldMaterialExchangeRecordExc
 	var excelHeader = []excel.Header{
 		{Key: "number", Name: "旧料编码", Type: "string"},
 		{Key: "name", Name: "旧料名称", Type: "string"},
-		{Key: "charge_type_name", Name: "计价方式", Type: "string"},       //charge_type_name
-		{Key: "gold_weight_limit_name", Name: "是否换大", Type: "string"}, //gold_weight_limit_name
-		{Key: "is_original_name", Name: "是否本厂", Type: "string"},       //is_original_name
+		{Key: "charge_type_name", Name: "核算单位", Type: "string"},     //charge_type_name
+		{Key: "gold_weight_limit_name", Name: "类型", Type: "string"}, //gold_weight_limit_name
+		{Key: "is_original_name", Name: "是否本厂", Type: "string"},     //is_original_name
 		{Key: "pay_amount_percent", Name: "实收比例", Type: "string"},
 		{Key: "gold_weight_percent", Name: "克重比", Type: "string"},
 		{Key: "labour_percent", Name: "工费系数", Type: "string"},
 		{Key: "labour_amount", Name: "克工费", Type: "string"},
 		{Key: "free_labour_cycle", Name: "免费工费年限", Type: "string"},
-		{Key: "old_num", Name: "旧料数量", Type: "string"},
+		{Key: "old_num", Name: "旧品数量", Type: "string"},
 	}
 	r := excel.NewRead(f)
 	defer r.Close()
@@ -192,6 +232,7 @@ func GetOldMaterialExchangeExcel(f string) (record *OldMaterialExchangeRecordExc
 		{Key: "label_discount", Name: "标价折扣", Type: "string"},
 		{Key: "number", Name: "新品数量", Type: "string"},
 		{Key: "relations_name", Name: "可兑换旧料", Type: "string"},
+		{Key: "is_free_labour_name", Name: "工费免一次", Type: "string"},
 	}
 	err = r.Read("Sheet2", excelHeader, &exchangeGoods)
 	return recordList[0], exchangeGoods, err
@@ -277,4 +318,18 @@ type OldMaterialExchangeRelationExcel struct {
 
 	//可兑换旧料
 	RelationsName string `protobuf:"bytes,8,rep,name=relations,proto3" json:"relations_name"`
+
+	// 新品数量
+	IsFreeLabour int32 `protobuf:"bytes,7,opt,name=is_free_labour,proto3" json:"is_free_labour"`
+
+	IsFreeLabourName string `protobuf:"bytes,7,opt,name=is_free_labour_name,proto3" json:"is_free_labour_name"`
+
+	// 旧料金价类型  1:设定具体金价   2:按金价类型
+	PriceType int32 `gorm:"column:price_type;type:int(11);" json:"price_type"`
+	// 旧料金价名称
+	GoldPriceName string `gorm:"column:gold_price_name;type:int(11);" json:"gold_price_name"`
+	// 旧料金价浮动 1加 2减
+	GoldPriceFloatingType int32 `gorm:"column:gold_price_floating_type;type:int(11);" json:"gold_price_floating_type"`
+	// 旧料金价上下浮动值
+	GoldPriceFloatingValue string `gorm:"column:gold_price_floating_value;type:int(11);" json:"gold_price_floating_value"`
 }
