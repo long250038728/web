@@ -287,3 +287,17 @@ vmstat 3
 iostat
 iotop
 
+
+```
+录制: 第11单元《分表》
+录制文件：https://meeting.tencent.com/crm/KWEQYJ7N02
+
+录制: 第12单元《水平分库和分布式数据库》
+录制文件：https://meeting.tencent.com/crm/l7XqeODK0e
+
+录制: 第 13 单元《锁和死锁》
+录制文件：https://meeting.tencent.com/crm/KWw18Z6K54
+
+录制: 第二单元《讲透join》0813
+录制文件：https://meeting.tencent.com/crm/23WbYgm2de
+```
