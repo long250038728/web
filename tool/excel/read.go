@@ -34,6 +34,7 @@ func (r *Read) Read(sheet string, headers []Header, data interface{}) error {
 		return errors.New("row num error")
 	}
 
+	// r.matchHeader(rows[0], headers) 根据第一行的数据，判断每一列的对应的head对象
 	return r.marshal(r.matchHeader(rows[0], headers), rows[1:], data)
 }
 
@@ -66,7 +67,7 @@ func (r *Read) marshal(headers []Header, rows [][]string, data interface{}) erro
 		item := make(map[string]interface{})
 		for colIndex, col := range row {
 			switch headers[colIndex].Type {
-			case "string", "list":
+			case "string":
 				// str类型
 				item[headers[colIndex].Key] = col
 			case "int":

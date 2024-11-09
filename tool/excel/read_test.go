@@ -2,6 +2,7 @@ package excel
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"testing"
@@ -50,12 +51,12 @@ func TestBonusCustomerReadExcel(t *testing.T) {
 		d.BonusStr = fmt.Sprintf("%.2f", d.Bonus)
 		b2.Write([]byte(fmt.Sprintf("'%s',\n", d.Telephone)))
 	}
-	err = os.WriteFile("/Users/linlong/Desktop/bonus.md", []byte(b.String()), 0777)
+	err = os.WriteFile("/Users/linlong/Desktop/bonus.md", []byte(b.String()), fs.ModePerm)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	err = os.WriteFile("/Users/linlong/Desktop/tel.md", []byte(b2.String()), 0777)
+	err = os.WriteFile("/Users/linlong/Desktop/tel.md", []byte(b2.String()), fs.ModePerm)
 	if err != nil {
 		t.Error(err)
 		return

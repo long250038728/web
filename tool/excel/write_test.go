@@ -6,12 +6,12 @@ import (
 )
 
 var headers = []Header{
-	{Key: "num", Name: "序号", Type: "int"},
-	{Key: "first_name", Name: "姓", Type: "string"},
-	{Key: "other_name", Name: "名", Type: "string"},
-	{Key: "sex", Name: "性别", Type: "string"},
-	{Key: "tel", Name: "手机号", Type: "string"},
-	{Key: "type_name", Name: "类别", Type: "string", List: []string{"苹果", "香蕉", "梨"}},
+	{Key: "num", Name: "序号"},
+	{Key: "first_name", Name: "姓"},
+	{Key: "other_name", Name: "名"},
+	{Key: "sex", Name: "性别"},
+	{Key: "tel", Name: "手机号"},
+	{Key: "type_name", Name: "类别", List: []string{"苹果", "香蕉", "梨"}},
 }
 
 type ExcelData struct {
