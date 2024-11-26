@@ -3,7 +3,7 @@ module github.com/long250038728/web
 go 1.22
 
 require (
-	github.com/apache/rocketmq-clients/golang v0.0.0-20230321063829-41bfbcf6130d
+	github.com/apache/rocketmq-clients/golang/v5 v5.1.1-rc1
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-gonic/gin v1.9.1
