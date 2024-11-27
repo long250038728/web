@@ -1,9 +1,12 @@
-server-user:
-  http_port: 8001
-  grpc_port: 9001
-server-order:
-  http_port: 8002
-  grpc_port: 9002
-server-authorization:
-  http_port: 8003
-  grpc_port: 9003
+ip: ""
+env: "local"
+servers:
+  server-user:
+    http_port: 8001
+    grpc_port: 9001
+  server-order:
+    http_port: 8002
+    grpc_port: 9002
+  server-authorization:
+    http_port: 8003
+    grpc_port: 9003

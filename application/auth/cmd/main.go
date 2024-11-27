@@ -18,34 +18,37 @@ import (
 func main() {
 	path := flag.String("path", "", "root path")
 	flag.Parse()
-	app.InitPathInfo(*path, protoc.AuthService)
 
-	fmt.Println(Run())
+	app.InitPathInfo(*path)
+	fmt.Println(Run(protoc.AuthService))
 }
 
-func Run() error {
+func Run(serverName string) error {
 	util := app.NewUtil()
+	port, ok := util.Port(serverName)
+	if !ok {
+		return fmt.Errorf("server %s is not bind port", serverName)
+	}
 
 	// 定义服务
 	userService := service.NewService(
 		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
 	)
-
 	opts := []app.Option{
 		app.Servers( // 服务
-			http.NewHttp(util.Info.ServerName, util.Info.IP, util.Info.HttpPort, func(engine *gin.Engine) {
+			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
 				router.RegisterHTTPServer(engine, userService)
 			}),
-			rpc.NewGrpc(util.Info.ServerName, util.Info.IP, util.Info.GrpcPort, func(engine *grpc.Server) {
+			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
 				router.RegisterGRPCServer(engine, userService)
 			}),
 		),
 	}
-	//if register, err := util.Register(); err == nil {
-	//	opts = append(opts, app.Register(register)) //服务注册 && 发现
-	//}
+	if register, err := util.Register(); err == nil {
+		opts = append(opts, app.Register(register)) //服务注册 && 发现
+	}
 	if exporter, err := util.Exporter(); err == nil {
-		opts = append(opts, app.Tracing(exporter, util.Info.ServerName)) //服务注册 && 发现
+		opts = append(opts, app.Tracing(exporter, serverName)) //服务注册 && 发现
 	}
 
 	//启动服务

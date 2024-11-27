@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 	"google.golang.org/grpc"
@@ -17,7 +18,6 @@ import (
 // Client 客户端
 type Client struct {
 	serverName   string
-	register     register.Register
 	svcInstances []*register.ServiceInstance
 	balancer     tool.Balancer
 	once         sync.Once
@@ -34,18 +34,10 @@ var clientParameters = keepalive.ClientParameters{
 // ClientOpt grpc客户端opt
 type ClientOpt func(client *Client)
 
-// LocalIP 指定IP及Port
-func LocalIP(address string, port int) ClientOpt {
+// Balancer 设置负载均衡
+func Balancer(balancer tool.Balancer) ClientOpt {
 	return func(client *Client) {
-		client.svcInstances = []*register.ServiceInstance{{Address: address, Port: port}}
-	}
-}
-
-// Register 指定注册中心
-func Register(serverName string, register register.Register) ClientOpt {
-	return func(client *Client) {
-		client.serverName = serverName
-		client.register = register
+		client.balancer = balancer
 	}
 }
 
@@ -62,25 +54,47 @@ func NewClient(opts ...ClientOpt) *Client {
 	return c
 }
 
-func (c *Client) Dial(ctx context.Context) (*grpc.ClientConn, error) {
+func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.ClientConn, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("grpc client dial err: %v", r)
+		}
+	}()
+
 	c.once.Do(func() {
 		resolver.Register(&MyResolversBuild{})
 	})
 
-	//服务注册与发现
-	target := fmt.Sprintf("%s:///%s", Scheme, c.serverName)
+	//获取target 信息
+	c.serverName = serverName
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithKeepaliveParams(clientParameters),
+	}
 
-	//指定服务实例
-	if len(c.svcInstances) > 0 {
-		svcInstance := c.balancer.Balancer(c.svcInstances)
-		target = fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port)
+	util := app.NewUtil()
+	target := ""
+
+	if util.Info.Env == app.EnvLocal {
+		//获取本地ip
+		port, ok := util.Info.Servers[c.serverName]
+		if !ok {
+			return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
+		}
+		target = fmt.Sprintf("%s:%d", util.Info.IP, port.GrpcPort)
+	} else {
+		//服务注册与发现
+		r, err := util.Register()
+		if err != nil {
+			return nil, fmt.Errorf("grpc client dial register is err : %w", err)
+		}
+		target = fmt.Sprintf("%s:///%s", Scheme, c.serverName)
+		opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: r})) //服务发现
 	}
 
 	//创建socket 连接
 	return grpc.NewClient(target,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithKeepaliveParams(clientParameters),
-		grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: c.register}), //服务发现
+		opts...,
 	)
 }
 

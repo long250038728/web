@@ -9,7 +9,7 @@ import (
 )
 
 func TestOrderDomain_OrderDetail(t *testing.T) {
-	app.InitPathInfo("/Users/linlong/Desktop/web/config", "server-order")
+	app.InitPathInfo("")
 	d := NewDomain(repository.NewRepository(app.NewUtil()))
 	resp, err := d.OrderDetail(context.Background(), &order.OrderDetailRequest{Id: 11111})
 	t.Log(resp, err)

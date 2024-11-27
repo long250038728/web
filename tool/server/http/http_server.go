@@ -9,6 +9,7 @@ import (
 	"github.com/long250038728/web/tool/server"
 	"net/http"
 	_ "net/http/pprof"
+	"strings"
 )
 
 var _ server.Server = &Server{}
@@ -26,8 +27,6 @@ type Server struct {
 // NewHttp  构造函数
 func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	handler := gin.Default()
-	pprof.Register(handler, "dev/pprof")
-
 	svc := &Server{
 		server:      &http.Server{Addr: fmt.Sprintf("%s:%d", address, port), Handler: handler},
 		handler:     handler,
@@ -35,7 +34,9 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		port:        port,
 		svcInstance: register.NewServiceInstance(serverName, address, port, register.InstanceTypeHttp),
 	}
+	fmt.Printf("%s : %s:%d\n", svc.svcInstance.Name, svc.svcInstance.Address, svc.svcInstance.Port)
 
+	pprof.Register(handler, fmt.Sprintf("/%s/debug/pprof", strings.ReplaceAll(serverName, "server-", "")))
 	handler.Use(func(c *gin.Context) {
 		// 设置跨域相关的头部信息
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -49,7 +50,6 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 
 		c.Next()
 	})
-	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
 
 	//health check
 	handler.GET("/health", func(gin *gin.Context) {

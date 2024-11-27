@@ -6,7 +6,6 @@ import (
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/protoc/user"
-	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/rpc"
 )
 
@@ -21,14 +20,8 @@ func NewDomain(repository *repository.Repository) *Domain {
 }
 
 func (d *Domain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
-	register, err := app.NewUtil().Register()
-	if err != nil {
-		return nil, err
-	}
-
 	// 创建consul客户端
-	//conn, err := rpc.NewClient(rpc.LocalIP("172.40.0.3", 9001)).Dial(ctx)
-	conn, err := rpc.NewClient(rpc.Register(protoc.UserService, register)).Dial(ctx)
+	conn, err := rpc.NewClient().Dial(ctx, protoc.UserService)
 	if err != nil {
 		return nil, err
 	}

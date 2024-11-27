@@ -13,7 +13,6 @@ import (
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"golang.org/x/sync/singleflight"
-	"os"
 	"sync"
 	"time"
 )
@@ -25,7 +24,6 @@ var once sync.Once
 var u *Util
 
 var path = ""
-var name = ""
 var configType int32 = ConfigPath
 
 type Util struct {
@@ -44,33 +42,24 @@ type Util struct {
 	register register.Register
 }
 
-func InitPathInfo(configPath, serviceName string) {
+func InitPathInfo(configPath string) {
 	path = configPath
-	name = serviceName
 	configType = ConfigPath
 }
 
-func InitCenterInfo(configPath, serviceName string) {
+func InitCenterInfo(configPath string) {
 	path = configPath
-	name = serviceName
 	configType = ConfigCenter
 }
 
 func NewUtil() *Util {
 	once.Do(func() {
-		if len(name) == 0 {
-			name = os.Getenv("SERVICE_NAME")
-		}
-		if len(name) == 0 {
-			panic("serviceName is null")
-		}
-
 		root, err := paths.RootConfigPath(path)
 		if err != nil {
 			panic(err)
 		}
 
-		util, err := NewUtilPath(root, name, configType)
+		util, err := NewUtilPath(root, configType)
 		if err != nil {
 			panic("util init error" + err.Error())
 		}
@@ -80,8 +69,8 @@ func NewUtil() *Util {
 }
 
 // NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root, serviceName string, configType int32, yaml ...string) (*Util, error) {
-	conf, err := NewAppConfig(root, serviceName, configType, yaml...)
+func NewUtilPath(root string, configType int32, yaml ...string) (*Util, error) {
+	conf, err := NewAppConfig(root, configType, yaml...)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +116,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	}
 
 	//创建consul客户端
-	if config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
+	if config.Env != EnvLocal && config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
 		if util.register, err = consul.NewConsulRegister(config.registerConfig); err != nil {
 			return nil, err
 		}
@@ -199,4 +188,9 @@ func (u *Util) Exporter() (opentelemetry.SpanExporter, error) {
 		return nil, errors.New("exporter is not initialized")
 	}
 	return u.exporter, nil
+}
+
+func (u *Util) Port(svcName string) (Port, bool) {
+	port, ok := u.Info.Servers[svcName]
+	return port, ok
 }

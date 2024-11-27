@@ -25,6 +25,10 @@ func NewConsulRegister(conf *Config) (*Register, error) {
 	config.Address = conf.Address
 	config.HttpClient = http.NewCustomHttpClient()
 	client, err := api.NewClient(config)
+
+	status := client.Status()
+	fmt.Println(status)
+
 	if err != nil {
 		return nil, err
 	}

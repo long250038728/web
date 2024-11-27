@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"github.com/long250038728/web/application/auth/internal/repository"
-	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization/session"
@@ -16,7 +15,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	app.InitPathInfo(root, protoc.UserService)
+	app.InitPathInfo(root)
 }
 
 func authCtx() context.Context {

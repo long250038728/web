@@ -39,20 +39,17 @@ type Server struct {
 // NewGrpc  构造函数
 func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	opts := []grpc.ServerOption{
-		//grpc.ChainUnaryInterceptor(opentracing.Interceptor(), prometheus.Interceptor()), //中间件
-		grpc.ChainUnaryInterceptor(serverInterceptor()),
+		grpc.ChainUnaryInterceptor(serverAuthInterceptor(), serverTelemetryInterceptor()),
 		grpc.KeepaliveEnforcementPolicy(enforcementPolicy), //保持Keepalive
 		grpc.KeepaliveParams(serverParameters),             //保持Keepalive
 	}
-
 	svc := &Server{
 		server:      grpc.NewServer(opts...),
 		address:     address,
 		port:        port,
 		svcInstance: register.NewServiceInstance(serverName, address, port, register.InstanceTypeGRPC),
 	}
-
-	fmt.Printf("service %s: %s:%d\n", svc.svcInstance.Type, svc.svcInstance.Address, svc.svcInstance.Port)
+	fmt.Printf("%s : %s:%d\n", svc.svcInstance.Name, svc.svcInstance.Address, svc.svcInstance.Port)
 	handlerFunc(svc.server)
 	return svc
 }
