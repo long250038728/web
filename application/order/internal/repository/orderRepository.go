@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/authorization/session"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/server/http"
 )
 
@@ -26,10 +26,10 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 		return "", err
 	}
 
-	if claims, err := session.GetClaims(ctx); err == nil {
+	if claims, err := authorization.GetClaims(ctx); err == nil {
 		fmt.Println(claims.Name)
 	}
-	if sess, err := session.GetSession(ctx); err == nil {
+	if sess, err := authorization.GetSession(ctx); err == nil {
 		fmt.Println(sess.AuthList)
 	}
 

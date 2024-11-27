@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/tool/authorization/session"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
@@ -19,7 +19,7 @@ type Middleware struct {
 	ginContext *gin.Context
 	span       *opentelemetry.Span
 
-	auth    session.Auth
+	auth    authorization.Auth
 	limiter limiter.Limiter
 }
 

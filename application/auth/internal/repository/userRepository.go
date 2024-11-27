@@ -7,8 +7,8 @@ import (
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/sliceconv"
+	"time"
 )
 
 type Repository struct {
@@ -35,11 +35,8 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rp
 		return nil, err
 	}
 
-	refreshCla := session.RefreshClaims{}
-	if err = session.NewAuth(cache).Refresh(ctx, refreshToken, refreshCla); err != nil {
-		return nil, err
-	}
-	if err := refreshCla.Valid(); err != nil {
+	refreshCla := &authorization.RefreshClaims{}
+	if err = authorization.NewAuth(cache).Refresh(ctx, refreshToken, refreshCla); err != nil {
 		return nil, err
 	}
 
@@ -52,11 +49,16 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rp
 		return nil, err
 	}
 	resp, err := r.getUserResponse(ctx, userInfo) //生成新的accessToken及refreshToken
+
+	//如果refreshToken的有效期大于24小时，则返回之前refreshToken，否则返回新的refreshToken
+	if refreshCla.ExpiresAt-time.Now().Local().Unix() >= 60*60*24 {
+		resp.RefreshToken = refreshToken
+	}
 	return resp, err
 }
 
 func (r *Repository) Logout(ctx context.Context) error {
-	claims, err := session.GetClaims(ctx)
+	claims, err := authorization.GetClaims(ctx)
 	if err == nil {
 		return err
 	}
@@ -64,7 +66,7 @@ func (r *Repository) Logout(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	sessionClient := session.NewAuth(cache)
+	sessionClient := authorization.NewAuth(cache)
 	return sessionClient.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
 }
 
@@ -142,10 +144,10 @@ func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) 
 	permissionsPath := sliceconv.Extract(permissions, func(item *model.Permission) string { return item.Path })
 
 	//基本参数
-	claims := &session.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
-	sess := &session.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
+	claims := &authorization.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
+	sess := &authorization.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
 
-	sessionClient := session.NewAuth(cache)
+	sessionClient := authorization.NewAuth(cache)
 	if err = sessionClient.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
 		return nil, err
 	}

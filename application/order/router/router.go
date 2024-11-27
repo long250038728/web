@@ -7,7 +7,6 @@ import (
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/authorization/session"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/server/http/tool"
 	"google.golang.org/grpc"
@@ -30,9 +29,9 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
 			),
 		))
 		opts = append(opts, tool.Auth( //设置权限（权限信息可从数据库获取文件获取）
-			session.NewAuth(
+			authorization.NewAuth(
 				cache,
-				session.WhiteList(authorization.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
+				authorization.WhiteList(authorization.NewLocalWhite([]string{"/", "/user/", "/user/hello", "/user/hello2", "/user/hello3"}, []string{})),
 			),
 		))
 	}

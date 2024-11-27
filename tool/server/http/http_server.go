@@ -41,7 +41,7 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 		// 设置跨域相关的头部信息
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Serialization, Authorization")
 		// 如果是预检请求（OPTIONS 方法），则直接返回成功响应
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatusJSON(http.StatusNoContent, gin.H{}) // 204 No Content

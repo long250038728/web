@@ -1,21 +1,24 @@
-package session
+package authorization
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/long250038728/web/tool/authorization"
 )
 
 type Opt func(r *CacheAuth)
 
 type CacheAuth struct {
-	authorization.Token
+	Serialization
 	Session
-	white authorization.White
+	white White
+
+	accessExpires  time.Duration
+	refreshExpires time.Duration
 }
 
 func SecretKey(secretKey []byte) Opt {
@@ -24,21 +27,36 @@ func SecretKey(secretKey []byte) Opt {
 	}
 }
 
-func WhiteList(white authorization.White) Opt {
+func AccessExpires(accessExpires time.Duration) Opt {
+	return func(r *CacheAuth) {
+		r.accessExpires = accessExpires
+	}
+}
+
+func RefreshExpires(refreshExpires time.Duration) Opt {
+	return func(r *CacheAuth) {
+		r.refreshExpires = refreshExpires
+	}
+}
+
+func WhiteList(white White) Opt {
 	return func(r *CacheAuth) {
 		r.white = white
 	}
 }
 
-func NewAuth(store authorization.Store, opts ...Opt) Auth {
-	r := &CacheAuth{}
-	r.SecretKey = []byte("secretKey")
-	r.Store = store
+func NewAuth(store Store, opts ...Opt) Auth {
+	p := &CacheAuth{}
+	//默认值
+	p.SecretKey = []byte("secretKey")
+	p.Store = store
+	p.accessExpires = 5 * time.Minute
+	p.refreshExpires = 60 * 24 * 7 * time.Minute
 
 	for _, opt := range opts {
-		opt(r)
+		opt(p)
 	}
-	return r
+	return p
 }
 
 // ===============================通过 Claims Session 生成token=============================
@@ -46,14 +64,14 @@ func NewAuth(store authorization.Store, opts ...Opt) Auth {
 // Signed token生成
 func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
 	now := time.Now().Local()
-	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
-	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(1800 * time.Minute).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: authorization.GetSessionId(userClaims.Id)}}
+	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(p.accessExpires).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
+	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(p.refreshExpires).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
 
 	if accessToken, err = p.SignedToken(access); err != nil {
-		return "", "", nil
+		return "", "", fmt.Errorf("access token signed failed: %w", err)
 	}
 	if refreshToken, err = p.SignedToken(refresh); err != nil {
-		return "", "", nil
+		return "", "", fmt.Errorf("refresh token signed failed: %w", err)
 	}
 	return accessToken, refreshToken, nil
 }
@@ -67,7 +85,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	}
 	//获取Claims对象
 	claims := &AccessClaims{}
-	if err := p.ParseToken(accessToken, claims, authorization.AccessToken); err != nil {
+	if err := p.ParseToken(accessToken, claims, AccessToken); err != nil {
 		return ctx, err
 	}
 	if err := claims.Valid(); err != nil {
@@ -76,7 +94,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	ctx = SetClaims(ctx, claims.UserInfo)
 
 	//获取Session对象
-	userSession, err := p.GetSession(ctx, authorization.GetSessionId(claims.UserInfo.Id))
+	userSession, err := p.GetSession(ctx, GetSessionId(claims.UserInfo.Id))
 	if err != nil {
 		return ctx, err
 	}
@@ -86,7 +104,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 
 // ===============================Refresh 生成 Claims Session=============================
 
-func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims authorization.Claims) error {
+func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims Claims) error {
 	if len(refreshToken) == 0 {
 		return errors.New("refresh token is null")
 	}
@@ -95,7 +113,10 @@ func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims aut
 		return ctx.Err()
 	default:
 	}
-	return p.ParseToken(refreshToken, claims, authorization.RefreshToken)
+	if err := p.ParseToken(refreshToken, claims, RefreshToken); err != nil {
+		return err
+	}
+	return claims.Valid()
 }
 
 // =================================业务判断===========================

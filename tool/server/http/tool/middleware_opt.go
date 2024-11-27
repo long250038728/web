@@ -1,7 +1,7 @@
 package tool
 
 import (
-	"github.com/long250038728/web/tool/authorization/session"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/limiter"
 )
 
@@ -15,7 +15,7 @@ func Limiter(limiter limiter.Limiter) MiddlewareOpt {
 }
 
 // Auth 授权
-func Auth(auth session.Auth) MiddlewareOpt {
+func Auth(auth authorization.Auth) MiddlewareOpt {
 	return func(middle *Middleware) {
 		middle.auth = auth
 	}
