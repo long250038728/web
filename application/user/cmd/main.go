@@ -19,7 +19,7 @@ func main() {
 	path := flag.String("path", "", "root path")
 	flag.Parse()
 
-	app.InitPathInfo(*path)
+	app.InitPathInfo(path)
 	fmt.Println(Run(protoc.UserService))
 }
 

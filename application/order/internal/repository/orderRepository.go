@@ -20,15 +20,15 @@ func NewRepository(util *app.Util) *Repository {
 }
 
 func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
-	//md, _ := metadata.FromOutgoingContext(ctx)
-	//d, _ := json.Marshal(md)
-	//fmt.Println(string(d))
-	//opentelemetry.NewSpan(ctx, "hello")
+	//orm
+	db, err := r.util.Db(ctx)
+	if err != nil {
+		return "", err
+	}
 
 	if claims, err := session.GetClaims(ctx); err == nil {
 		fmt.Println(claims.Name)
 	}
-
 	if sess, err := session.GetSession(ctx); err == nil {
 		fmt.Println(sess.AuthList)
 	}
@@ -37,11 +37,6 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 		Name string `json:"name"`
 	}
 	c := &customer{}
-	//orm
-	db, err := r.util.Db(ctx)
-	if err != nil {
-		return "", err
-	}
 	db.Where("id = ?", 1).Find(c)
 
 	////mq

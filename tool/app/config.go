@@ -10,6 +10,7 @@ import (
 
 var configLoad = configurator.NewYaml()
 var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
+var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
 func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
 	var centerConfig config_center.Config
@@ -21,7 +22,6 @@ func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
 
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath string, configType int32, yaml ...string) (config *Config, err error) {
-	var client config_center.ConfigCenter
 	ctx := context.Background()
 
 	//获取服务器配置列表
@@ -43,27 +43,36 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (config *Co
 
 	if len(yaml) == 0 {
 		yaml = defaultConfigs
+		if conf.Env == EnvLocal {
+			yaml = defaultLocalConfigs
+		}
 	}
 
-	for _, fileName := range yaml {
-		val, ok := configs[fileName]
-		if !ok {
-			return nil, errors.New(fileName + "is not bind object")
-		}
+	//配置文件
+	if configType == ConfigPath {
+		for _, fileName := range yaml {
+			val, ok := configs[fileName]
+			if !ok {
+				return nil, errors.New(fileName + "is not bind object")
+			}
 
-		//配置文件
-		if configType == ConfigPath {
 			if err := configLoad.Load(filepath.Join(rootPath, fileName+".yaml"), val); err != nil {
 				return nil, err
 			}
 		}
+	}
 
-		//配置中心
-		if configType == ConfigCenter {
-			if client == nil {
-				if client, err = initConfigCenter(rootPath); err != nil {
-					return nil, err
-				}
+	//配置中心
+	if configType == ConfigCenter {
+		client, err := initConfigCenter(rootPath)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, fileName := range yaml {
+			val, ok := configs[fileName]
+			if !ok {
+				return nil, errors.New(fileName + "is not bind object")
 			}
 
 			confStr, err := client.Get(ctx, "config-"+fileName)

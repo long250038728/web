@@ -42,13 +42,17 @@ type Util struct {
 	register register.Register
 }
 
-func InitPathInfo(configPath string) {
-	path = configPath
+func InitPathInfo(configPath *string) {
+	if configPath != nil {
+		path = *configPath
+	}
 	configType = ConfigPath
 }
 
-func InitCenterInfo(configPath string) {
-	path = configPath
+func InitCenterInfo(configPath *string) {
+	if configPath != nil {
+		path = *configPath
+	}
 	configType = ConfigCenter
 }
 
@@ -116,7 +120,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	}
 
 	//创建consul客户端
-	if config.Env != EnvLocal && config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
+	if config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
 		if util.register, err = consul.NewConsulRegister(config.registerConfig); err != nil {
 			return nil, err
 		}

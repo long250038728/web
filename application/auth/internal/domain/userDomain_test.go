@@ -6,17 +6,8 @@ import (
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization/session"
-	"github.com/long250038728/web/tool/paths"
 	"testing"
 )
-
-func init() {
-	root, err := paths.RootConfigPath("")
-	if err != nil {
-		panic(err)
-	}
-	app.InitPathInfo(root)
-}
 
 func authCtx() context.Context {
 	cache, err := app.NewUtil().Cache()
