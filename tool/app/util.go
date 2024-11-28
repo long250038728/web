@@ -65,7 +65,7 @@ func NewUtil() *Util {
 
 		util, err := NewUtilPath(root, configType)
 		if err != nil {
-			panic("util init error" + err.Error())
+			panic("util init error " + err.Error())
 		}
 		u = util
 	})

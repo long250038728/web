@@ -51,12 +51,9 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 		// 用户处理
 		if client != nil {
 			authSession := authorization.NewAuth(client)
-			parseCtx, err := authSession.Parse(ctx, c.GetHeader("Authorization"))
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{})
-				return
+			if parseCtx, err := authSession.Parse(ctx, c.GetHeader("Authorization")); err == nil {
+				ctx = parseCtx
 			}
-			ctx = parseCtx
 		}
 
 		c.Request = c.Request.WithContext(ctx)

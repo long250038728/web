@@ -6,6 +6,7 @@ type Err struct {
 	message string
 }
 
+// 需要捕获的错误码
 var ( // 哨兵错误
 	AccessExpire  = NewError("100001", "access token is disabled")  // token已经失效
 	RefreshExpire = NewError("100002", "refresh token is disabled") // token已经失效

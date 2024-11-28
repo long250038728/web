@@ -4,30 +4,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/order/internal/service"
 	"github.com/long250038728/web/protoc/order"
+	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/server/http/tool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-//go func() {
-//	log.Println(http.ListenAndServe("localhost:6060", nil))  //"net/http/pprof"
-//}()
-
 func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
-	//middleware := tool.NewHttpTools()
-	//
-	//engine.GET("/", func(gin *gin.Context) {
-	//	var request order.OrderDetailRequest
-	//	middleware.JSON(gin, &request, func(ctx context.Context) (interface{}, error) {
-	//		return srv.OrderDetail(ctx, &request)
-	//	})
-	//})
-	//
-	//engine.POST("/order/detail", func(gin *gin.Context) {
-	//	var request order.OrderDetailRequest
-	//	middleware.File(gin, &request, func(ctx context.Context) (interface{}, error) {
-	//		return srv.OrderDetail(ctx, &request)
-	//	})
-	//})
+	cache, _ := app.NewUtil().Cache()
+	orderGroup := engine.Group("/order/order/").Use(tool.BaseHandle(cache), tool.LimitHandle(cache))
+	{
+		orderGroup.GET("detail", func(c *gin.Context) {
+			var request order.OrderDetailRequest
+			tool.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+				return srv.OrderDetail(c.Request.Context(), &request)
+			})
+		})
+	}
 }
 
 func RegisterGRPCServer(engine *grpc.Server, srv *service.OrderService) {

@@ -21,7 +21,7 @@ func NewHttpTools() *HttpTools {
 
 // JSON  json返回
 func (m *HttpTools) JSON(gin *gin.Context, request any, function HttpFunc) {
-	middleware := NewMiddleware(gin)
+	middleware := NewResponseTools(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
@@ -37,7 +37,7 @@ func (m *HttpTools) JSON(gin *gin.Context, request any, function HttpFunc) {
 //
 //	response 必须实现 FileInterface 接口
 func (m *HttpTools) File(gin *gin.Context, request any, function HttpFunc) {
-	middleware := NewMiddleware(gin)
+	middleware := NewResponseTools(gin)
 
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
@@ -63,7 +63,7 @@ func (m *HttpTools) File(gin *gin.Context, request any, function HttpFunc) {
 //
 // response 必须是<-chan string
 func (m *HttpTools) SSE(gin *gin.Context, request any, function HttpFunc) {
-	middleware := NewMiddleware(gin)
+	middleware := NewResponseTools(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
