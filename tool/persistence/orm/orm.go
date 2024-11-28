@@ -107,7 +107,7 @@ func ReadOnlySetting(db *gorm.DB) {
 
 // beforeCallBack 开始回调
 func beforeCallBack(db *gorm.DB) {
-	span := opentelemetry.NewSpan(db.Statement.Context, "SQL")
+	span := opentelemetry.NewSpan(db.Statement.Context, fmt.Sprintf("SQL %s", db.Statement.Table))
 	db.InstanceSet("span", span)
 }
 
@@ -115,7 +115,7 @@ func beforeCallBack(db *gorm.DB) {
 func afterCallBack(db *gorm.DB) {
 	if s, ok := db.InstanceGet("span"); ok {
 		span := s.(*opentelemetry.Span)
-		span.AddEvent(db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...))
+		span.AddEvent(fmt.Sprintf("RowsAffected:%d \nSQL: %s", db.RowsAffected, db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)))
 		span.Close()
 	}
 }

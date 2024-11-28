@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"net/http"
 	"net/url"
@@ -115,20 +114,8 @@ func (m *ResponseTools) WriteSSE(ch <-chan string) {
 
 //========================================================================
 
-func (m *ResponseTools) response(data interface{}, err error) (res *Response) {
-	res = &Response{Code: "000000", Message: "success", Data: data}
-	if err == nil {
-		return
-	}
-	var systemErr *system_error.Err
-	if ok := errors.As(err, &systemErr); ok == true {
-		res.Code = systemErr.Code()
-		res.Message = systemErr.Error()
-		return
-	}
-	res.Code = "999999"
-	res.Message = err.Error()
-	return
+func (m *ResponseTools) response(data interface{}, err error) *Response {
+	return NewResponse(data, err)
 }
 
 func (m *ResponseTools) writeLog(data string) {

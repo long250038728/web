@@ -14,7 +14,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
 	userGroup := engine.Group("/auth/user/").Use(tool.BaseHandle(cache), tool.LimitHandle(cache))
 	{
-		userGroup.POST("login", func(c *gin.Context) {
+		userGroup.Use(tool.LoginCheckHandle()).POST("login", func(c *gin.Context) {
 			var request auth_rpc.LoginRequest
 			tool.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
 				return srv.Login(c.Request.Context(), &request)

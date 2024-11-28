@@ -173,7 +173,10 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 			address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: "bash /data/project/tag.sh /data/project/kobe"})
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}})
-				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
+
+				if !(strings.Contains(svc, "mq") || strings.Contains(svc, "scheduler")) {
+					address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})
+				}
 			}
 		}
 

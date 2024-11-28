@@ -5,6 +5,7 @@ import (
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/limiter"
+	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -16,7 +17,7 @@ func LimitHandle(client cache.Cache) gin.HandlerFunc {
 		if client != nil {
 			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second*10), limiter.SetTimes(10))
 			if err := limit.Allow(c.Request.Context(), "http:"+c.GetHeader("Authorization")); err != nil {
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, map[string]any{})
+				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, system_error.TooManyRequests))
 			}
 		}
 		c.Next()
@@ -65,7 +66,7 @@ func LoginCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, err := authorization.GetClaims(c.Request.Context())
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
 			return
 		}
 		c.Next()
@@ -77,7 +78,7 @@ func ApiCheckHandle() gin.HandlerFunc {
 		//获取session对象
 		sess, err := authorization.GetSession(c.Request.Context())
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
 			return
 		}
 
@@ -91,7 +92,7 @@ func ApiCheckHandle() gin.HandlerFunc {
 		}
 
 		if !isApiAuthorized {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, map[string]any{})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
 			return
 		}
 

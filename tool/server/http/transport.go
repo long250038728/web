@@ -3,6 +3,8 @@ package http
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"io"
 	"net"
 	"net/http"
@@ -63,14 +65,17 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var responseReader io.ReadCloser
 	var err error
 
+	url := req.URL.Scheme + "://" + req.URL.Host + req.URL.Path
+	if len(req.URL.RawQuery) > 0 {
+		url = url + "?" + req.URL.RawQuery
+	}
+
+	span := opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
 	defer func() {
 		if c.handle != nil {
 			c.handle(req, requestBytes, responseBytes, err)
 		}
-		url := req.URL.Scheme + "://" + req.URL.Host + req.URL.Path
-		if len(req.URL.RawQuery) > 0 {
-			url = url + "?" + req.URL.RawQuery
-		}
+
 		c.writeLog("url: " + url)
 		c.writeLog("method: " + req.Method)
 		c.writeLog("request: " + string(requestBytes))
@@ -79,6 +84,15 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			c.writeLog("err: " + err.Error())
 		}
 		c.writeLog("=================================================================")
+
+		if span != nil && req.Method != http.MethodHead {
+			_ = span.Add(fmt.Sprintf("%s: %s", req.Method, url))
+			if len(requestBytes) > 0 {
+				_ = span.Add(string(requestBytes))
+			}
+			_ = span.Add(string(responseBytes))
+			span.Close()
+		}
 	}()
 
 	requestBytes, requestReader, err = readBody(req.Body)

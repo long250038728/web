@@ -36,11 +36,17 @@ func (s *Span) TraceID() string {
 }
 
 func (s *Span) Add(event any) error {
-	b, err := json.Marshal(event)
-	if err != nil {
-		return err
+	switch event.(type) {
+	case string:
+		s.AddEvent(event.(string))
+	default:
+		b, err := json.Marshal(event)
+		if err != nil {
+			return err
+		}
+		s.AddEvent(string(b))
 	}
-	s.AddEvent(string(b))
+
 	return nil
 }
 

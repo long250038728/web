@@ -38,7 +38,7 @@ func TestClient_Post(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(true))
+	httpClient := NewClient(SetTimeout(time.Second))
 	data := map[string]any{
 		"a": "Login",
 		"m": "Admin",
@@ -67,7 +67,7 @@ func TestClient_Get(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(true), SetContentType("application/json"), SetHttpClient(NewCustomHttpClient()))
+	httpClient := NewClient(SetTimeout(time.Second), SetContentType("application/json"), SetHttpClient(NewCustomHttpClient()))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
@@ -89,7 +89,7 @@ func TestClient_GoGet(t *testing.T) {
 	wg.Add(50)
 	for i := 0; i < 50; i++ {
 		go func() {
-			httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
+			httpClient := NewClient(SetTimeout(time.Second))
 			res, code, err := httpClient.Get(ctx, "http://192.168.0.30:8001/", nil)
 			wg.Done()
 			if err != nil {
