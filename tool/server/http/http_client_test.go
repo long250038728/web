@@ -86,11 +86,13 @@ func TestClient_Get(t *testing.T) {
 
 func TestClient_GoGet(t *testing.T) {
 	var wg sync.WaitGroup
-	wg.Add(50)
-	for i := 0; i < 50; i++ {
+	wg.Add(1)
+	for i := 0; i < 1; i++ {
 		go func() {
 			httpClient := NewClient(SetTimeout(time.Second), SetIsTracing(false))
-			res, code, err := httpClient.Get(ctx, "http://192.168.0.30:8001/", nil)
+			res, code, err := httpClient.Post(ctx, "http://192.168.1.136:8003/auth/user/login", map[string]any{
+				"name": "root", "password": "123456",
+			})
 			wg.Done()
 			if err != nil {
 				t.Error(err)

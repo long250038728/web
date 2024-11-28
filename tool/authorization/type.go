@@ -86,7 +86,4 @@ type Auth interface {
 
 	SetSession(ctx context.Context, sessionId string, session *UserSession) (err error)
 	DeleteSession(ctx context.Context, sessionId string) error
-
-	// Auth 判断是否有权限 判断path是否在GetSession中
-	Auth(ctx context.Context, path string) error
 }

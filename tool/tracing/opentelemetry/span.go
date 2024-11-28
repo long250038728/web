@@ -3,6 +3,7 @@ package opentelemetry
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -12,6 +13,14 @@ type Span struct {
 	spanName string
 	context  context.Context
 	span     trace.Span
+}
+
+func SpanFromContext(ctx context.Context) (*Span, error) {
+	span := trace.SpanFromContext(ctx)
+	if !span.SpanContext().IsValid() {
+		return nil, errors.New("span is not valid")
+	}
+	return &Span{spanName: "", context: ctx, span: span}, nil
 }
 
 func NewSpan(ctx context.Context, spanName string, opts ...trace.SpanStartOption) *Span {

@@ -1,47 +1,27 @@
 package tool
 
 import (
-	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"sync"
 )
 
-type HttpFunc func(ctx context.Context) (interface{}, error)
+type HttpFunc func() (interface{}, error)
 
 type FileInterface interface {
 	FileName() string
 	FileData() []byte
 }
 
-type MiddlewarePool struct {
-	pool sync.Pool
+type HttpTools struct {
 }
 
-func NewMiddlewarePool(opts ...MiddlewareOpt) *MiddlewarePool {
-	middleTool := &MiddlewarePool{
-		pool: sync.Pool{New: func() any {
-			return NewMiddleware(opts...)
-		}},
-	}
-	return middleTool
+func NewHttpTools() *HttpTools {
+	return &HttpTools{}
 }
 
 // JSON  json返回
-func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) {
-	middleware, _ := m.pool.Get().(*Middleware)
-	defer func() {
-		middleware.Reset()
-		m.pool.Put(middleware)
-	}()
-
-	ctx, err := middleware.Context(gin)
-
-	if err != nil {
-		middleware.WriteJSON(nil, err)
-		return
-	}
-
+func (m *HttpTools) JSON(gin *gin.Context, request any, function HttpFunc) {
+	middleware := NewMiddleware(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
@@ -49,25 +29,15 @@ func (m *MiddlewarePool) JSON(gin *gin.Context, request any, function HttpFunc) 
 	}
 
 	//处理业务
-	res, err := function(ctx)
+	res, err := function()
 	middleware.WriteJSON(res, err)
 }
 
 // File  File返回
 //
 //	response 必须实现 FileInterface 接口
-func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) {
-	middleware, _ := m.pool.Get().(*Middleware)
-	defer func() {
-		middleware.Reset()
-		m.pool.Put(middleware)
-	}()
-
-	ctx, err := middleware.Context(gin)
-	if err != nil {
-		middleware.WriteJSON(nil, err)
-		return
-	}
+func (m *HttpTools) File(gin *gin.Context, request any, function HttpFunc) {
+	middleware := NewMiddleware(gin)
 
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
@@ -76,7 +46,7 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 	}
 
 	//处理业务
-	res, err := function(ctx)
+	res, err := function()
 	if err != nil {
 		middleware.WriteJSON(nil, err)
 		return
@@ -92,19 +62,8 @@ func (m *MiddlewarePool) File(gin *gin.Context, request any, function HttpFunc) 
 // SSE  SSE返回
 //
 // response 必须是<-chan string
-func (m *MiddlewarePool) SSE(gin *gin.Context, request any, function HttpFunc) {
-	middleware, _ := m.pool.Get().(*Middleware)
-	defer func() {
-		middleware.Reset()
-		m.pool.Put(middleware)
-	}()
-
-	ctx, err := middleware.Context(gin)
-	if err != nil {
-		middleware.WriteJSON(nil, err)
-		return
-	}
-
+func (m *HttpTools) SSE(gin *gin.Context, request any, function HttpFunc) {
+	middleware := NewMiddleware(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
@@ -118,7 +77,7 @@ func (m *MiddlewarePool) SSE(gin *gin.Context, request any, function HttpFunc) {
 	}
 
 	//处理业务
-	res, err := function(ctx)
+	res, err := function()
 	if err != nil {
 		middleware.WriteJSON(nil, err)
 		return

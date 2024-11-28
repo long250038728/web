@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -15,8 +14,6 @@ type Opt func(r *CacheAuth)
 type CacheAuth struct {
 	Serialization
 	Session
-	white White
-
 	accessExpires  time.Duration
 	refreshExpires time.Duration
 }
@@ -36,12 +33,6 @@ func AccessExpires(accessExpires time.Duration) Opt {
 func RefreshExpires(refreshExpires time.Duration) Opt {
 	return func(r *CacheAuth) {
 		r.refreshExpires = refreshExpires
-	}
-}
-
-func WhiteList(white White) Opt {
-	return func(r *CacheAuth) {
-		r.white = white
 	}
 }
 
@@ -117,74 +108,4 @@ func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims Cla
 		return err
 	}
 	return claims.Valid()
-}
-
-// =================================业务判断===========================
-
-// Auth 判断是否有权限
-//
-//  1. 判断是否是白名单
-//  2. 判断是否是登录
-//  3. 判断这个接口有没有权限（从Session中获取）
-func (p *CacheAuth) Auth(ctx context.Context, path string) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	//转换为小写
-	path = strings.ToLower(path)
-
-	//白名单
-	if p.whitePath(path) {
-		return nil
-	}
-
-	//匹配是否登录
-	userClaims, err := GetClaims(ctx)
-	if err != nil {
-		return err
-	}
-	if userClaims != nil && p.loginPath(path) {
-		return nil
-	}
-	userSession, err := GetSession(ctx)
-	if err != nil {
-		return err
-	}
-
-	//匹配session
-	for _, authPath := range userSession.AuthList {
-		if authPath == path {
-			return nil
-		}
-	}
-	return errors.New("no match path")
-}
-
-// whitePath path是否为白名单
-func (p *CacheAuth) whitePath(path string) bool {
-	if p.white == nil {
-		return false
-	}
-	for _, p := range p.white.WhiteList() {
-		if p == path {
-			return true
-		}
-	}
-	return false
-}
-
-// loginPath path是否为登录
-func (p *CacheAuth) loginPath(path string) bool {
-	if p.white == nil {
-		return false
-	}
-	for _, p := range p.white.LoginList() {
-		if p == path {
-			return true
-		}
-	}
-	return false
 }

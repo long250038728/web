@@ -1,4 +1,4 @@
-package rpc
+package tool
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// serverTelemetryInterceptor 链路拦截器
-func serverTelemetryInterceptor() grpc.UnaryServerInterceptor {
+// ServerTelemetryInterceptor 链路拦截器
+func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -40,8 +40,8 @@ func serverTelemetryInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
-// serverAuthInterceptor 鉴权拦截器
-func serverAuthInterceptor() grpc.UnaryServerInterceptor {
+// ServerAuthInterceptor 鉴权拦截器
+func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
 			cache, err := app.NewUtil().Cache()
