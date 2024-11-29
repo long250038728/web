@@ -1,6 +1,7 @@
 package struct_map
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -9,22 +10,22 @@ import (
 func TestMap(t *testing.T) {
 	type Source struct {
 		Field1 float64
-		Field2 string
 	}
-
 	type Target struct {
-		Field1 string
-		Field2 string
+		Field1 int32
 	}
-
-	s1 := Source{Field1: 123.89, Field2: "10"}
-	s2 := Target{}
-
-	err := Map(s1, &s2)
+	s1 := []*Source{{Field1: 123.3333}, {Field1: 22.72}}
+	var s2 []*Target
+	if err := NewMap(ChangeFiledOpt(map[string]string{"Field2": "Field4"}), IgnoreOpt([]string{"Field2"})).Map(s1, &s2); err != nil {
+		t.Error(err)
+		return
+	}
+	b, err := json.Marshal(s2)
 	if err != nil {
 		t.Error(err)
+		return
 	}
-	t.Log(s2)
+	t.Log(string(b))
 }
 
 func TestFormat(t *testing.T) {
