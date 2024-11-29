@@ -1,4 +1,4 @@
-package struct_map
+package sliceconv
 
 import (
 	"errors"
@@ -9,7 +9,7 @@ import (
 
 type Opt func(m *Mapper)
 
-func IgnoreOpt(ignore []string) Opt {
+func Ignore(ignore []string) Opt {
 	return func(m *Mapper) {
 		ign := map[string]string{}
 		for _, v := range ignore {
@@ -19,7 +19,7 @@ func IgnoreOpt(ignore []string) Opt {
 	}
 }
 
-func ChangeFiledOpt(changeFiled map[string]string) Opt {
+func ChangeFiledName(changeFiled map[string]string) Opt {
 	return func(m *Mapper) {
 		m.changeFiled = changeFiled
 	}
@@ -49,8 +49,6 @@ func (m *Mapper) Map(source, target interface{}) error {
 		return errors.New("target must Pointer")
 	}
 	targetElem := reflect.Indirect(reflect.ValueOf(target))
-
-	//获取source，如果是指针类型的话，获取对应的elem对象
 	sourceElem := reflect.Indirect(reflect.ValueOf(source))
 
 	switch sourceElem.Kind() {
@@ -76,6 +74,7 @@ func (m *Mapper) Map(source, target interface{}) error {
 				targetElem.Index(i).Set(reflect.New(targetElemType.Elem()))
 			}
 
+			// 递归调用 Map 函数
 			if err := m.Map(sourceElem.Index(i).Interface(), targetElem.Index(i).Interface()); err != nil {
 				return err
 			}
