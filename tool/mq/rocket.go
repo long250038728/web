@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	rmq "github.com/apache/rocketmq-clients/golang"
-	"github.com/apache/rocketmq-clients/golang/credentials"
-	v2 "github.com/apache/rocketmq-clients/golang/protocol/v2"
+	rmq "github.com/apache/rocketmq-clients/golang/v5"
+	"github.com/apache/rocketmq-clients/golang/v5/credentials"
+	v2 "github.com/apache/rocketmq-clients/golang/v5/protocol/v2"
 	"os"
 	"time"
 )
@@ -91,7 +91,7 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 		if head.MsgType == RocketTypeNORMAL || head.MsgType == RocketTypeFIFO || head.MsgType == RocketTypeDELAY {
 			if head.IsAsync {
 				producer.SendAsync(ctx, msg, func(ctx context.Context, receipts []*rmq.SendReceipt, err error) {
-					fmt.Printf("%#v\n%v", receipts, err)
+					fmt.Printf("============%#v\n%v====================", receipts, err)
 				})
 			} else {
 				if _, err = producer.Send(ctx, msg); err != nil {

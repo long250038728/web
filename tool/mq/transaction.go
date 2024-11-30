@@ -3,13 +3,13 @@ package mq
 import (
 	"context"
 	"fmt"
+	"github.com/apache/rocketmq-clients/golang/v5/credentials"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
-	rmq "github.com/apache/rocketmq-clients/golang"
-	"github.com/apache/rocketmq-clients/golang/credentials"
+	rmq "github.com/apache/rocketmq-clients/golang/v5"
 )
 
 const (

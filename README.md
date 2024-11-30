@@ -5,12 +5,23 @@
 1. 公/私有云集群
 2. docker network
 
-暴露端口
-1. consul 8500 为了可以观察服务注册发现相关的信息
-2. kong 8000 通过网关入口可以访问到后端web服务
-3. konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
-4. mysql 3306 外部mysql数据访问
-
+常用的暴露端口
+* 服务注册与发现
+  * consul 8500 为了可以观察服务注册发现相关的信息 
+* 服务网关
+  * kong 8000 通过网关入口可以访问到后端web服务 
+  * konga 1337 通过konga配置服务（内部调用kong admin 端口8001）
+* 配置中心
+  * etcd 2379
+* SQL\NoSQL
+  * mysql 3306 
+  * redis 6379 
+* 消息队列
+  * kafka 9092
+  * rocketmq 9876
+* 服务检测
+  * opentelemetry 4317
+  * jaeger webUI 16686
 
 固定ip
 1. 172.40.0.2 consul
@@ -186,22 +197,20 @@ docker run -itd --name rocketmq-dashboard \
  apacherocketmq/rocketmq-dashboard:latest
 ```
 
-web服务应用
+## web服务应用
 ```
 docker pull golang:1.20 
 
-docker run --network=my-service-network --name=user -e WEB="/app" -p 8001:8001  -p 6060:6060 -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=user -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/user/cmd/main.go -path /app
 
 
-docker run --network=my-service-network --name=order -e WEB="/app" -p 6060:6060  -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=order -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/order/cmd/main.go -path /app
-
-curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQxMTksImlhdCI6MTcxNTkyNjExOSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.FzmTyzp3TK1cLiZnuv0xMQeXK01e-IlMAdOJgW3uKNU" http://172.40.0.4:8002/
 ```
 
 ## konga配置 127.0.0.1:1337
@@ -220,146 +229,3 @@ curl -H "Authorization:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTYwMzQx
         true:   http://127.0.0.1:8000/user/hello  =>  后端path "/hello"
         false:  http://127.0.0.1:8000/user/hello  =>  后端path "/user/hello"
 ```
-
----
-
-## 扩展
-### 创建一个DNS解析器
-```
-import (
-	"fmt"
-	"net"
-	"os"
-	"github.com/miekg/dns"
-)
-
-func handleRequest(w dns.ResponseWriter, r *dns.Msg) {
-	m := new(dns.Msg)
-	m.SetReply(r)
-
-	// 获取查询的域名
-	name := r.Question[0].Name
-	if name == "user.service.consul." {  // 对于 user.service.consul 的查询，返回一个虚构的 IP 地址
-		a := &dns.A{
-			Hdr: dns.RR_Header{Name: name, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60},
-			A:   net.ParseIP("192.168.1.100"),  //这里可以获取数据库或其他得到具体ip，这里是伪代码
-		}
-		m.Answer = append(m.Answer, a)
-	}
-	w.WriteMsg(m)
-}
-
-func main() {
-	addr := ":53" // 定义 DNS 服务器监听的地址和端口
-	server := dns.Server{Addr: addr, Net: "udp"}  // 创建一个 DNS 服务器
-	dns.HandleFunc(".", handleRequest) // 定义 DNS 请求处理函数
-	if err := server.ListenAndServe(); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start DNS server: %s\n", err.Error())
-		os.Exit(1)
-	}
-}
-```
-使用 dig @127.0.0.1 -p 53 user.service.consul SRV 命令进行输出
-```
-linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul
-; (1 server found)
-;; global options: +cmd
-;; Got answer:
-;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37398
-;; flags: qr rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 0
-;; WARNING: recursion requested but not available
-
-;; QUESTION SECTION:
-;user.service.consul.		IN	SRV
-
-;; ANSWER SECTION:
-user.service.consul.	60	IN	A	192.168.1.100
-
-;; Query time: 0 msec
-;; SERVER: 127.0.0.1#53(127.0.0.1)
-;; WHEN: Tue May 07 09:45:40 CST 2024
-;; MSG SIZE  rcvd: 72
-
-linlong@linlongdeMacBook-Pro-2 ~ % dig @127.0.0.1 -p 53 user.service.consul SRV
-
-; <<>> DiG 9.10.6 <<>> @127.0.0.1 -p 53 user.service.consul SRV
-; (1 server found)
-;; global options: +cmd
-;; connection timed out; no servers could be reached
-```
-
----
-
-### go项目依赖生成图
-安装dot 工具 && 安装godepgraph 工具  && 图生成
-```
-brew install graphviz
-go install github.com/kisielk/godepgraph@latest
-godepgraph -s  ./application/user/cmd/ | dot -Tpng -o godepgraph.png
-```
-
----
-
-###  是否数据竞争
-go run -race main.go
-
-
----
-
-### 分析
-代码中加入 pprof包，启动6060端口的访问，然后执行 go tool pprof http://localhost:6060/debug/pprof/profile
-```
-import (
-    _ "net/http/pprof"
-    "net/http"
-    "log"
-)
-
-// 启动 HTTP 服务器以便访问 pprof 数据
-go func() {
-    log.Println(http.ListenAndServe("localhost:6060", nil))
-}()
-```
-1. 执行 go tool pprof http://localhost:6060/debug/pprof/profile  //获取 CPU 性能分析数据。具体来说，它会收集程序在一段时间内的 CPU 使用情况，包括函数调用的频率和耗时
-2. 执行 go tool pprof http://localhost:6060/debug/pprof/heap     //获取堆内存的使用情况。它会收集当前程序的堆内存分配数据，包括哪些对象占用了多少内存
-3. 访问 web  http://localhost:6060/debug/pprof/
-   * http.HandleFunc("/debug/pprof/", Index)
-   * http.HandleFunc("/debug/pprof/cmdline", Cmdline)
-   * http.HandleFunc("/debug/pprof/profile", Profile)
-   * http.HandleFunc("/debug/pprof/symbol", Symbol)
-   * http.HandleFunc("/debug/pprof/trace", Trace)
-
----
-
-### 查看内存逃逸
-go build -gcflags "-m" main.go 返回结果如下
-1. inlining call    内联优化（将函数调用替换为函数实际代码，减少调用函数的开销，减少栈空间的使用）
-2. does not escape  没有逃逸到堆，意味着它被分配在栈上
-3. escapes to heap  逃逸到堆
-```
-这三个并不矛盾分别描述了内联优化和逃逸分析的结果
-
-./main.go:35:14: inlining call to app.Servers
-./main.go:35:14: func literal does not escape
-./main.go:35:14: ... argument escapes to heap
-
-1. 对app.servers进行内联优化,
-2. 同时函数内的变量在栈上分配
-3. 然后在函数外使用了...arg此时arg变量才逃逸到堆上
-```
-
-
-
-
-
-
-
-
----
-
-
-
-// GMP 还有 饥饿模式，正常模式 （第九周最后一节课加餐没听，第十周第一节）
-// 服务治理总结没听  ， 可观测性可以再粗略看一下
-
-// GC学习一下
