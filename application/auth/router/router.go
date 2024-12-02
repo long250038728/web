@@ -5,25 +5,25 @@ import (
 	"github.com/long250038728/web/application/auth/internal/service"
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/server/http/tool"
+	"github.com/long250038728/web/tool/server/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
-	userGroup := engine.Group("/auth/user/").Use(tool.BaseHandle(cache), tool.LimitHandle(cache))
+	userGroup := engine.Group("/authorization/user/").Use(http.BaseHandle(cache), http.LimitHandle(cache))
 	{
-		userGroup.Use(tool.LoginCheckHandle()).POST("login", func(c *gin.Context) {
+		userGroup.POST("login", func(c *gin.Context) {
 			var request auth_rpc.LoginRequest
-			tool.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
 				return srv.Login(c.Request.Context(), &request)
 			})
 		})
 
 		userGroup.POST("refresh", func(c *gin.Context) {
 			var request auth_rpc.RefreshRequest
-			tool.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
 				return srv.Refresh(c.Request.Context(), &request)
 			})
 		})

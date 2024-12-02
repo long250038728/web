@@ -1,14 +1,17 @@
-package tool
+package http
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/limiter"
+	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -16,7 +19,7 @@ func LimitHandle(client cache.Cache) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if client != nil {
 			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second*10), limiter.SetTimes(10))
-			if err := limit.Allow(c.Request.Context(), "http:"+c.GetHeader("Authorization")); err != nil {
+			if err := limit.Allow(c.Request.Context(), "http:"+c.GetHeader(server.AuthorizationKey)); err != nil {
 				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, system_error.TooManyRequests))
 			}
 		}
@@ -39,11 +42,11 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 
 			ctx = span.Context()
 
-			mCarrier := map[string]string{"authorization": c.GetHeader("Authorization")} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
-			opentelemetry.InjectMap(ctx, mCarrier)                                       // 把 telemetry的id等信息写入mCarrier
+			mCarrier := map[string]string{server.AuthorizationKey: c.GetHeader("Authorization")} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
+			opentelemetry.InjectMap(ctx, mCarrier)                                               // 把 telemetry的id等信息写入mCarrier
 
 			span.AddEvent(mCarrier)
-			c.Header("traceparent", mCarrier["traceparent"])
+			c.Header(server.TraceParentKey, mCarrier[server.TraceParentKey])
 
 			//把所有信息写入metadata中并生成新的ctx
 			ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
@@ -73,7 +76,7 @@ func LoginCheckHandle() gin.HandlerFunc {
 	}
 }
 
-func ApiCheckHandle() gin.HandlerFunc {
+func AuthCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//获取session对象
 		sess, err := authorization.GetSession(c.Request.Context())
@@ -85,7 +88,7 @@ func ApiCheckHandle() gin.HandlerFunc {
 		//判断该url是否在session存在
 		isApiAuthorized := false
 		for _, url := range sess.AuthList {
-			if url == c.Request.URL.Path {
+			if CamelToSnake(url) == c.Request.URL.Path {
 				isApiAuthorized = true
 				break
 			}
@@ -98,4 +101,12 @@ func ApiCheckHandle() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func CamelToSnake(url string) string {
+	// 使用正则表达式匹配大写字母，并在前面添加下划线
+	re := regexp.MustCompile("([a-z0-9])([A-Z])")
+	snake := re.ReplaceAllString(url, "${1}_${2}")
+	// 将结果转换为小写
+	return strings.ToLower(snake)
 }
