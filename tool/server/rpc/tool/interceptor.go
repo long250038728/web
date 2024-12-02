@@ -27,14 +27,14 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 		span := opentelemetry.NewSpan(ctx, "GRPC: "+info.FullMethod)
 		defer span.Close()
 
-		_ = span.Add(req)
+		span.AddEvent(req)
 		ctx = span.Context()
 
 		resp, err = handler(ctx, req)
 
-		_ = span.Add(resp)
+		span.AddEvent(resp)
 		if err != nil {
-			span.Add(err.Error())
+			span.AddEvent(err.Error())
 		}
 		return resp, err
 	}

@@ -15,6 +15,7 @@ type Span struct {
 	span     trace.Span
 }
 
+// SpanFromContext 在ctx中获取span对象
 func SpanFromContext(ctx context.Context) (*Span, error) {
 	span := trace.SpanFromContext(ctx)
 	if !span.SpanContext().IsValid() {
@@ -23,7 +24,10 @@ func SpanFromContext(ctx context.Context) (*Span, error) {
 	return &Span{spanName: "", context: ctx, span: span}, nil
 }
 
+// NewSpan 创建span对象
 func NewSpan(ctx context.Context, spanName string, opts ...trace.SpanStartOption) *Span {
+	// 创建span 当未设置otel.SetTracerProvider(provider)时，返回的span是一个nonRecordingSpan，该对象所有的方法都是空实现，以便于后续无需判断span是否存在的场景
+	//   在otel.Tracer("")方法中判断设置TracerProvider用delegate字段表示
 	ctx, span := otel.Tracer("").Start(ctx, spanName, opts...)
 	return &Span{
 		spanName: spanName, context: ctx, span: span,
@@ -35,43 +39,37 @@ func (s *Span) TraceID() string {
 	return sContext.TraceID().String()
 }
 
-func (s *Span) Add(event any) error {
+func (s *Span) AddEvent(event any) {
 	switch event.(type) {
 	case string:
-		s.AddEvent(event.(string))
+		s.span.AddEvent(event.(string))
 	default:
-		b, err := json.Marshal(event)
-		if err != nil {
-			return err
+		b, _ := json.Marshal(event)
+		s.span.AddEvent(string(b))
+	}
+}
+
+func (s *Span) SetAttribute(k string, v any) {
+	s.SetAttributes(map[string]any{k: v})
+}
+
+func (s *Span) SetAttributes(attributes map[string]any) {
+	var kvs = make([]attribute.KeyValue, 0, len(attributes))
+	for k, v := range attributes {
+		switch v.(type) {
+		case string:
+			kvs = append(kvs, attribute.String(k, v.(string)))
+		case int:
+			kvs = append(kvs, attribute.Int(k, v.(int)))
+		case int64:
+			kvs = append(kvs, attribute.Int64(k, v.(int64)))
+		case float64:
+			kvs = append(kvs, attribute.Float64(k, v.(float64)))
+		case bool:
+			kvs = append(kvs, attribute.Bool(k, v.(bool)))
+		default:
 		}
-		s.AddEvent(string(b))
 	}
-
-	return nil
-}
-
-func (s *Span) AddEvent(event string) {
-	s.span.AddEvent(event)
-}
-
-func (s *Span) SetAttributes(k string, v any) {
-	var kvs = make([]attribute.KeyValue, 0, 1)
-
-	switch v.(type) {
-	case string:
-		kvs = append(kvs, attribute.String(k, v.(string)))
-	case int:
-		kvs = append(kvs, attribute.Int(k, v.(int)))
-	case int64:
-		kvs = append(kvs, attribute.Int64(k, v.(int64)))
-	case float64:
-		kvs = append(kvs, attribute.Float64(k, v.(float64)))
-	case bool:
-		kvs = append(kvs, attribute.Bool(k, v.(bool)))
-	default:
-
-	}
-
 	if len(kvs) == 0 {
 		return
 	}

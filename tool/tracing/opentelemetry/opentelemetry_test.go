@@ -38,10 +38,10 @@ func TestTracing(t *testing.T) {
 	defer span2.Close()
 
 	span.AddEvent("hello world")
-	span.SetAttributes("hello1", true)
+	span.SetAttribute("hello1", true)
 
 	span2.AddEvent("hello world2")
-	span2.SetAttributes("hello2", false)
+	span2.SetAttribute("hello2", false)
 
 	//链路注入到map
 	mCarrier := make(map[string]string)
@@ -54,5 +54,5 @@ func TestTracing(t *testing.T) {
 	defer span3.Close()
 
 	span3.AddEvent("hello world3")
-	span3.SetAttributes("hello3", false)
+	span3.SetAttribute("hello3", false)
 }

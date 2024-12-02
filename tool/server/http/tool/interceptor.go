@@ -42,7 +42,7 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 			mCarrier := map[string]string{"authorization": c.GetHeader("Authorization")} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
 			opentelemetry.InjectMap(ctx, mCarrier)                                       // 把 telemetry的id等信息写入mCarrier
 
-			_ = span.Add(mCarrier)
+			span.AddEvent(mCarrier)
 			c.Header("traceparent", mCarrier["traceparent"])
 
 			//把所有信息写入metadata中并生成新的ctx

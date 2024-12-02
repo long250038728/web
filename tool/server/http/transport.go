@@ -70,7 +70,11 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		url = url + "?" + req.URL.RawQuery
 	}
 
-	span := opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
+	var span *opentelemetry.Span
+	if req.Method != http.MethodHead {
+		span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
+	}
+
 	defer func() {
 		if c.handle != nil {
 			c.handle(req, requestBytes, responseBytes, err)
@@ -84,13 +88,14 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			c.writeLog("err: " + err.Error())
 		}
 		c.writeLog("=================================================================")
+		c.writeLog(fmt.Sprintf("%v,%v", span == nil, span))
 
-		if span != nil && req.Method != http.MethodHead {
-			_ = span.Add(fmt.Sprintf("%s: %s", req.Method, url))
+		if span != nil {
+			span.AddEvent(fmt.Sprintf("%s: %s", req.Method, url))
 			if len(requestBytes) > 0 {
-				_ = span.Add(string(requestBytes))
+				span.AddEvent(string(requestBytes))
 			}
-			_ = span.Add(string(responseBytes))
+			span.AddEvent(string(responseBytes))
 			span.Close()
 		}
 	}()

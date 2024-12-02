@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMap(t *testing.T) {
+func TestMapper(t *testing.T) {
 	type Source struct {
 		Field1 string
 		Field3 string
@@ -30,7 +30,7 @@ func TestMap(t *testing.T) {
 	t.Log(string(b))
 }
 
-func TestFormat(t *testing.T) {
+func TestFormatter(t *testing.T) {
 	type TestFormat struct {
 		FloatKg  float32 `format:"Kg"`
 		StringKg string  `format:"Kg"`
