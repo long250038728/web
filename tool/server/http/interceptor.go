@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -17,6 +16,15 @@ import (
 	"strings"
 	"time"
 )
+
+// middle 中间件处理规范
+// 1. 只抽离公共的基础逻辑，不应该与实际业务中有联系
+// 2. 中间件中由于只提供next() 及 Abort() 方法，只控制继续或停止，无法对实际处理的handle进行捕获。
+// 3. 不依赖与request中的参数，response的响应。 所以对接口的缓存，防抖的操作不在middle中处理
+// BaseHandle 基本中间件（创建链路及jwt解析，生成新的ctx替换到c.Request.Context中）
+// LoginCheckHandle 登录中间件检验 (通过BaseHandle生成的ctx获取Claims对象，获取不到则报错)
+// AuthCheckHandle  权限中间件  (通过BaseHandle生成的ctx获取Session对象，根据session中判断是否能进行访问)
+// LimitHandle 限流中间件 （对单个用户(token存在获取token，不存在则获取ip)进行限流处理）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
 func BaseHandle(client cache.Cache) gin.HandlerFunc {
@@ -64,7 +72,7 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 	}
 }
 
-// LoginCheckHandle 登录中间件（校验jwt是否有效）
+// LoginCheckHandle 登录中间件检验（校验jwt是否有效）
 func LoginCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, err := authorization.GetClaims(c.Request.Context())
@@ -168,17 +176,17 @@ func CamelToSnake(url string) string {
 	return strings.ToLower(snake)
 }
 
-// 自定义 ResponseWriter 来捕获响应数据
-type responseCacheWriter struct {
-	gin.ResponseWriter
-	cacheKey string
-	body     *bytes.Buffer
-}
-
-func (w *responseCacheWriter) Write(b []byte) (int, error) {
-	if w.body == nil {
-		w.body = &bytes.Buffer{}
-	}
-	w.body.Write(b) // 捕获写入的响应
-	return w.ResponseWriter.Write(b)
-}
+//// 自定义 ResponseWriter 来捕获响应数据
+//type responseCacheWriter struct {
+//	gin.ResponseWriter
+//	cacheKey string
+//	body     *bytes.Buffer
+//}
+//
+//func (w *responseCacheWriter) Write(b []byte) (int, error) {
+//	if w.body == nil {
+//		w.body = &bytes.Buffer{}
+//	}
+//	w.body.Write(b) // 捕获写入的响应
+//	return w.ResponseWriter.Write(b)
+//}
