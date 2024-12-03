@@ -1,6 +1,9 @@
 package http
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/cache"
@@ -15,21 +18,17 @@ import (
 	"time"
 )
 
-func LimitHandle(client cache.Cache) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if client != nil {
-			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second*10), limiter.SetTimes(10))
-			if err := limit.Allow(c.Request.Context(), "http:"+c.GetHeader(server.AuthorizationKey)); err != nil {
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, system_error.TooManyRequests))
-			}
-		}
-		c.Next()
-	}
-}
-
+// BaseHandle 基本中间件（带上链路及jwt数据）
 func BaseHandle(client cache.Cache) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
+
+		defer func() {
+			if r := recover(); r != nil {
+				c.AbortWithStatusJSON(http.StatusOK, NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
+				return
+			}
+		}()
 
 		//链路追踪
 		{
@@ -65,6 +64,7 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 	}
 }
 
+// LoginCheckHandle 登录中间件（校验jwt是否有效）
 func LoginCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, err := authorization.GetClaims(c.Request.Context())
@@ -76,6 +76,7 @@ func LoginCheckHandle() gin.HandlerFunc {
 	}
 }
 
+// AuthCheckHandle 权限中间件(校验jwt中对应的session是否有路径访问权限)
 func AuthCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//获取session对象
@@ -103,10 +104,81 @@ func AuthCheckHandle() gin.HandlerFunc {
 	}
 }
 
+// LimitHandle 限流中间件 (优先获取用户的token信息，如果接口无需token参数，那通过IP的方式 ---- 单个用户)
+func LimitHandle(client cache.Cache) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if client != nil {
+			identification := c.GetHeader(server.AuthorizationKey)
+			if len(identification) == 0 {
+				identification = c.ClientIP()
+			}
+
+			// 1s 10次
+			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second), limiter.SetTimes(10))
+			if err := limit.Allow(c.Request.Context(), fmt.Sprintf("http:%s", identification)); err != nil {
+				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, system_error.TooManyRequests))
+			}
+		}
+		c.Next()
+	}
+}
+
+//// LockHandle 防抖中间件，检查是否有重复提交的问题
+//func LockHandle(store locker.Store, identification string) gin.HandlerFunc {
+//	return func(context *gin.Context) {
+//		key := context.Request.URL.Path
+//		lock := locker.NewRedisLocker(store, key, identification, time.Second*10)
+//
+//		// 加锁
+//		if err := lock.Lock(context.Request.Context()); err != nil {
+//			context.AbortWithStatusJSON(http.StatusBadRequest, NewResponse(nil, system_error.TooManyRequests))
+//			return
+//		}
+//
+//		context.Next()
+//
+//		// 解锁
+//		lock.UnLock(context.Request.Context())
+//	}
+//}
+
+//func CacheHandle(client cache.Cache, identification map[string]any) gin.HandlerFunc {
+//	return func(context *gin.Context) {
+//		key := ""
+//
+//		// 拦截 Response 并缓存
+//		writer := &responseCacheWriter{ResponseWriter: context.Writer}
+//		context.Writer = writer
+//
+//		// 继续处理请求
+//		context.Next()
+//
+//		//writer.body.Bytes()
+//		//client.SetEX(context.Request.Context(),""，""，)
+//	}
+//}
+
+//========
+
 func CamelToSnake(url string) string {
 	// 使用正则表达式匹配大写字母，并在前面添加下划线
 	re := regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := re.ReplaceAllString(url, "${1}_${2}")
 	// 将结果转换为小写
 	return strings.ToLower(snake)
+}
+
+// 自定义 ResponseWriter 来捕获响应数据
+type responseCacheWriter struct {
+	gin.ResponseWriter
+	cacheKey string
+	body     *bytes.Buffer
+}
+
+func (w *responseCacheWriter) Write(b []byte) (int, error) {
+	if w.body == nil {
+		w.body = &bytes.Buffer{}
+	}
+	w.body.Write(b) // 捕获写入的响应
+	return w.ResponseWriter.Write(b)
 }

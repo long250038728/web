@@ -29,8 +29,7 @@ func (m *Tools) JSON(gin *gin.Context, request any, function Func) {
 	}
 
 	//处理业务
-	res, err := function()
-	middleware.WriteJSON(res, err)
+	middleware.WriteJSON(function())
 }
 
 // File  File返回

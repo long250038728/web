@@ -20,7 +20,7 @@ func (p *Session) GetSession(ctx context.Context, sessionId string) (session *Us
 	}
 	var sessionStr string
 
-	// 安装优先级获取
+	// 按照优先级获取
 	for _, s := range []Store{p.LocalStore, p.Store} {
 		if s != nil {
 			sessionStr, err = s.Get(ctx, sessionId)
@@ -59,6 +59,7 @@ func (p *Session) SetSession(ctx context.Context, sessionId string, session *Use
 			}
 			if !ok {
 				err = errors.New("session setting is err")
+				return
 			}
 		}
 	}

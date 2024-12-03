@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"time"
 )
 
 var (
@@ -11,6 +12,11 @@ var (
 	ErrorIdentification = errors.New("this identification is error")
 	ErrorOverRetry      = errors.New("error over retry")
 )
+
+type Store interface {
+	SetNX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
+}
 
 type Locker interface {
 	Lock(ctx context.Context) error
