@@ -43,3 +43,12 @@ func TestClient_MergePR(t *testing.T) {
 	}
 	t.Log("ok")
 }
+
+func TestClient_GetPR(t *testing.T) {
+	list, err := gitClient.GetPR(context.Background(), "zhubaoe/socrates", "release/v3.6.19.0", "check")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(list)
+}

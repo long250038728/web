@@ -5,20 +5,35 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/long250038728/web/tool/system_error"
+	"time"
 )
 
 type Session struct {
-	Store Store
+	LocalStore    Store
+	Store         Store
+	accessExpires time.Duration
 }
 
 func (p *Session) GetSession(ctx context.Context, sessionId string) (session *UserSession, err error) {
 	if sessionId == "" {
 		return nil, errors.New("sessionId is empty")
 	}
-	sessionStr, err := p.Store.Get(ctx, sessionId)
-	if err != nil {
-		return nil, err
+	var sessionStr string
+
+	// 按照优先级获取
+	for _, s := range []Store{p.LocalStore, p.Store} {
+		if s != nil {
+			sessionStr, err = s.Get(ctx, sessionId)
+			if err != nil {
+				return nil, err
+			}
+			if len(sessionStr) > 0 {
+				break
+			}
+		}
 	}
+
+	// 获取不到则报错
 	if len(sessionStr) == 0 {
 		return nil, system_error.SessionExpire
 	}
@@ -35,11 +50,18 @@ func (p *Session) SetSession(ctx context.Context, sessionId string, session *Use
 	if b, err = json.Marshal(session); err != nil {
 		return
 	}
-	if ok, err = p.Store.Set(ctx, sessionId, string(b)); err != nil {
-		return
-	}
-	if !ok {
-		err = errors.New("session setting is err")
+
+	// 数据添加到缓存中
+	for _, s := range []Store{p.LocalStore, p.Store} {
+		if s != nil {
+			if ok, err = s.SetEX(ctx, sessionId, string(b), p.accessExpires); err != nil {
+				return err
+			}
+			if !ok {
+				err = errors.New("session setting is err")
+				return
+			}
+		}
 	}
 	return
 }
@@ -48,6 +70,14 @@ func (p *Session) DeleteSession(ctx context.Context, sessionId string) error {
 	if sessionId == "" {
 		return errors.New("sessionId is empty")
 	}
-	_, err := p.Store.Del(ctx, sessionId)
-	return err
+
+	// 数据添加到缓存中
+	for _, s := range []Store{p.LocalStore, p.Store} {
+		if s != nil {
+			if _, err := p.Store.Del(ctx, sessionId); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

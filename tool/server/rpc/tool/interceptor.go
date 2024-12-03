@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
+	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -17,24 +18,24 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		transparent, ok := md["traceparent"]
+		transparent, ok := md[server.TraceParentKey]
 		if !ok || len(transparent) != 1 {
 			return handler(ctx, req)
 		}
 
 		//写入链路
-		ctx = opentelemetry.ExtractMap(ctx, map[string]string{"traceparent": transparent[0]})
+		ctx = opentelemetry.ExtractMap(ctx, map[string]string{server.TraceParentKey: transparent[0]})
 		span := opentelemetry.NewSpan(ctx, "GRPC: "+info.FullMethod)
 		defer span.Close()
 
-		_ = span.Add(req)
+		span.AddEvent(req)
 		ctx = span.Context()
 
 		resp, err = handler(ctx, req)
 
-		_ = span.Add(resp)
+		span.AddEvent(resp)
 		if err != nil {
-			span.Add(err.Error())
+			span.AddEvent(err.Error())
 		}
 		return resp, err
 	}
@@ -49,7 +50,7 @@ func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 				return handler(ctx, req)
 			}
 
-			if authorizationToken, ok := md["authorization"]; ok && len(authorizationToken) == 1 {
+			if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
 				ctx, _ = authorization.NewAuth(cache).Parse(ctx, authorizationToken[0])
 			}
 		}

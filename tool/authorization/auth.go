@@ -36,17 +36,31 @@ func RefreshExpires(refreshExpires time.Duration) Opt {
 	}
 }
 
+func LocalStore(localStore Store) Opt {
+	return func(r *CacheAuth) {
+		r.LocalStore = localStore
+	}
+}
+
 func NewAuth(store Store, opts ...Opt) Auth {
 	p := &CacheAuth{}
+
 	//默认值
 	p.SecretKey = []byte("secretKey")
-	p.Store = store
 	p.accessExpires = 5 * time.Minute
 	p.refreshExpires = 60 * 24 * 7 * time.Minute
+
+	p.Store = store
+	if localStore, err := NewLocalStore(10000); err == nil {
+		p.LocalStore = localStore
+	}
 
 	for _, opt := range opts {
 		opt(p)
 	}
+
+	// 比accessExpires多5s避免获取到accessExpires时未过期，但是获取session已经过期
+	p.Session.accessExpires = p.accessExpires + time.Second*5
 	return p
 }
 

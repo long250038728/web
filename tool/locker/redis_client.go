@@ -2,18 +2,17 @@ package locker
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/cache"
 	"time"
 )
 
 type redis struct {
-	client cache.Cache
+	client Store
 	key,
 	identification string
 	time time.Duration
 }
 
-func NewRedisLocker(client cache.Cache, key, identification string, RefreshTime time.Duration) Locker {
+func NewRedisLocker(client Store, key, identification string, RefreshTime time.Duration) Locker {
 	return &redis{
 		client:         client,
 		key:            key,

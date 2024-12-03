@@ -1,26 +1,26 @@
-package tool
+package http
 
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
 )
 
-type HttpFunc func() (interface{}, error)
+type Func func() (interface{}, error)
 
 type FileInterface interface {
 	FileName() string
 	FileData() []byte
 }
 
-type HttpTools struct {
+type Tools struct {
 }
 
-func NewHttpTools() *HttpTools {
-	return &HttpTools{}
+func NewHttpTools() *Tools {
+	return &Tools{}
 }
 
 // JSON  json返回
-func (m *HttpTools) JSON(gin *gin.Context, request any, function HttpFunc) {
+func (m *Tools) JSON(gin *gin.Context, request any, function Func) {
 	middleware := NewResponseTools(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
@@ -29,14 +29,13 @@ func (m *HttpTools) JSON(gin *gin.Context, request any, function HttpFunc) {
 	}
 
 	//处理业务
-	res, err := function()
-	middleware.WriteJSON(res, err)
+	middleware.WriteJSON(function())
 }
 
 // File  File返回
 //
 //	response 必须实现 FileInterface 接口
-func (m *HttpTools) File(gin *gin.Context, request any, function HttpFunc) {
+func (m *Tools) File(gin *gin.Context, request any, function Func) {
 	middleware := NewResponseTools(gin)
 
 	//基础处理 （bind绑定  及链路 处理）
@@ -62,7 +61,7 @@ func (m *HttpTools) File(gin *gin.Context, request any, function HttpFunc) {
 // SSE  SSE返回
 //
 // response 必须是<-chan string
-func (m *HttpTools) SSE(gin *gin.Context, request any, function HttpFunc) {
+func (m *Tools) SSE(gin *gin.Context, request any, function Func) {
 	middleware := NewResponseTools(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {

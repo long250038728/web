@@ -1,4 +1,4 @@
-package tool
+package http
 
 import (
 	"encoding/json"
@@ -43,9 +43,7 @@ func (m *ResponseTools) Bind(request any) error {
 		//写入tag
 		var requestData map[string]any
 		if requestErr = json.Unmarshal(requestByte, &requestData); requestErr == nil {
-			for k, v := range requestData {
-				m.writeTag(k, v)
-			}
+			m.writeTags(requestData)
 		}
 	}
 
@@ -125,19 +123,9 @@ func (m *ResponseTools) writeLog(data string) {
 	m.span.AddEvent(data)
 }
 
-func (m *ResponseTools) writeTag(key string, value any) {
+func (m *ResponseTools) writeTags(tags map[string]any) {
 	if m.span == nil {
 		return
 	}
-	// 只记录部分类型数据
-	switch value.(type) {
-	case string, byte, []byte,
-		float64, float32,
-		int, int64, int32, int16, int8,
-		uint, uint64, uint32, uint16,
-		bool:
-		m.span.SetAttributes(key, value)
-	default:
-
-	}
+	m.span.SetAttributes(tags)
 }

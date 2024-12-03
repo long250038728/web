@@ -81,7 +81,7 @@ func NewEs(config *Config) (*ES, error) {
 //
 //	defer func() {
 //		if r := recover(); r != nil {
-//			_ = span.Add(map[string]any{
+//			_ = span.AddEvent(map[string]any{
 //				"recover": r,
 //			})
 //		}
@@ -92,12 +92,12 @@ func NewEs(config *Config) (*ES, error) {
 //	//	searchSource := (*elastic.SearchSource)(field.UnsafePointer())
 //	//  info, infoErr := searchSource.Source()
 //	info, infoErr := (*elastic.SearchSource)(reflect.Indirect(reflect.ValueOf(s.SearchService)).FieldByName("searchSource").UnsafePointer()).Source()
-//	_ = span.Add(map[string]any{
+//	_ = span.AddEvent(map[string]any{
 //		"request": info,
 //		"error":   infoErr,
 //	})
 //
-//	//_ = span.Add(map[string]any{
+//	//_ = span.AddEvent(map[string]any{
 //	//	"response": data,
 //	//	"error":    err,
 //	//})
