@@ -109,6 +109,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 
 	//创建mq
 	if config.mqConfig != nil && len(config.mqConfig.Address) > 0 && len(config.mqConfig.Address) > 0 {
+		config.mqConfig.Env = util.Info.Env
 		util.mq = mq.NewKafkaMq(config.mqConfig)
 	}
 

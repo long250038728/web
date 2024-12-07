@@ -72,7 +72,7 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 	}
 }
 
-// LoginCheckHandle 登录中间件检验（校验jwt是否有效）
+// LoginCheckHandle 登录中间件检验（校验jwt是否有效）前提是需要执行BaseHandle 中间件
 func LoginCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, err := authorization.GetClaims(c.Request.Context())
@@ -84,10 +84,10 @@ func LoginCheckHandle() gin.HandlerFunc {
 	}
 }
 
-// AuthCheckHandle 权限中间件(校验jwt中对应的session是否有路径访问权限)
+// AuthCheckHandle 权限中间件(校验jwt中对应的session是否有路径访问权限) 前提是需要执行BaseHandle 中间件
 func AuthCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//获取session对象
+		//获取session对象(session对象默认是有本地store及分布式store的，为了解决频繁获取分布式session的问题)
 		sess, err := authorization.GetSession(c.Request.Context())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))

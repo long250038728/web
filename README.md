@@ -4,6 +4,13 @@
 所有的服务/中间件都应该在服务器集群中且不可暴露，仅提供少量的端口对外暴露(如网关入口)。保证了服务/中间件的安全不被恶意攻击且合理有效的控制内部人员的使用权限
 1. 公/私有云集群
 2. docker network
+3. k8s
+
+# 运行场景
+1. 本地调试:  在本地运行时一般不会把所有的服务启动运行一般是针对少数的服务跨服务的调用， grpc使用注册中心获取信息进行调用 (无需注册中心)
+2. 对外服务(注册中心): 程序启动时需要把服务注册到注册中心提供访问，grpc可使用注册中心获取server的address信息(address:port)进行调用
+3. 对外服务(k8s): 在k8s每个服务都应该创建对应的server进行对外访问，grpc可使用k8sDNS的机制(server-name:port)进行调用  (无需注册中心)
+
 
 常用的暴露端口
 * 服务注册与发现
@@ -214,10 +221,13 @@ go run application/order/cmd/main.go -path /app
 ```
 
 ## konga配置 127.0.0.1:1337
+指定kong地址
 ```
 创建
     admin api: 172.40.0.4:8001
-
+```
+微服务网关配置
+```    
 创建service配置信息
     Protocol: http                          //指定发送http请求
     Host: xxxx.service.consul               //注册到consul的服务名.service.consul
@@ -228,4 +238,45 @@ go run application/order/cmd/main.go -path /app
     Strip Path: false                       //从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
         true:   http://127.0.0.1:8000/user/hello  =>  后端path "/hello"
         false:  http://127.0.0.1:8000/user/hello  =>  后端path "/user/hello"
+```
+
+负载均衡配置
+```
+// 模拟请求域名为"xxxx"
+// curl -i http://0.0.0.0 --header "Host: 域名地址"
+创建unstreams配置信息
+    Name: 负载均衡的名称
+    Target: 具体的服务地址:端口号
+
+创建service配置信息
+    Protocol: http                          //指定发送http请求
+    Host: unstreams                         //unstreams配置的名称
+
+创建router配置信息
+    Host: 域名地址                           //相当与nginx中的server，根据传入的header中的Host判断
+    Paths: /                                //指定某个路径调用那个服务(记得回车确认)
+    Strip Path: false                       //从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
+```
+
+admin api配置
+```
+创建service配置信息
+curl -X POST http://0.0.0.0:8001/services \
+  --data "name=test_srv" \
+  --data "host=test.zhubaoe.cn" \
+  --data "protocol=http" 
+
+# 返回的json字段，设置也使用相同的字段 
+{"created_at":1733465542,"updated_at":1733465542,"path":null,"host":"test.zhubaoe.cn","retries":5,"write_timeout":60000,"enabled":true,"port":80,"tags":null,"ca_certificates":null,"client_certificate":null,"read_timeout":60000,"connect_timeout":60000,"name":"test_srv","protocol":"http","tls_verify":null,"id":"9d3f5b04-d0de-46f4-8c5d-5e7238220658","tls_verify_depth":null} 
+
+创建router配置信息
+curl -X POST http://0.0.0.0:8001/routes \
+  --data "name=test_routes" \
+  --data "hosts[]=www.xx1.com" \
+  --data "paths[]=/hello" \
+  --data "service.name=test_srv" \
+  --data "strip_path=false"
+
+# 返回的json字段，设置也使用相同的字段  
+{"created_at":1733465781,"updated_at":1733465781,"service":{"id":"9d3f5b04-d0de-46f4-8c5d-5e7238220658"},"path_handling":"v0","methods":null,"hosts":["www.xx1.com"],"request_buffering":true,"response_buffering":true,"strip_path":true,"snis":null,"regex_priority":0,"tags":null,"paths":null,"protocols":["http","https"],"name":"test_routes","headers":null,"https_redirect_status_code":426,"id":"6af6e619-fac8-4ec0-8908-751f64a75773","preserve_host":false,"sources":null,"destinations":null}  
 ```

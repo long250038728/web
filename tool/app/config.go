@@ -21,11 +21,10 @@ func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
 }
 
 // NewAppConfig 获取app配置
-func NewAppConfig(rootPath string, configType int32, yaml ...string) (config *Config, err error) {
+func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Config, err error) {
 	ctx := context.Background()
 
 	//获取服务器配置列表
-	var conf *Config
 	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
 		return nil, err
 	}
@@ -41,9 +40,13 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (config *Co
 		"tracing":  &conf.tracingConfig,
 	}
 
+	if conf.GRPC == "" {
+		conf.GRPC = GrpcLocal
+	}
+
 	if len(yaml) == 0 {
 		yaml = defaultConfigs
-		if conf.Env == EnvLocal {
+		if conf.GRPC == GrpcLocal || conf.GRPC == GrpcK8s {
 			yaml = defaultLocalConfigs
 		}
 	}

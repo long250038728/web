@@ -1,5 +1,6 @@
 ip: ""
-env: "local"
+env: dev
+grpc: local
 servers:
   server-user:
     http_port: 8001

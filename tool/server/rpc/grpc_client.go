@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/register"
@@ -75,21 +76,36 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 	util := app.NewUtil()
 	target := ""
 
-	if util.Info.Env == app.EnvLocal {
-		//获取本地ip
-		port, ok := util.Info.Servers[c.serverName]
-		if !ok {
-			return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
+	switch util.Info.GRPC {
+	case app.GrpcLocal:
+		{ //获取本地ip
+			port, ok := util.Info.Servers[c.serverName]
+			if !ok {
+				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
+			}
+			target = fmt.Sprintf("%s:%d", util.Info.IP, port.GrpcPort)
 		}
-		target = fmt.Sprintf("%s:%d", util.Info.IP, port.GrpcPort)
-	} else {
-		//服务注册与发现
-		r, err := util.Register()
-		if err != nil {
-			return nil, fmt.Errorf("grpc client dial register is err : %w", err)
+	case app.GrpcK8s:
+		{
+			port, ok := util.Info.Servers[c.serverName]
+			if !ok {
+				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
+			}
+			// server-name.default.svc.cluster.local:port
+			// 如果客户端和服务在同一个命名空间（例如 default），可以直接使用短地址: server-name:port
+			target = fmt.Sprintf("%s:%d", c.serverName, port.GrpcPort)
 		}
-		target = fmt.Sprintf("%s:///%s", Scheme, c.serverName)
-		opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: r})) //服务发现
+	case app.GrpcRegister:
+		{ //服务注册与发现
+			r, err := util.Register()
+			if err != nil {
+				return nil, fmt.Errorf("grpc client dial register is err : %w", err)
+			}
+			target = fmt.Sprintf("%s:///%s", Scheme, c.serverName)
+			opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: r})) //服务发现
+		}
+	default:
+		return nil, errors.New("config grpc is err")
 	}
 
 	//创建socket 连接
