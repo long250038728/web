@@ -16,14 +16,14 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	{
 		userGroup.POST("login", func(c *gin.Context) {
 			var request auth_rpc.LoginRequest
-			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewGateway().JSON(c, &request, func() (interface{}, error) {
 				return srv.Login(c.Request.Context(), &request)
 			})
 		})
 
 		userGroup.POST("refresh", func(c *gin.Context) {
 			var request auth_rpc.RefreshRequest
-			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewGateway().JSON(c, &request, func() (interface{}, error) {
 				return srv.Refresh(c.Request.Context(), &request)
 			})
 		})

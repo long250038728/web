@@ -16,7 +16,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
 	{
 		orderGroup.GET("detail", func(c *gin.Context) {
 			var request order.OrderDetailRequest
-			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewGateway().JSON(c, &request, func() (interface{}, error) {
 				return srv.OrderDetail(c.Request.Context(), &request)
 			})
 		})
