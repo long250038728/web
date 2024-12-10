@@ -29,14 +29,33 @@ import (
 // BaseHandle 基本中间件（带上链路及jwt数据）
 func BaseHandle(client cache.Cache) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		ctx := c.Request.Context()
-
 		defer func() {
 			if r := recover(); r != nil {
 				c.AbortWithStatusJSON(http.StatusOK, NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
 				return
 			}
 		}()
+
+		//跨域处理
+		{
+			// 设置跨域相关的头部信息
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+			// 如果是预检请求（OPTIONS 方法），则直接返回成功响应
+			if c.Request.Method == "OPTIONS" {
+				c.AbortWithStatus(http.StatusNoContent) // 204 No Content
+				return
+			}
+		}
+
+		//前后端分离后，后端不需要处理favicon.ico
+		if c.Request.URL.Path == "/favicon.ico" {
+			c.AbortWithStatus(http.StatusNoContent) // 204 No Content
+			return
+		}
+
+		ctx := c.Request.Context()
 
 		//链路追踪
 		{

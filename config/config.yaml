@@ -2,12 +2,12 @@ ip: ""
 env: dev
 grpc: local
 servers:
-  server-user:
+  user:
     http_port: 8001
     grpc_port: 9001
-  server-order:
+  order:
     http_port: 8002
     grpc_port: 9002
-  server-authorization:
+  authorization:
     http_port: 8003
     grpc_port: 9003
