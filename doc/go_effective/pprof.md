@@ -5,7 +5,12 @@
 ### 1. 使用 `go test` 生成分析文件
 通过命令行生成3个文件：`v1.test`、`cpu.profile`、`mem.profile`：
 ```
-go test -bench=".*" -cpuprofile cpu.profile -memprofile mem.profile
+# -bench 表示需要benchmark运行的方法,.表示运行本目录所有Benchmark开头的方法
+# -benchmem 显示与内存分配相关的详细信息
+# -benchtime 设定每个基准测试用例的运行时间
+# -cpuprofile 生成 CPU 性能分析文件
+# -memprofile 生成内存性能分析文件
+go test -bench='.*' -benchmem -benchtime=10s -cpuprofile='cpu.prof' -memprofile='mem.prof'
 ```
 
 ### 2. 业务埋点生成分析文件
@@ -40,8 +45,8 @@ go func() {
     log.Println(http.ListenAndServe("localhost:6060", nil))
 }()
 
-//go tool pprof http://localhost:6060/debug/pprof/profile  //获取CPU性能数据
-//go tool pprof http://localhost:6060/debug/pprof/heap     //获取堆内存使用情况
+//go tool pprof http://192.168.1.2:8002/user/debug/pprof/profile  //获取CPU性能数据(进入pprof工具内)
+//go tool pprof http://192.168.1.2:8002/user/debug/pprof/heap     //获取堆内存使用情况(进入pprof工具内)
 ```
 
 
@@ -51,7 +56,7 @@ go get github.com/gin-contrib/pprof
 import "github.com/gin-contrib/pprof"
 
 ginRouter := gin.Default()
-pprof.Register(ginRouter, "dev/pprof") // 默认路径为 "debug/pprof"
+pprof.Register(ginRouter, "user/debug/pprof") // 默认路径为 "debug/pprof"
 ```
 
 
@@ -61,13 +66,13 @@ pprof.Register(ginRouter, "dev/pprof") // 默认路径为 "debug/pprof"
 ### 1. 通过HTTP获取并分析
 ```
 curl http://127.0.0.1:8080/debug/pprof/profile -o cpu.profile
-go tool pprof cpu.profile
+go tool pprof cpu.profile //等同于go tool pprof http://127.0.0.1:8080/debug/pprof/profile
 ```
 
 ### 2. 使用go tool pprof工具
 ```
 # 查看服务器的分析数据
-go tool pprof http://localhost:8080/debug/pprof/heap
+go tool pprof http://192.168.1.2:8002/user/debug/pprof/heap
 
 # 启动交互模式分析文件
 go tool pprof v1.test cpu.profile
@@ -79,7 +84,7 @@ go tool pprof v1.test cpu.profile
 
 ### 3. 启动Web服务展示分析结果
 ```
-go tool pprof -http="0.0.0.0:8081" v1.test cpu.profile
+go tool pprof -http :8889 v1.test cpu.profile
 ```
 
 ### 4. 导出分析结果为图表
@@ -88,6 +93,13 @@ sudo yum -y install graphviz.x86_64
 go tool pprof -svg cpu.profile > cpu.svg   # 导出为 SVG 格式
 go tool pprof -pdf cpu.profile > cpu.pdf   # 导出为 PDF 格式
 go tool pprof -png cpu.profile > cpu.png   # 导出为 PNG 格式
+```
+
+### 5. trace分析
+```
+# trace查看
+curl 'http://192.168.1.2:8002/user/debug/pprof/trace?seconds=30' >trace.out
+go tool trace trace.out
 ```
 
 
@@ -129,3 +141,5 @@ go build -gcflags "-m" main.go
 ./main.go:35:14: func literal does not escape
 ./main.go:35:14: ... argument escapes to heap
 ```
+
+
