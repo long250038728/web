@@ -21,19 +21,19 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	{
 		userGroup.GET("say_hello", func(c *gin.Context) {
 			var request user.RequestHello
-			http.NewHttpTools().JSON(c, &request, func() (interface{}, error) {
+			http.NewGateway().JSON(c, &request, func() (interface{}, error) {
 				return srv.SayHello(c.Request.Context(), &request)
 			})
 		})
 		userGroup.GET("xls", func(c *gin.Context) {
 			var request user.RequestHello
-			http.NewHttpTools().File(c, &request, func() (interface{}, error) {
+			http.NewGateway().File(c, &request, func() (interface{}, error) {
 				return srv.SayHello(c.Request.Context(), &request)
 			})
 		})
 		userGroup.GET("sse", func(c *gin.Context) {
 			var request user.RequestHello
-			http.NewHttpTools().SSE(c, &request, func() (interface{}, error) {
+			http.NewGateway().SSE(c, &request, func() (interface{}, error) {
 				return srv.SendSSE(c.Request.Context(), &request)
 			})
 		})

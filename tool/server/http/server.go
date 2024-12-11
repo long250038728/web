@@ -9,7 +9,6 @@ import (
 	"github.com/long250038728/web/tool/server"
 	"net/http"
 	_ "net/http/pprof"
-	"strings"
 )
 
 var _ server.Server = &Server{}
@@ -36,26 +35,14 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	}
 	fmt.Printf("%s : %s:%d\n", svc.svcInstance.Name, svc.svcInstance.Address, svc.svcInstance.Port)
 
-	pprof.Register(handler, fmt.Sprintf("/%s/debug/pprof", strings.ReplaceAll(serverName, "server-", "")))
-	handler.Use(func(c *gin.Context) {
-		// 设置跨域相关的头部信息
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		// 如果是预检请求（OPTIONS 方法），则直接返回成功响应
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatusJSON(http.StatusNoContent, gin.H{}) // 204 No Content
-			return
-		}
-
-		c.Next()
-	})
-
-	//health check
+	// health 心跳检测
 	handler.GET("/health", func(gin *gin.Context) {
 		gin.Writer.WriteHeader(http.StatusOK)
 		_, _ = gin.Writer.Write([]byte("health"))
 	})
+
+	// pprof 监控
+	pprof.Register(handler, fmt.Sprintf("/%s/debug/pprof", serverName))
 
 	handlerFunc(handler)
 	return svc

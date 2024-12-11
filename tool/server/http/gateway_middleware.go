@@ -10,20 +10,20 @@ import (
 	"net/url"
 )
 
-type ResponseTools struct {
+type GatewayMiddleware struct {
 	g    *gin.Context
 	span *opentelemetry.Span
 }
 
-func NewResponseTools(ginContext *gin.Context) *ResponseTools {
-	middleware := &ResponseTools{g: ginContext}
+func NewGatewayMiddleware(ginContext *gin.Context) *GatewayMiddleware {
+	middleware := &GatewayMiddleware{g: ginContext}
 	if span, err := opentelemetry.SpanFromContext(ginContext.Request.Context()); err == nil {
 		middleware.span = span
 	}
 	return middleware
 }
 
-func (m *ResponseTools) Bind(request any) error {
+func (m *GatewayMiddleware) Bind(request any) error {
 	var err error
 	if m.g.Request.Method == http.MethodGet {
 		err = m.g.BindQuery(request)
@@ -56,8 +56,8 @@ func (m *ResponseTools) Bind(request any) error {
 
 //========================================================================
 
-func (m *ResponseTools) WriteJSON(data interface{}, err error) {
-	res := m.response(data, err)
+func (m *GatewayMiddleware) WriteJSON(data interface{}, err error) {
+	res := NewResponse(data, err)
 	marshalByte, err := json.Marshal(res)
 
 	//记录请求响应
@@ -77,7 +77,7 @@ func (m *ResponseTools) WriteJSON(data interface{}, err error) {
 
 //========================================================================
 
-func (m *ResponseTools) WriteFile(fileName string, data []byte) {
+func (m *GatewayMiddleware) WriteFile(fileName string, data []byte) {
 	fileName = url.QueryEscape(fileName) // 防止中文乱码
 	m.g.Header("Content-Type", "application/octet-stream")
 	m.g.Header("Content-Disposition", "attachment; filename=\""+fileName+"\"")
@@ -88,14 +88,14 @@ func (m *ResponseTools) WriteFile(fileName string, data []byte) {
 
 // ========================================================================
 
-func (m *ResponseTools) CheckSupportSEE() error {
+func (m *GatewayMiddleware) CheckSupportSEE() error {
 	if _, ok := m.g.Writer.(http.Flusher); !ok {
 		return errors.New("streaming unsupported")
 	}
 	return nil
 }
 
-func (m *ResponseTools) WriteSSE(ch <-chan string) {
+func (m *GatewayMiddleware) WriteSSE(ch <-chan string) {
 	m.g.Header("Content-Type", "text/event-stream")
 	m.g.Header("Cache-Control", "no-cache")
 	m.g.Header("Connection", "keep-alive")
@@ -112,18 +112,14 @@ func (m *ResponseTools) WriteSSE(ch <-chan string) {
 
 //========================================================================
 
-func (m *ResponseTools) response(data interface{}, err error) *Response {
-	return NewResponse(data, err)
-}
-
-func (m *ResponseTools) writeLog(data string) {
+func (m *GatewayMiddleware) writeLog(data string) {
 	if m.span == nil {
 		return
 	}
 	m.span.AddEvent(data)
 }
 
-func (m *ResponseTools) writeTags(tags map[string]any) {
+func (m *GatewayMiddleware) writeTags(tags map[string]any) {
 	if m.span == nil {
 		return
 	}
