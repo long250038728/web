@@ -177,33 +177,3 @@ func (r *MyResolver) ResolveNow(options resolver.ResolveNowOptions) {
 // Close 当resolver不再被使用时，需要调用这个方法来关闭resolver，释放任何它持有的资源
 func (r *MyResolver) Close() {
 }
-
-//// Dial1 创建conn连接
-//func (c *Client) Dial1(ctx context.Context) (*grpc.ClientConn, error) {
-//	//如果注册中心，那在注册中心获取列表信息
-//	if c.serverName != "" && c.register != nil {
-//		svcInstances, err := c.register.List(ctx, register.GrpcServerName(c.serverName))
-//		if err != nil {
-//			return nil, err
-//		}
-//		c.svcInstances = svcInstances
-//	}
-//
-//	//找不到有任何服务器实例
-//	if c.svcInstances == nil || len(c.svcInstances) == 0 {
-//		return nil, errors.New("svcInstances is null")
-//	}
-//
-//	// 负载均衡
-//	svcInstance := c.balancer.Balancer(c.svcInstances)
-//
-//	//创建socket 连接
-//	return grpc.Dial(
-//		fmt.Sprintf("%s:%d", svcInstance.Address, svcInstance.Port),
-//		grpc.WithTransportCredentials(insecure.NewCredentials()),
-//		grpc.WithKeepaliveParams(clientParameters),
-//		//grpc.WithResolvers(), //服务发现
-//	)
-//}
-
-// =============================

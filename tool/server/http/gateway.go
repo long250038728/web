@@ -12,16 +12,16 @@ type FileInterface interface {
 	FileData() []byte
 }
 
-type Tools struct {
+type Gateway struct {
 }
 
-func NewHttpTools() *Tools {
-	return &Tools{}
+func NewGateway() *Gateway {
+	return &Gateway{}
 }
 
 // JSON  json返回
-func (m *Tools) JSON(gin *gin.Context, request any, function Func) {
-	middleware := NewResponseTools(gin)
+func (m *Gateway) JSON(gin *gin.Context, request any, function Func) {
+	middleware := NewGatewayMiddleware(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)
@@ -35,8 +35,8 @@ func (m *Tools) JSON(gin *gin.Context, request any, function Func) {
 // File  File返回
 //
 //	response 必须实现 FileInterface 接口
-func (m *Tools) File(gin *gin.Context, request any, function Func) {
-	middleware := NewResponseTools(gin)
+func (m *Gateway) File(gin *gin.Context, request any, function Func) {
+	middleware := NewGatewayMiddleware(gin)
 
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
@@ -61,8 +61,8 @@ func (m *Tools) File(gin *gin.Context, request any, function Func) {
 // SSE  SSE返回
 //
 // response 必须是<-chan string
-func (m *Tools) SSE(gin *gin.Context, request any, function Func) {
-	middleware := NewResponseTools(gin)
+func (m *Gateway) SSE(gin *gin.Context, request any, function Func) {
+	middleware := NewGatewayMiddleware(gin)
 	//基础处理 （bind绑定  及链路 处理）
 	if err := middleware.Bind(request); err != nil {
 		middleware.WriteJSON(nil, err)

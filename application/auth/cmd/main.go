@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/auth/internal/domain"
 	"github.com/long250038728/web/application/auth/internal/repository"
+	"github.com/long250038728/web/application/auth/internal/router"
 	"github.com/long250038728/web/application/auth/internal/service"
-	"github.com/long250038728/web/application/auth/router"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -31,16 +31,16 @@ func Run(serverName string) error {
 	}
 
 	// 定义服务
-	userService := service.NewService(
+	svc := service.NewService(
 		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
 	)
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
-				router.RegisterHTTPServer(engine, userService)
+				router.RegisterHTTPServer(engine, svc)
 			}),
 			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
-				router.RegisterGRPCServer(engine, userService)
+				router.RegisterGRPCServer(engine, svc)
 			}),
 		),
 	}
