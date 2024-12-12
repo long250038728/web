@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/limiter"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/system_error"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -96,7 +96,7 @@ func LoginCheckHandle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		_, err := authorization.GetClaims(c.Request.Context())
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
 			return
 		}
 		c.Next()
@@ -109,7 +109,7 @@ func AuthCheckHandle() gin.HandlerFunc {
 		//获取session对象(session对象默认是有本地store及分布式store的，为了解决频繁获取分布式session的问题)
 		sess, err := authorization.GetSession(c.Request.Context())
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
 			return
 		}
 
@@ -123,7 +123,7 @@ func AuthCheckHandle() gin.HandlerFunc {
 		}
 
 		if !isApiAuthorized {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, system_error.Unauthorized))
+			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
 			return
 		}
 
@@ -143,7 +143,7 @@ func LimitHandle(client cache.Cache) gin.HandlerFunc {
 			// 1s 10次
 			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second), limiter.SetTimes(10))
 			if err := limit.Allow(c.Request.Context(), fmt.Sprintf("http:%s", identification)); err != nil {
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, system_error.TooManyRequests))
+				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, app_error.TooManyRequests))
 			}
 		}
 		c.Next()
@@ -158,7 +158,7 @@ func LimitHandle(client cache.Cache) gin.HandlerFunc {
 //
 //		// 加锁
 //		if err := lock.Lock(context.Request.Context()); err != nil {
-//			context.AbortWithStatusJSON(http.StatusBadRequest, NewResponse(nil, system_error.TooManyRequests))
+//			context.AbortWithStatusJSON(http.StatusBadRequest, NewResponse(nil, app_error.TooManyRequests))
 //			return
 //		}
 //

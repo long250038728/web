@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	"github.com/long250038728/web/tool/system_error"
+	"github.com/long250038728/web/tool/app_error"
 )
 
 type Response struct {
@@ -16,7 +16,7 @@ func NewResponse(data interface{}, err error) *Response {
 	if err == nil {
 		return res
 	}
-	var systemErr *system_error.Err
+	var systemErr *app_error.Err
 	if ok := errors.As(err, &systemErr); ok == true {
 		res.Code = systemErr.Code()
 		res.Message = systemErr.Error()

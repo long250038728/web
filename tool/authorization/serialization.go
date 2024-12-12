@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"github.com/golang-jwt/jwt"
-	"github.com/long250038728/web/tool/system_error"
+	"github.com/long250038728/web/tool/app_error"
 )
 
 type Serialization struct {
@@ -20,10 +20,10 @@ func (s *Serialization) ParseToken(token string, c Claims, t TokenType) error {
 	if err != nil {
 		if validationErr, ok := err.(*jwt.ValidationError); ok && validationErr.Errors == jwt.ValidationErrorExpired {
 			if t == AccessToken {
-				err = system_error.AccessExpire
+				err = app_error.AccessExpire
 			}
 			if t == RefreshToken {
-				err = system_error.RefreshExpire
+				err = app_error.RefreshExpire
 			}
 		}
 		return err

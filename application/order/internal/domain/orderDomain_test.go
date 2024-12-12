@@ -6,8 +6,8 @@ import (
 	"github.com/long250038728/web/application/order/internal/repository"
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/server/rpc"
-	"github.com/long250038728/web/tool/system_error"
 	"testing"
 	"time"
 )
@@ -18,7 +18,7 @@ func TestOrderDomain_OrderDetail(t *testing.T) {
 
 	f := func() {
 		resp, err := d.OrderDetail(context.Background(), &order.OrderDetailRequest{Id: 11111})
-		if errors.Is(err, system_error.CircuitBreaker) {
+		if errors.Is(err, app_error.CircuitBreaker) {
 			resp = &order.OrderDetailResponse{OrderSn: "熔断"}
 			err = nil
 		}

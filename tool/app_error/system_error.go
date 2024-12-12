@@ -1,4 +1,4 @@
-package system_error
+package app_error
 
 type Err struct {
 	error
@@ -15,7 +15,7 @@ var ( // 哨兵错误
 	TooManyRequests = NewError("100010", "too many requests") // 请求过于频繁
 	Unauthorized    = NewError("100011", "unauthorized")      // 没有权限
 
-	CircuitBreaker = NewError("100020", "Circuit Breaker") //熔断器触发
+	CircuitBreaker = NewError("100020", "circuit breaker") //熔断器触发
 )
 
 func NewError(code, message string) error {
