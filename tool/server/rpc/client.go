@@ -30,6 +30,15 @@ var clientParameters = keepalive.ClientParameters{
 	PermitWithoutStream: true,             // 即使没有活动的数据流，也发送心跳
 }
 
+// =================================================================================================
+// circuitList 设置需要熔断的接口
+var circuitList []string
+
+// SetCircuits 设置需要熔断的接口(不需要append是因为列表是确定的不会运行中添加，所以无需动态添加)
+func SetCircuits(circuits []string) {
+	circuitList = circuits
+}
+
 //=================================================================================================
 
 // ClientOpt grpc客户端opt
@@ -62,13 +71,10 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 		}
 	}()
 
-	c.once.Do(func() {
-		resolver.Register(&MyResolversBuild{})
-	})
-
 	//获取target 信息
 	c.serverName = serverName
 	opts := []grpc.DialOption{
+		grpc.WithUnaryInterceptor(tool.ServerCircuitInterceptor(circuitList)),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
 	}
@@ -97,6 +103,9 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 		}
 	case app.GrpcRegister:
 		{ //服务注册与发现
+			c.once.Do(func() {
+				resolver.Register(&MyResolversBuild{})
+			})
 			r, err := util.Register()
 			if err != nil {
 				return nil, fmt.Errorf("grpc client dial register is err : %w", err)

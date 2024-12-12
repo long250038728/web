@@ -15,9 +15,7 @@ var ( // 哨兵错误
 	TooManyRequests = NewError("100010", "too many requests") // 请求过于频繁
 	Unauthorized    = NewError("100011", "unauthorized")      // 没有权限
 
-	LimiterTime = NewError("110001", "The limiter time setting is incorrect") // limiter时间设置有误
-	Limiter     = NewError("110002", "the limiter has been triggered")        // limiter已经触发
-
+	CircuitBreaker = NewError("100020", "Circuit Breaker") //熔断器触发
 )
 
 func NewError(code, message string) error {
