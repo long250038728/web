@@ -2,7 +2,7 @@ package limiter
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/system_error"
+	"errors"
 	"time"
 )
 
@@ -48,7 +48,7 @@ func (l *cacheLimiter) Allow(ctx context.Context, key string) error {
 		return redis.call("incr",KEYS[1]);
 	`
 	if l.expiration < time.Millisecond {
-		return system_error.LimiterTime
+		return errors.New("the limiter time setting is incorrect")
 	}
 
 	data, err := l.client.Eval(ctx, script, []string{key}, 0, l.expiration/time.Millisecond)
@@ -58,5 +58,5 @@ func (l *cacheLimiter) Allow(ctx context.Context, key string) error {
 	if l.times >= data.(int64) {
 		return nil
 	}
-	return system_error.Limiter
+	return errors.New("the limiter has been triggered")
 }

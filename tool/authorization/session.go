@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/long250038728/web/tool/system_error"
+	"github.com/long250038728/web/tool/app_error"
 	"time"
 )
 
@@ -35,7 +35,7 @@ func (p *Session) GetSession(ctx context.Context, sessionId string) (session *Us
 
 	// 获取不到则报错
 	if len(sessionStr) == 0 {
-		return nil, system_error.SessionExpire
+		return nil, app_error.SessionExpire
 	}
 	return session, json.Unmarshal([]byte(sessionStr), &session)
 }
