@@ -62,6 +62,8 @@ func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 }
 
 // ServerCircuitInterceptor 熔断拦截器（可通过errors.Is(err, app_error.CircuitBreaker)进行判断进行服务降级而不是直接报错）
+// 注意: 如果一个函数依赖多个下游，而且他们是有非常密切的关系，中间某个熔断就会导致数据有问题，此时熔断一般是一些不重要的接口，在返回熔断后可用通过缓存或默认值进行服务降级的操作
+// 当一个接口依赖了非常重要的下游时，应该控制的是调用接口的入口(服务限流的方式)。以确保整个函数执行过程中不会因为某个下游导致数据不一致问题
 func ServerCircuitInterceptor(circuits []string) grpc.UnaryClientInterceptor {
 	circuitHash := make(map[string]struct{}, len(circuits))
 	for _, circuitPath := range circuits {
