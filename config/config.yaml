@@ -1,6 +1,6 @@
 ip: ""
-env: dev
-grpc: local
+env: dev    # 可用于环境的区分
+grpc: local # 支持local,k8s,register
 servers:
   user:
     http_port: 8001
