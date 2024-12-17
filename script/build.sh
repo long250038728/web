@@ -25,15 +25,15 @@ IMAGE_NAME="${DOCKER_DOMAIN}/${SERVER}:${VERSION}"
 
 
 #打包成镜像
-docker buildx build --platform linux/amd64,linux/arm64 -f ${DOCKER_FILE} -t ${IMAGE_NAME} .
+docker buildx build --platform linux/amd64 -f ${DOCKER_FILE} -t ${IMAGE_NAME} .
 
 #无需使用进行删除
 rm -rf  app
 
-# 上传到hub
-docker push ${IMAGE_NAME}
-
-# docker 运行
-docker run  -itd  --network my-service-network  -p ${HTTP_PORT}  -p ${GRPC_PORT}  --name ${SERVER} ${IMAGE_NAME}
+## 上传到hub
+#docker push ${IMAGE_NAME}
+#
+## docker 运行
+#docker run  -itd  --network my-service-network  -p ${HTTP_PORT}  -p ${GRPC_PORT}  --name ${SERVER} ${IMAGE_NAME}
 
 
