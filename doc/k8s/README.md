@@ -244,7 +244,7 @@ spec:
       port: 8001
 ```
 
-验证
+验证(LoadBalancer 在normal)
 ```
 [root@k8s]# kubectl get all -n normal
 NAME                                        READY   STATUS    RESTARTS       AGE
@@ -353,7 +353,7 @@ spec:
       version: v2
 ```
 
-验证
+验证(LoadBalancer 在istio-system)
 ```
 [root@k8s]# kubectl get all -n istio-system
 NAME                                        READY   STATUS    RESTARTS   AGE
