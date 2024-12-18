@@ -153,7 +153,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
 	}
 
-	for _, addr := range productList {
+	for _, addr := range ProductList {
 		list, err := o.git.GetPR(ctx, addr, source, target)
 		if err != nil || len(list) != 1 {
 			continue
@@ -201,66 +201,6 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 		}
 	}
 	return address, nil
-}
-
-//============================================================================================
-
-func (o *Task) BuildCheck(ctx context.Context, source, target, svcPath string) error {
-	if len(svcPath) > 0 {
-		if err := configurator.NewYaml().Load(svcPath, &o.services); err != nil {
-			return err
-		}
-	}
-	var list []*requestInfo
-	var err error
-	if list, err = o.listCheck(ctx, source, target); err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
-		return err
-	}
-	if err = o.save(ctx, list); err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
-		return err
-	}
-
-	projectNames := make([]string, 0, len(list))
-	for index, val := range list {
-		projectNames = append(projectNames, fmt.Sprintf("%d.%s", index+1, val.Project))
-	}
-	_ = o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
-	return nil
-}
-
-func (o *Task) listCheck(ctx context.Context, source, target string) ([]*requestInfo, error) {
-	var address = make([]*requestInfo, 0, 100)
-	if o.git == nil {
-		return nil, errors.New("git client is null")
-	}
-
-	if len(o.services.SQL) > 0 {
-		if o.orm == nil {
-			return nil, errors.New("orm client is null")
-		}
-		sqls, err := o.orm.Parser(o.services.SQL)
-		if err != nil {
-			return nil, errors.New("sql parser is err: " + err.Error())
-		}
-		address = append(address, &requestInfo{Type: TaskTypeSql, Project: "sql", Params: map[string]any{"sql": sqls}})
-	}
-
-	if len(o.services.Shell) > 0 {
-		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* check", o.services.Shell, o.services.Shell)})
-	}
-
-	for _, addr := range productList {
-		list, err := o.git.GetPR(ctx, addr, source, target)
-		if err != nil || len(list) != 1 {
-			continue
-		}
-		//调用合并分支
-		address = append(address, &requestInfo{Type: TaskTypeGit, Project: addr, Params: map[string]any{"num": list[0].Number}})
-	}
-	return address, nil
-
 }
 
 //============================================================================================

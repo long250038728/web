@@ -23,7 +23,7 @@ var taskHashMap = map[int32]string{
 	TaskTypeRemoteShell: "RemoteShell", //脚本
 }
 
-var productList = []string{
+var ProductList = []string{
 	"zhubaoe/locke",
 	"zhubaoe-go/kobe",
 	"zhubaoe/marx",
@@ -32,6 +32,17 @@ var productList = []string{
 	"fissiongeek/h5-sales",
 	"zhubaoe/plato",
 	"zhubaoe/hume",
+}
+
+var ProductHash = map[string]string{
+	"locke": "zhubaoe/locke",
+	"kobe":  "zhubaoe-go/kobe",
+	"hume":  "zhubaoe/hume",
+	"ari":   "zhubaoe/aristotle",
+	"h5":    "fissiongeek/h5-sales",
+	"soc":   "zhubaoe/socrates",
+	"plato": "zhubaoe/plato",
+	"marx":  "zhubaoe/marx",
 }
 
 type Svc struct {

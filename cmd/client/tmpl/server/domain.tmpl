@@ -1,0 +1,15 @@
+package domain
+
+import (
+	"{{.Page}}/{{.Server}}/internal/repository"
+)
+
+type Domain struct {
+	repository *repository.Repository
+}
+
+func NewDomain(repository *repository.Repository) *Domain {
+	return &Domain{
+		repository: repository,
+	}
+}

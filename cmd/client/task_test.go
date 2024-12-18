@@ -45,33 +45,6 @@ func init() {
 		panic(err)
 	}
 }
-func TestCheckBuild(t *testing.T) {
-	var err error
-	var ormConfig orm.Config
-	configLoad := configurator.NewYaml()
-	configLoad.MustLoadConfigPath("check/db.yaml", &ormConfig)
-	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
-		panic(err)
-	}
-
-	if err := NewTaskClient(
-		SetOutPath("./"),
-		SetFileName("json.json"),
-		SetGit(gitClient),
-		SetJenkins(jenkinsClient),
-		SetOrm(ormClient),
-		SetRemoteShell(sshClient),
-		SetQyHook(hookClient, tels),
-	).BuildCheck(
-		context.Background(),
-		"release/v3.6.02.0",
-		"check",
-		"./script/svc.yaml",
-	); err != nil {
-		t.Errorf("Build() error = %v ", err)
-	}
-	t.Log("ok")
-}
 
 func TestOnlineBuild(t *testing.T) {
 	return

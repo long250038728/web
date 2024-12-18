@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-deployment
-  labels:
-    app: user
+  name: user-v1-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: user
+      version: v1
   template:
     metadata:
       labels:
         app: user
+        version: v1
     spec:
       containers:
-        - name: user
-          image: ccr.ccs.tencentyun.com/linl/user:latest
+        - name: user-container
+          image: ccr.ccs.tencentyun.com/linl/user:v1
           ports:
             - containerPort: 8001
             - containerPort: 9001
@@ -25,15 +25,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: user-service
+  name: user
+  namespace: normal
 spec:
-  type: NodePort
   selector:
     app: user
   ports:
-    - name: http
+    - protocol: TCP
       port: 8001
       targetPort: 8001
-    - name: grpc
+      name: user-port-8001
+    - protocol: TCP
       port: 9001
       targetPort: 9001
+      name: user-port-9001
+  type: ClusterIP
