@@ -163,13 +163,13 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "router", "router.go"), routerBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", "service.go"), serverBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", server+".go"), serverBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", "domain.go"), domianBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+"_domain.go"), domianBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "repository", "repository.go"), repositoryBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "repository", server+"_repository.go"), repositoryBytes, os.ModePerm); err != nil {
 					return err
 				}
 
