@@ -9,22 +9,22 @@ import (
 	"path/filepath"
 )
 
-type DevopsValue struct {
+type devopsValue struct {
 	Server string `json:"server" yaml:"server"`
 	Http   string `json:"http" yaml:"http"`
 	Grpc   string `json:"grpc" yaml:"grpc"`
 }
-type KubernetesValue struct {
-	*DevopsValue
+type kubernetesValue struct {
+	*devopsValue
 	Version string `json:"version" yaml:"version"`
 	Hub     string `json:"hub" yaml:"hub"`
 }
 
-type Devops struct {
+type devops struct {
 }
 
-func NewDevopsGen() *Devops {
-	return &Devops{}
+func newDevopsGen() *devops {
+	return &devops{}
 }
 
 //go:embed tmpl/devops/dockerfile.tmpl
@@ -33,15 +33,15 @@ var dockerfileTmpl string
 //go:embed tmpl/devops/kubernetes.tmpl
 var kubernetesTmpl string
 
-// GenDockerfile 生成
-func (g *Devops) GenDockerfile(data *DevopsValue) ([]byte, error) {
+// genDockerfile 生成
+func (g *devops) genDockerfile(data *devopsValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name: "gen dockerfile",
 		Tmpl: dockerfileTmpl,
 		Data: data,
 	}).Gen()
 }
-func (g *Devops) GenKubernetes(data *KubernetesValue) ([]byte, error) {
+func (g *devops) genKubernetes(data *kubernetesValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name: "gen kubernetes",
 		Tmpl: kubernetesTmpl,
@@ -85,12 +85,12 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 				var kubernetesBytes []byte
 				var err error
 
-				g := NewDevopsGen()
+				g := newDevopsGen()
 
-				if dockerfileBytes, err = g.GenDockerfile(&DevopsValue{Server: server, Http: http, Grpc: grpc}); err != nil {
+				if dockerfileBytes, err = g.genDockerfile(&devopsValue{Server: server, Http: http, Grpc: grpc}); err != nil {
 					return err
 				}
-				if kubernetesBytes, err = g.GenKubernetes(&KubernetesValue{DevopsValue: &DevopsValue{Server: server, Http: http, Grpc: grpc}, Version: version, Hub: c.hub}); err != nil {
+				if kubernetesBytes, err = g.genKubernetes(&kubernetesValue{devopsValue: &devopsValue{Server: server, Http: http, Grpc: grpc}, Version: version, Hub: c.hub}); err != nil {
 					return err
 				}
 

@@ -9,16 +9,16 @@ import (
 	"path/filepath"
 )
 
-type ServerValue struct {
+type serverValue struct {
 	Server string `json:"server" yaml:"server"`
 	Page   string `json:"page" yaml:"page"`
 }
 
-type Server struct {
+type server struct {
 }
 
-func NewServerGen() *Server {
-	return &Server{}
+func newServerGen() *server {
+	return &server{}
 }
 
 //go:embed tmpl/server/main.tmpl
@@ -36,8 +36,8 @@ var domain string
 //go:embed tmpl/server/repository.tmpl
 var repository string
 
-// GenMain 生成
-func (g *Server) GenMain(data *ServerValue) ([]byte, error) {
+// genMain 生成
+func (g *server) genMain(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen main",
 		Tmpl:     main,
@@ -45,7 +45,7 @@ func (g *Server) GenMain(data *ServerValue) ([]byte, error) {
 		IsFormat: true,
 	}).Gen()
 }
-func (g *Server) GenRouter(data *ServerValue) ([]byte, error) {
+func (g *server) genRouter(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen router",
 		Tmpl:     router,
@@ -53,8 +53,7 @@ func (g *Server) GenRouter(data *ServerValue) ([]byte, error) {
 		IsFormat: true,
 	}).Gen()
 }
-
-func (g *Server) GenService(data *ServerValue) ([]byte, error) {
+func (g *server) genService(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen service",
 		Tmpl:     service,
@@ -62,8 +61,7 @@ func (g *Server) GenService(data *ServerValue) ([]byte, error) {
 		IsFormat: true,
 	}).Gen()
 }
-
-func (g *Server) GenDomain(data *ServerValue) ([]byte, error) {
+func (g *server) genDomain(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen domain",
 		Tmpl:     domain,
@@ -71,8 +69,7 @@ func (g *Server) GenDomain(data *ServerValue) ([]byte, error) {
 		IsFormat: true,
 	}).Gen()
 }
-
-func (g *Server) GenRepository(data *ServerValue) ([]byte, error) {
+func (g *server) genRepository(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen repository",
 		Tmpl:     repository,
@@ -129,30 +126,30 @@ func (c *ServerCorn) Server() *cobra.Command {
 					}
 				}
 
-				g := NewServerGen()
+				g := newServerGen()
 				var mainBytes []byte
 				var routerBytes []byte
 
 				var serverBytes []byte
-				var domianBytes []byte
+				var domainBytes []byte
 				var repositoryBytes []byte
 
-				v := &ServerValue{Server: server, Page: c.page}
+				v := &serverValue{Server: server, Page: c.page}
 
-				if mainBytes, err = g.GenMain(v); err != nil {
+				if mainBytes, err = g.genMain(v); err != nil {
 					return err
 				}
-				if routerBytes, err = g.GenRouter(v); err != nil {
+				if routerBytes, err = g.genRouter(v); err != nil {
 					return err
 				}
 
-				if serverBytes, err = g.GenService(v); err != nil {
+				if serverBytes, err = g.genService(v); err != nil {
 					return err
 				}
-				if domianBytes, err = g.GenDomain(v); err != nil {
+				if domainBytes, err = g.genDomain(v); err != nil {
 					return err
 				}
-				if repositoryBytes, err = g.GenRepository(v); err != nil {
+				if repositoryBytes, err = g.genRepository(v); err != nil {
 					return err
 				}
 
@@ -166,7 +163,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", server+".go"), serverBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+"_domain.go"), domianBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+"_domain.go"), domainBytes, os.ModePerm); err != nil {
 					return err
 				}
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "repository", server+"_repository.go"), repositoryBytes, os.ModePerm); err != nil {
