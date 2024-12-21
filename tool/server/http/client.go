@@ -54,7 +54,7 @@ func SetHttpClient(client *http.Client) Opt {
 func NewClient(opts ...Opt) *Client {
 	client := &Client{
 		timeout:     time.Second * 3,       //默认3s超时(单个请求超时，并非整个client)
-		contentType: "application/json",    //默认json
+		contentType: "application/JSON",    //默认json
 		client:      NewCustomHttpClient(), //默认http client
 	}
 	for _, opt := range opts {

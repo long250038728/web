@@ -6,9 +6,9 @@ import (
 )
 
 type Response struct {
-	Code    string      `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Code    string      `JSON:"code"`
+	Message string      `JSON:"message"`
+	Data    interface{} `JSON:"data"`
 }
 
 func NewResponse(data interface{}, err error) *Response {

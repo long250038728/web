@@ -17,26 +17,35 @@ import (
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	cache, _ := app.NewUtil().Cache()
+	gateway := http.NewGateway()
+
 	userGroup := engine.Group("/user/user/").Use(http.BaseHandle(cache), http.LimitHandle(cache))
 	{
 		userGroup.GET("say_hello", func(c *gin.Context) {
 			var request user.RequestHello
-			http.NewGateway().JSON(c, &request, func() (interface{}, error) {
+			gateway.JSON(c, &request, func() (interface{}, error) {
 				return srv.SayHello(c.Request.Context(), &request)
 			})
 		})
-		userGroup.GET("xls", func(c *gin.Context) {
-			var request user.RequestHello
-			http.NewGateway().File(c, &request, func() (interface{}, error) {
-				return srv.SayHello(c.Request.Context(), &request)
-			})
-		})
-		userGroup.GET("sse", func(c *gin.Context) {
-			var request user.RequestHello
-			http.NewGateway().SSE(c, &request, func() (interface{}, error) {
-				return srv.SendSSE(c.Request.Context(), &request)
-			})
-		})
+
+		//userGroup.GET("say_hello", func(c *gin.Context) {
+		//	var request user.RequestHello
+		//	gateway.Run(http.Json(), c, &request, func() (interface{}, error) {
+		//		return srv.SayHello(c.Request.Context(), &request)
+		//	})
+		//})
+		//userGroup.GET("xls", func(c *gin.Context) {
+		//	var request user.RequestHello
+		//	gateway.Run(http.File(), c, &request, func() (interface{}, error) {
+		//		return srv.SayHello(c.Request.Context(), &request)
+		//	})
+		//})
+		//userGroup.GET("sse", func(c *gin.Context) {
+		//	var request user.RequestHello
+		//	gateway.Run(http.File(), c, &request, func() (interface{}, error) {
+		//		return srv.SendSSE(c.Request.Context(), &request)
+		//	})
+		//})
 	}
 }
 

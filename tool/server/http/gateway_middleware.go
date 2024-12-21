@@ -15,12 +15,16 @@ type GatewayMiddleware struct {
 	span *opentelemetry.Span
 }
 
-func NewGatewayMiddleware(ginContext *gin.Context) *GatewayMiddleware {
-	middleware := &GatewayMiddleware{g: ginContext}
+func NewGatewayMiddleware() *GatewayMiddleware {
+	return &GatewayMiddleware{}
+}
+
+func (m *GatewayMiddleware) SetGin(ginContext *gin.Context) *GatewayMiddleware {
+	m.g = ginContext
 	if span, err := opentelemetry.SpanFromContext(ginContext.Request.Context()); err == nil {
-		middleware.span = span
+		m.span = span
 	}
-	return middleware
+	return m
 }
 
 func (m *GatewayMiddleware) Bind(request any) error {
@@ -54,25 +58,39 @@ func (m *GatewayMiddleware) Bind(request any) error {
 	return err
 }
 
-//========================================================================
+func (m *GatewayMiddleware) Reset() {
+	m.g = nil
+	m.span = nil
+}
+
+// ========================================================================
+
+func (m *GatewayMiddleware) WriteData(data interface{}) {
+	m.WriteJSON(data, nil)
+}
+
+func (m *GatewayMiddleware) WriteErr(err error) {
+	m.WriteJSON(nil, err)
+}
 
 func (m *GatewayMiddleware) WriteJSON(data interface{}, err error) {
-	res := NewResponse(data, err)
+	res := NewResponse(data, nil)
 	marshalByte, err := json.Marshal(res)
-
-	//记录请求响应
-	m.writeLog(string(marshalByte))
-
-	//这里是Marshal 报错
 	if err != nil {
 		res.Code = "999999"
 		res.Message = err.Error()
 		res.Data = nil
 		marshalByte, _ = json.Marshal(res)
 	}
+	m.WriteBytes(marshalByte)
+}
 
-	m.g.Header("Content-Type", "application/json")
-	_, _ = m.g.Writer.Write(marshalByte)
+func (m *GatewayMiddleware) WriteBytes(b []byte) {
+	//记录请求响应
+	m.writeLog(string(b))
+
+	m.g.Header("Content-Type", "application/JSON")
+	_, _ = m.g.Writer.Write(b)
 }
 
 //========================================================================
@@ -83,7 +101,7 @@ func (m *GatewayMiddleware) WriteFile(fileName string, data []byte) {
 	m.g.Header("Content-Disposition", "attachment; filename=\""+fileName+"\"")
 
 	_, _ = m.g.Writer.Write(data)
-	m.writeLog("file is write ok")
+	m.writeLog("File is write ok")
 }
 
 // ========================================================================
@@ -107,7 +125,7 @@ func (m *GatewayMiddleware) WriteSSE(ch <-chan string) {
 		_, _ = fmt.Fprintf(w, message)
 		f.Flush()
 	}
-	m.writeLog("sse send ok")
+	m.writeLog("SSE send ok")
 }
 
 //========================================================================

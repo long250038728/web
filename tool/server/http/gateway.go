@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"sync"
 )
 
 type Func func() (interface{}, error)
@@ -12,78 +13,107 @@ type FileInterface interface {
 	FileData() []byte
 }
 
+type Function interface {
+	Run(middleware *GatewayMiddleware, function Func)
+}
+
 type Gateway struct {
+	pool sync.Pool
 }
 
 func NewGateway() *Gateway {
-	return &Gateway{}
+	return &Gateway{
+		pool: sync.Pool{
+			New: func() any {
+				return NewGatewayMiddleware()
+			},
+		},
+	}
 }
 
-// JSON  json返回
-func (m *Gateway) JSON(gin *gin.Context, request any, function Func) {
-	middleware := NewGatewayMiddleware(gin)
-	//基础处理 （bind绑定  及链路 处理）
+func (g *Gateway) getGatewayMiddleware(gin *gin.Context) *GatewayMiddleware {
+	return g.pool.Get().(*GatewayMiddleware).SetGin(gin)
+}
+func (g *Gateway) putGatewayMiddleware(middleware *GatewayMiddleware) {
+	middleware.Reset()
+	g.pool.Put(middleware)
+}
+
+//==========================================================================================================
+
+func (g *Gateway) JSON(gin *gin.Context, request any, function Func) {
+	g.do(&JSON{}, gin, request, function)
+}
+
+func (g *Gateway) File(gin *gin.Context, request any, function Func) {
+	g.do(&File{}, gin, request, function)
+}
+
+func (g *Gateway) SSE(gin *gin.Context, request any, function Func) {
+	g.do(&SSE{}, gin, request, function)
+}
+
+func (g *Gateway) do(f Function, gin *gin.Context, request any, function Func) {
+	middleware := g.getGatewayMiddleware(gin)
+	defer g.putGatewayMiddleware(middleware)
+
 	if err := middleware.Bind(request); err != nil {
-		middleware.WriteJSON(nil, err)
+		middleware.WriteErr(err)
 		return
 	}
 
-	//处理业务
-	middleware.WriteJSON(function())
+	f.Run(middleware, function)
 }
 
-// File  File返回
-//
-//	response 必须实现 FileInterface 接口
-func (m *Gateway) File(gin *gin.Context, request any, function Func) {
-	middleware := NewGatewayMiddleware(gin)
+//==========================================================================================================
 
-	//基础处理 （bind绑定  及链路 处理）
-	if err := middleware.Bind(request); err != nil {
-		middleware.WriteJSON(nil, err)
+type JSON struct {
+}
+
+func (r *JSON) Run(middleware *GatewayMiddleware, function Func) {
+	resp, err := function()
+	if err != nil {
+		middleware.WriteErr(err)
 		return
 	}
+	middleware.WriteData(resp)
+}
 
+type File struct {
+}
+
+func (r *File) Run(middleware *GatewayMiddleware, function Func) {
 	//处理业务
 	res, err := function()
 	if err != nil {
-		middleware.WriteJSON(nil, err)
+		middleware.WriteErr(err)
 		return
 	}
-
 	if file, ok := res.(FileInterface); !ok {
-		middleware.WriteJSON(nil, errors.New("the file is not interface to FileInterface"))
+		middleware.WriteErr(errors.New("the File is not interface to FileInterface"))
 	} else {
 		middleware.WriteFile(file.FileName(), file.FileData())
 	}
 }
 
-// SSE  SSE返回
-//
-// response 必须是<-chan string
-func (m *Gateway) SSE(gin *gin.Context, request any, function Func) {
-	middleware := NewGatewayMiddleware(gin)
-	//基础处理 （bind绑定  及链路 处理）
-	if err := middleware.Bind(request); err != nil {
-		middleware.WriteJSON(nil, err)
-		return
-	}
+type SSE struct {
+}
 
+func (r *SSE) Run(middleware *GatewayMiddleware, function Func) {
 	// 检查是否支持SSE
 	if err := middleware.CheckSupportSEE(); err != nil {
-		middleware.WriteJSON(nil, err)
+		middleware.WriteErr(err)
 		return
 	}
-
 	//处理业务
 	res, err := function()
 	if err != nil {
-		middleware.WriteJSON(nil, err)
+		middleware.WriteErr(err)
 		return
 	}
 
 	if ch, ok := res.(<-chan string); !ok {
-		middleware.WriteJSON(nil, errors.New("the response is not chan string"))
+		middleware.WriteErr(errors.New("the response is not chan string"))
 	} else {
 		middleware.WriteSSE(ch)
 	}

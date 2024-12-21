@@ -67,7 +67,7 @@ func TestClient_Get(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Second), SetContentType("application/json"), SetHttpClient(NewCustomHttpClient()))
+	httpClient := NewClient(SetTimeout(time.Second), SetContentType("application/JSON"), SetHttpClient(NewCustomHttpClient()))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,
