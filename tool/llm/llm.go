@@ -130,3 +130,36 @@ func (c *QwChat) Chat(ctx context.Context, msg string) (string, error) {
 	c.message = append(c.message, resp.Choices[0].Message)
 	return resp.Choices[0].Message.Content, nil
 }
+
+func (c *QwChat) ChatStream(ctx context.Context, msg string) (chan string, error) {
+	ch := make(chan string, 5)
+
+	c.message = append(c.message, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: msg,
+	})
+
+	resp, err := c.client.CreateChatCompletionStream(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model:    "qwen-plus",
+			Messages: c.message,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		defer resp.Close()
+		for {
+			receivedResponse, streamErr := resp.Recv()
+			if streamErr != nil {
+				close(ch)
+				return
+			}
+			ch <- receivedResponse.Choices[0].Delta.Content
+		}
+	}()
+	return ch, nil
+}

@@ -4,7 +4,8 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/internal/repository"
 	"github.com/long250038728/web/protoc/user"
-	"time"
+	"github.com/long250038728/web/tool/llm"
+	"github.com/sashabaranov/go-openai"
 )
 
 type Domain struct {
@@ -23,19 +24,10 @@ func (s *Domain) SayHello(ctx context.Context, request *user.RequestHello) (*use
 }
 
 func (s *Domain) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan string, error) {
-	ch := make(chan string, 10)
-	go func() {
-		defer close(ch)
-		for i := 0; i < 100; i++ {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
-			ch <- time.Now().Local().Format(time.DateTime) + "\n"
-			time.Sleep(time.Second)
-		}
-	}()
-	return ch, nil
+	return llm.NewOpenAiClient(llm.SetMessage([]openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: `You are a Kubernetes expert. You can write Kubernetes related yaml file.`,
+		},
+	})).ChatStream(ctx, "i want to deploy a service in k8s, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
 }

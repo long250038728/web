@@ -3,6 +3,7 @@ module github.com/long250038728/web
 go 1.22
 
 require (
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
 	github.com/apache/rocketmq-clients/golang/v5 v5.1.1-rc1
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/gin-contrib/pprof v1.5.0
@@ -11,10 +12,12 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/hashicorp/consul/api v1.28.3
+	github.com/hashicorp/golang-lru v0.5.4
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/prometheus/client_golang v1.11.1
 	github.com/qiniu/go-sdk/v7 v7.18.2
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/sashabaranov/go-openai v1.36.0
 	github.com/segmentio/kafka-go v0.4.44
 	github.com/spf13/cobra v1.8.0
 	github.com/xuri/excelize/v2 v2.8.0
@@ -36,7 +39,6 @@ require (
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.7.0 // indirect
-	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -71,7 +73,6 @@ require (
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -100,7 +101,7 @@ require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.3 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
-	github.com/sashabaranov/go-openai v1.36.0 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
