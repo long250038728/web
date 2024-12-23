@@ -3,10 +3,9 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/user/internal/service"
-	"github.com/long250038728/web/tool/server/http"
-
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/server/http"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -27,6 +26,15 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 				return srv.SayHello(c.Request.Context(), &request)
 			})
 		})
+
+		//userGroup.GET("say", func(c *gin.Context) {
+		//	// 添加拦截器链并处理请求
+		//	var request user.RequestHello
+		//	resp, err := g.NewAAA(c, &request).Handle(func(ctx context.Context, req map[string]any) (any, error) {
+		//		return srv.SayHello(c.Request.Context(), &request)
+		//	})
+		//	fmt.Println(resp, err)
+		//})
 
 		//userGroup.GET("say_hello", func(c *gin.Context) {
 		//	var request user.RequestHello

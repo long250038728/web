@@ -34,6 +34,8 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 	//orm
 	db.Select("name").Where("id = ?", 1).Find(c)
 
+	return "hello:" + request.Name + " " + c.Name, nil
+
 	////mq
 	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
 
