@@ -150,43 +150,6 @@ func LimitHandle(client cache.Cache) gin.HandlerFunc {
 	}
 }
 
-//// LockHandle 防抖中间件，检查是否有重复提交的问题
-//func LockHandle(store locker.Store, identification string) gin.HandlerFunc {
-//	return func(context *gin.Context) {
-//		key := context.Request.URL.Path
-//		lock := locker.NewRedisLocker(store, key, identification, time.Second*10)
-//
-//		// 加锁
-//		if err := lock.Lock(context.Request.Context()); err != nil {
-//			context.AbortWithStatusJSON(http.StatusBadRequest, NewResponse(nil, app_error.TooManyRequests))
-//			return
-//		}
-//
-//		context.Next()
-//
-//		// 解锁
-//		lock.UnLock(context.Request.Context())
-//	}
-//}
-
-//func CacheHandle(client cache.Cache, identification map[string]any) gin.HandlerFunc {
-//	return func(context *gin.Context) {
-//		key := ""
-//
-//		// 拦截 Response 并缓存
-//		writer := &responseCacheWriter{ResponseWriter: context.Writer}
-//		context.Writer = writer
-//
-//		// 继续处理请求
-//		context.Next()
-//
-//		//writer.body.Bytes()
-//		//client.SetEX(context.Request.Context(),""，""，)
-//	}
-//}
-
-//========
-
 func CamelToSnake(url string) string {
 	// 使用正则表达式匹配大写字母，并在前面添加下划线
 	re := regexp.MustCompile("([a-z0-9])([A-Z])")
@@ -194,18 +157,3 @@ func CamelToSnake(url string) string {
 	// 将结果转换为小写
 	return strings.ToLower(snake)
 }
-
-//// 自定义 ResponseWriter 来捕获响应数据
-//type responseCacheWriter struct {
-//	gin.ResponseWriter
-//	cacheKey string
-//	body     *bytes.Buffer
-//}
-//
-//func (w *responseCacheWriter) Write(b []byte) (int, error) {
-//	if w.body == nil {
-//		w.body = &bytes.Buffer{}
-//	}
-//	w.body.Write(b) // 捕获写入的响应
-//	return w.ResponseWriter.Write(b)
-//}
