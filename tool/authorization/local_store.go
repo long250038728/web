@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"context"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/coocood/freecache"
 	"time"
 )
 
@@ -12,40 +12,37 @@ type localStoreEntity struct {
 }
 
 type localStore struct {
-	cache *lru.Cache
+	cache *freecache.Cache
 }
 
-func NewLocalStore(size int) (Store, error) {
-	cache, err := lru.New(size)
-	if err != nil {
-		return nil, err
-	}
-	return &localStore{cache}, nil
+func NewLocalStore(size int) Store {
+	//github.com/coocood/freecache
+	return &localStore{freecache.NewCache(size)}
 }
 
 func (l *localStore) Get(ctx context.Context, key string) (string, error) {
-	val, ok := l.cache.Get(key)
-	if !ok {
+	// 获取键值对
+	gotValue, err := l.cache.Get([]byte(key))
+	if err != nil && err == freecache.ErrNotFound {
 		return "", nil
 	}
-
-	s := val.(*localStoreEntity)
-
-	//已经过期则返回空则删除
-	if s.t.Sub(time.Now().Local()) <= 0 {
-		l.cache.Remove(key)
-		return "", nil
+	if err != nil {
+		return "", err
 	}
-	return s.val, nil
+	return string(gotValue), nil
 }
 
 func (l *localStore) SetEX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
-	return l.cache.Add(key, &localStoreEntity{val: value, t: time.Now().Local().Add(expiration)}), nil
+	err := l.cache.Set([]byte(key), []byte(value), int(expiration.Seconds()))
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (l *localStore) Del(ctx context.Context, key ...string) (bool, error) {
 	for _, k := range key {
-		if ok := l.cache.Remove(k); !ok {
+		if ok := l.cache.Del([]byte(k)); !ok {
 			return false, nil
 		}
 	}

@@ -51,9 +51,7 @@ func NewAuth(store Store, opts ...Opt) Auth {
 	p.refreshExpires = 60 * 24 * 7 * time.Minute
 
 	p.Store = store
-	if localStore, err := NewLocalStore(10000); err == nil {
-		p.LocalStore = localStore
-	}
+	p.LocalStore = NewLocalStore(5 * 1024 * 1024)
 
 	for _, opt := range opts {
 		opt(p)

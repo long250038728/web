@@ -6,7 +6,6 @@ import (
 	"github.com/long250038728/web/application/auth/internal/service"
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/http/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -14,7 +13,7 @@ import (
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
-	userGroup := engine.Group("/authorization/user/").Use(http.BaseHandle(cache), http.LimitHandle(cache))
+	userGroup := engine.Group("/authorization/user/").Use(gateway.BaseHandle(cache))
 	{
 		userGroup.POST("login", func(c *gin.Context) {
 			gateway.Json(c, &auth_rpc.LoginRequest{}).Use(gateway.Limit(), gateway.Cache()).Handle(func(ctx context.Context, req any) (any, error) {

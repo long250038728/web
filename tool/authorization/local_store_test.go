@@ -7,17 +7,13 @@ import (
 )
 
 func TestLocalStore(t *testing.T) {
-	s, err := NewLocalStore(10)
+	s := NewLocalStore(5 * 1024 * 1024)
+	ok, err := s.SetEX(context.Background(), "hello", "world", time.Minute)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	evicted, err := s.SetEX(context.Background(), "hello", "world", time.Minute)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if evicted {
+	if !ok {
 		t.Errorf("%s", "set is not ok")
 		return
 	}
@@ -29,7 +25,7 @@ func TestLocalStore(t *testing.T) {
 	}
 	t.Log(val)
 
-	ok, err := s.Del(context.Background(), "hello")
+	ok, err = s.Del(context.Background(), "hello")
 	if err != nil {
 		t.Error(err)
 		return
