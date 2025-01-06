@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
@@ -43,7 +44,25 @@ func NewSummary() *Summary {
 
 func (g *Summary) do() {
 	go func() {
-		g.summary.Observe(0.05)
+		//summary_ns_summary_ss_summary_n{quantile="0.5"} 106  //平均数
+		//summary_ns_summary_ss_summary_n{quantile="0.9"} 110
+		//summary_ns_summary_ss_summary_n{quantile="0.99"} 140
+		//summary_ns_summary_ss_summary_n_sum 1183
+		//summary_ns_summary_ss_summary_n_count 11
+
+		g.summary.Observe(110)
+		g.summary.Observe(100)
+		g.summary.Observe(98)
+		g.summary.Observe(100)
+		g.summary.Observe(105)
+		g.summary.Observe(108)
+		g.summary.Observe(106)
+		g.summary.Observe(106)
+		g.summary.Observe(100)
+		g.summary.Observe(110)
+		g.summary.Observe(140)
+
+		// 98  100 100 100 105 106 106 108 110  110 140
 	}()
 
 	go func() {
@@ -86,5 +105,6 @@ func (g *Summary) do() {
 
 func (g *Summary) http() {
 	http.Handle("/metrics", promhttp.Handler())
-	_ = http.ListenAndServe(":8082", nil)
+	err := http.ListenAndServe(":8083", nil)
+	fmt.Println(err)
 }

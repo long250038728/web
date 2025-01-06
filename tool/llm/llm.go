@@ -24,7 +24,7 @@ func (t *AddTool) Function() *openai.FunctionDefinition {
 	}
 }
 
-func (t *AddTool) Sum(call *openai.ToolCall) (int, error) {
+func (t *AddTool) Action(call *openai.ToolCall) (int, error) {
 	// 执行加法操作
 	sum := 0
 
@@ -106,7 +106,7 @@ func (c *QwChat) Chat(ctx context.Context, msg string) (string, error) {
 				// 判断调用的工具名称是否为 "AddTools"
 				if call.Function.Name == add.Name() {
 
-					val, err := add.Sum(&call)
+					val, err := add.Action(&call)
 					if err != nil {
 						return "", err
 					}

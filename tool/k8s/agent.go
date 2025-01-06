@@ -1,0 +1,164 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes/scheme"
+)
+
+type Agent struct {
+	agentClient *client
+}
+
+func NewAgent() (*Agent, error) {
+	c, err := NewClient()
+	if err != nil {
+		return nil, err
+	}
+	return &Agent{agentClient: c}, nil
+}
+
+// ====================================【 操作资源 】============================================
+
+func (a *Agent) CreateResource(ctx context.Context, resource, ns, yaml string) error {
+	resourceInterface, err := a.getResourceInterface(resource, ns)
+	if err != nil {
+		return err
+	}
+	obj := &unstructured.Unstructured{}
+	_, _, err = scheme.Codecs.UniversalDeserializer().Decode([]byte(yaml), nil, obj)
+	if err != nil {
+		return err
+	}
+	_, err = resourceInterface.Create(ctx, obj, metaV1.CreateOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Agent) DeleteResource(ctx context.Context, resource, ns, name string) error {
+	resourceInterface, err := a.getResourceInterface(resource, ns)
+	if err != nil {
+		return err
+	}
+	return resourceInterface.Delete(ctx, name, metaV1.DeleteOptions{})
+}
+
+func (a *Agent) ListResource(resource, ns string) ([]runtime.Object, error) {
+	mapping, err := a.getResourceMapping(a.agentClient.restMapper, resource)
+	if err != nil {
+		return nil, err
+	}
+	informer, _ := a.agentClient.fact.ForResource(mapping.Resource)
+	list, _ := informer.Lister().ByNamespace(ns).List(labels.Everything())
+	return list, nil
+}
+
+//====================================【 log ,events 】============================================
+
+// GetLogs 获取的应用的的log日志
+func (a *Agent) GetLogs(ctx context.Context, ns, name, container string) ([]byte, error) {
+	req := a.agentClient.client.CoreV1().Pods(ns).GetLogs(name, &v1.PodLogOptions{Container: container})
+	rc, err := req.Stream(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+
+	logData, err := io.ReadAll(rc)
+	if err != nil {
+		return nil, err
+	}
+	return logData, nil
+}
+
+// GetPodEvents 获取的是服务pod的变动日志
+func (a *Agent) GetPodEvents(ctx context.Context, resource, ns string) ([]v1.Event, error) {
+	// 获取events 变更列表
+	events, err := a.agentClient.client.CoreV1().Events(ns).List(ctx, metaV1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]v1.Event, 0, len(events.Items))
+	for _, event := range events.Items {
+		if event.InvolvedObject.Kind != resource {
+			continue
+		}
+		list = append(list, event)
+	}
+	return list, nil
+}
+
+// ====================================【 私有方法 】============================================
+
+// getResourceMapping
+// 像 kubectl 这样的工具需要根据用户输入动态适配各种资源，RESTMapper 是关键组件。
+// 1. resource 生成GVR 如果生成成功转 GVK ,然后创建meta.RESTMapping对象
+// 2. resource 生成GVK ,然后创建meta.RESTMapping对象
+func (a *Agent) getResourceMapping(restMapper meta.RESTMapper, resource string) (*meta.RESTMapping, error) {
+	//fullySpecifiedGVR  完整的Group-Version-Resource，如果用户输入了精确的资源 REST 表示（如 apps/v1.deployments）。
+	//groupResource 如果用户输入的是资源名（如 deployments），只返回 GroupResource
+	fullySpecifiedGVR, groupResource := schema.ParseResourceArg(resource)
+	gvk := schema.GroupVersionKind{}
+
+	// 通过GVR获取GVK
+	if fullySpecifiedGVR != nil {
+		gvk, _ = restMapper.KindFor(*fullySpecifiedGVR)
+	}
+	if gvk.Empty() {
+		gvk, _ = restMapper.KindFor(groupResource.WithVersion(""))
+	}
+	if !gvk.Empty() {
+		return restMapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	}
+
+	//fullySpecifiedGVR  完整的Group-Version-Kind，如果用户输入了精确的资源 REST 表示（如 apps/v1.Deployment）。
+	//groupKind 如果用户输入的是资源名（如 deployments），只返回 GroupKind
+	fullySpecifiedGVK, groupKind := schema.ParseKindArg(resource)
+	if fullySpecifiedGVK == nil {
+		gvk := groupKind.WithVersion("")
+		fullySpecifiedGVK = &gvk
+	}
+
+	if !fullySpecifiedGVK.Empty() {
+		if mapping, err := restMapper.RESTMapping(fullySpecifiedGVK.GroupKind(), fullySpecifiedGVK.Version); err == nil {
+			return mapping, nil
+		}
+	}
+
+	mapping, err := restMapper.RESTMapping(groupKind, gvk.Version)
+	if err != nil {
+		if meta.IsNoMatchError(err) {
+			return nil, fmt.Errorf("the server doesn't have a resource type %q", groupResource.Resource)
+		}
+		return nil, err
+	}
+
+	return mapping, nil
+}
+
+func (a *Agent) getResourceInterface(resource, ns string) (dynamic.ResourceInterface, error) {
+	mapping, err := a.getResourceMapping(a.agentClient.restMapper, resource)
+	if err != nil {
+		return nil, err
+	}
+
+	// 提供 Get, Create, Update, Delete 等方法
+	var resourceInterface dynamic.ResourceInterface = a.agentClient.dynamicClient.Resource(mapping.Resource)
+	if mapping.Scope.Name() == "namespace" {
+		// 判断资源是命名空间级别的还是集群级别的
+		resourceInterface = a.agentClient.dynamicClient.Resource(mapping.Resource).Namespace(ns)
+	}
+	return resourceInterface, nil
+}

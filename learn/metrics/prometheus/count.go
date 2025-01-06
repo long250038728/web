@@ -28,7 +28,7 @@ func NewCount() *Count {
 		Name:      "count_ves_n",
 		Help:      "this is my count_ves",
 	}
-	countVec := prometheus.NewCounterVec(opts2, []string{"one", "two"})
+	countVec := prometheus.NewCounterVec(opts2, []string{"one", "two", "three"}) //定义了多少维度的标签字段
 
 	prometheus.MustRegister(count, countVec)
 
@@ -49,11 +49,9 @@ func (g *Count) do() {
 	}()
 
 	go func() {
-		g.countVec.WithLabelValues("one", "two").Add(10)
-		g.countVec.WithLabelValues("one", "two").Add(20)
-
-		g.countVec.WithLabelValues("one", "two").Add(10)
-		g.countVec.WithLabelValues("one", "two").Add(10)
+		g.countVec.WithLabelValues("1", "2", "3").Add(10) //对应标签字段的值
+		g.countVec.WithLabelValues("1", "2", "3").Add(20)
+		g.countVec.WithLabelValues("4", "5", "6").Add(10)
 	}()
 }
 
