@@ -38,7 +38,7 @@ func (w *sseWriter) checkSupportSEE() error {
 
 func (w *sseWriter) writeSSE(ch <-chan string) {
 	w.ginContext.Header("Content-Type", "text/event-stream")
-	w.ginContext.Header("Cache-Control", "no-cache")
+	w.ginContext.Header("Cache-Control", "no-store")
 	w.ginContext.Header("Connection", "keep-alive")
 
 	ginWriter := w.ginContext.Writer

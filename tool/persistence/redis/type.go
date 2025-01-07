@@ -1,11 +1,11 @@
-package cache
+package redis
 
 import (
 	"context"
 	"time"
 )
 
-type Cache interface {
+type Redis interface {
 	IsExists(ctx context.Context, key string) (bool, error)
 	TTL(ctx context.Context, key string) (time.Duration, error)
 	PTTL(ctx context.Context, key string) (time.Duration, error)
@@ -16,6 +16,7 @@ type Cache interface {
 	SetNX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error)
 
 	Incr(ctx context.Context, key string) (int64, error)
+	Decr(ctx context.Context, key string) (int64, error)
 
 	Del(ctx context.Context, key ...string) (bool, error)
 	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)

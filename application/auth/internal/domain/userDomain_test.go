@@ -6,6 +6,7 @@ import (
 	"github.com/long250038728/web/protoc/auth_rpc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
+	"github.com/long250038728/web/tool/store"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func authCtx() context.Context {
 		return nil
 	}
 	var accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTU5NDg4NzAsImlhdCI6MTcxNTg0MDg3MCwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.vk7CR288G1s5a8ky5gV2iUtmbzxyz1LYRT5eJSIpnqE"
-	ctx, _ := authorization.NewAuth(cache).Parse(context.Background(), accessToken)
+	ctx, _ := authorization.NewAuth(store.NewRedisStore(cache)).Parse(context.Background(), accessToken)
 	return ctx
 }
 

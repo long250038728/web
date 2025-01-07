@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/sliceconv"
+	"github.com/long250038728/web/tool/store"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rp
 	}
 
 	refreshCla := &authorization.RefreshClaims{}
-	if err = authorization.NewAuth(cache).Refresh(ctx, refreshToken, refreshCla); err != nil {
+	if err = authorization.NewAuth(store.NewRedisStore(cache)).Refresh(ctx, refreshToken, refreshCla); err != nil {
 		return nil, err
 	}
 
@@ -66,7 +67,7 @@ func (r *Repository) Logout(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	sessionClient := authorization.NewAuth(cache)
+	sessionClient := authorization.NewAuth(store.NewRedisStore(cache))
 	return sessionClient.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
 }
 
@@ -147,7 +148,7 @@ func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) 
 	claims := &authorization.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
 	sess := &authorization.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
 
-	sessionClient := authorization.NewAuth(cache)
+	sessionClient := authorization.NewAuth(store.NewRedisStore(cache))
 	if err = sessionClient.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
 		return nil, err
 	}

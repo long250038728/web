@@ -42,7 +42,7 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 	////mq
 	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
 
-	////cache
+	////store
 	//_, _ = r.util.Cache.Set(ctx, "hello", "1")
 	//_, _ = r.util.Cache.Get(ctx, "hello")
 

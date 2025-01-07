@@ -7,8 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/cache"
+	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -26,7 +27,7 @@ import (
 // LimitHandle 限流中间件 （对单个用户(token存在获取token，不存在则获取ip)进行限流处理）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
-func BaseHandle(client cache.Cache) gin.HandlerFunc {
+func BaseHandle(client redis.Redis) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -79,7 +80,7 @@ func BaseHandle(client cache.Cache) gin.HandlerFunc {
 
 		// 用户处理
 		if client != nil {
-			authSession := authorization.NewAuth(client)
+			authSession := authorization.NewAuth(store.NewRedisStore(client))
 			if parseCtx, err := authSession.Parse(ctx, c.GetHeader("Authorization")); err == nil {
 				ctx = parseCtx
 			}
@@ -128,7 +129,7 @@ func Api(path string) ServerInterceptor {
 // Cache 示例中间件：缓存拦截器
 func Cache() ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler Handler) (resp any, err error) {
-		fmt.Println("cache")
+		fmt.Println("store")
 		// 检查缓存逻辑（省略实际实现）
 		return handler(ctx, request)
 	}
@@ -184,7 +185,7 @@ func Limit() ServerInterceptor {
 //}
 //
 //// LimitHandle 限流中间件 (优先获取用户的token信息，如果接口无需token参数，那通过IP的方式 ---- 单个用户)
-//func LimitHandle(client cache.Cache) gin.HandlerFunc {
+//func LimitHandle(client store.Redis) gin.HandlerFunc {
 //	return func(c *gin.Context) {
 //		if client != nil {
 //			identification := c.GetHeader(server.AuthorizationKey)

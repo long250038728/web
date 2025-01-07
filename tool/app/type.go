@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 )
@@ -26,7 +26,7 @@ type Config struct {
 	dbConfig       *orm.Config
 	dbReadConfig   *orm.Config
 	esConfig       *es.Config
-	cacheConfig    *cache.Config
+	cacheConfig    *redis.Config
 	mqConfig       *mq.Config
 	registerConfig *consul.Config
 	tracingConfig  *opentelemetry.Config

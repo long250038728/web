@@ -2,18 +2,19 @@ package authorization
 
 import (
 	"context"
-	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/configurator"
+	"github.com/long250038728/web/tool/persistence/redis"
+	"github.com/long250038728/web/tool/store"
 	"testing"
 	"time"
 )
 
-var c Store
+var c store.Store
 
 func init() {
-	var redisConfig cache.Config
+	var redisConfig redis.Config
 	configurator.NewYaml().MustLoadConfigPath("redis.yaml", &redisConfig)
-	c = cache.NewRedisCache(&redisConfig)
+	c = store.NewRedisStore(redis.NewRedis(&redisConfig))
 }
 
 func TestSigned(t *testing.T) {

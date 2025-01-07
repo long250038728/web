@@ -1,4 +1,4 @@
-package authorization
+package store
 
 import (
 	"context"
@@ -6,18 +6,8 @@ import (
 	"time"
 )
 
-type localStoreEntity struct {
-	val string
-	t   time.Time
-}
-
 type localStore struct {
-	cache *freecache.Cache
-}
-
-func NewLocalStore(size int) Store {
-	//github.com/coocood/freecache
-	return &localStore{freecache.NewCache(size)}
+	cache *freecache.Cache //github.com/coocood/freecache
 }
 
 func (l *localStore) Get(ctx context.Context, key string) (string, error) {
@@ -32,7 +22,7 @@ func (l *localStore) Get(ctx context.Context, key string) (string, error) {
 	return string(gotValue), nil
 }
 
-func (l *localStore) SetEX(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
+func (l *localStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
 	err := l.cache.Set([]byte(key), []byte(value), int(expiration.Seconds()))
 	if err != nil {
 		return false, err

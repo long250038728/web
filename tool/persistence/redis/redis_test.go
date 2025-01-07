@@ -1,4 +1,4 @@
-package cache
+package redis
 
 import (
 	"context"
@@ -11,12 +11,12 @@ import (
 var key = "z"
 var value = "100"
 
-var cacheClient Cache
+var cacheClient Redis
 
 func init() {
 	var redisConfig Config
 	configurator.NewYaml().MustLoadConfigPath("redis.yaml", &redisConfig)
-	cacheClient = NewRedisCache(&redisConfig)
+	cacheClient = NewRedis(&redisConfig)
 }
 
 var ctx = context.Background()

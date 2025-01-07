@@ -117,7 +117,7 @@ package bak
 //
 //func (m *GatewayMiddleware) WriteSSE(ch <-chan string) {
 //	m.g.Header("Content-Type", "text/event-stream")
-//	m.g.Header("Cache-Control", "no-cache")
+//	m.g.Header("Cache-Control", "no-store")
 //	m.g.Header("Connection", "keep-alive")
 //
 //	w := m.g.Writer

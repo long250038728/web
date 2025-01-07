@@ -1,4 +1,4 @@
-package authorization
+package store
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 func TestLocalStore(t *testing.T) {
 	s := NewLocalStore(5 * 1024 * 1024)
-	ok, err := s.SetEX(context.Background(), "hello", "world", time.Minute)
+	ok, err := s.Set(context.Background(), "hello", "world", time.Minute)
 	if err != nil {
 		t.Error(err)
 		return

@@ -3,12 +3,12 @@ package app
 import (
 	"context"
 	"errors"
-	"github.com/long250038728/web/tool/cache"
 	"github.com/long250038728/web/tool/locker"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/paths"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
+	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
@@ -36,8 +36,8 @@ type Util struct {
 	es       *es.ES
 	exporter opentelemetry.SpanExporter
 
-	//cache mq 主要是一些通用的东西，可以用接口代替
-	cache    cache.Cache
+	//store mq 主要是一些通用的东西，可以用接口代替
+	cache    redis.Redis
 	mq       mq.Mq
 	register register.Register
 }
@@ -104,7 +104,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 
 	//创建redis && locker
 	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
-		util.cache = cache.NewRedisCache(config.cacheConfig)
+		util.cache = redis.NewRedis(config.cacheConfig)
 	}
 
 	//创建mq
@@ -167,9 +167,9 @@ func (u *Util) Mq() (mq.Mq, error) {
 	return u.mq, nil
 }
 
-func (u *Util) Cache() (cache.Cache, error) {
+func (u *Util) Cache() (redis.Redis, error) {
 	if u.cache == nil {
-		return nil, errors.New("cache is not initialized")
+		return nil, errors.New("store is not initialized")
 	}
 	return u.cache, nil
 }

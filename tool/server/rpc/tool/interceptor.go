@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -54,7 +55,7 @@ func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 			}
 
 			if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
-				ctx, _ = authorization.NewAuth(cache).Parse(ctx, authorizationToken[0])
+				ctx, _ = authorization.NewAuth(store.NewRedisStore(cache)).Parse(ctx, authorizationToken[0])
 			}
 		}
 		return handler(ctx, req)

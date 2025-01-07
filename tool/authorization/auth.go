@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/long250038728/web/tool/store"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -36,13 +37,13 @@ func RefreshExpires(refreshExpires time.Duration) Opt {
 	}
 }
 
-func LocalStore(localStore Store) Opt {
+func LocalStore(localStore store.Store) Opt {
 	return func(r *CacheAuth) {
 		r.LocalStore = localStore
 	}
 }
 
-func NewAuth(store Store, opts ...Opt) Auth {
+func NewAuth(s store.Store, opts ...Opt) Auth {
 	p := &CacheAuth{}
 
 	//默认值
@@ -50,8 +51,8 @@ func NewAuth(store Store, opts ...Opt) Auth {
 	p.accessExpires = 5 * time.Minute
 	p.refreshExpires = 60 * 24 * 7 * time.Minute
 
-	p.Store = store
-	p.LocalStore = NewLocalStore(5 * 1024 * 1024)
+	p.Store = s
+	p.LocalStore = store.NewLocalStore(5 * 1024 * 1024)
 
 	for _, opt := range opts {
 		opt(p)
