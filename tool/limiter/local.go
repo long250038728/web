@@ -48,13 +48,12 @@ func (l *localLimiter) Decr(ctx context.Context, key string) (int64, error) {
 }
 
 func (l *localLimiter) Allow(ctx context.Context, key string, num int64) (bool, error) {
-	l.rw.Lock()
-	defer l.rw.Unlock()
+	l.rw.RLock()
+	defer l.rw.RUnlock()
 
 	n, ok := l.data[key]
 	if !ok {
 		return true, nil
 	}
-
 	return n < num, nil
 }
