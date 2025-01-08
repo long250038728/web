@@ -12,6 +12,10 @@ type redisLimiter struct {
 	client redis.Redis
 }
 
+func NewRedisLimiter(client redis.Redis) Limiter {
+	return &redisLimiter{client: client}
+}
+
 func (l *redisLimiter) Get(ctx context.Context, key string) (int64, error) {
 	cnt, err := l.client.Get(ctx, key)
 	if err != nil {

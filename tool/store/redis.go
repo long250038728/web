@@ -10,14 +10,18 @@ type redisStore struct {
 	r redis.Redis
 }
 
-func (l *redisStore) Get(ctx context.Context, key string) (string, error) {
-	return l.r.Get(ctx, key)
+func NewRedisStore(r redis.Redis) Store {
+	return &redisStore{r}
 }
 
-func (l *redisStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
-	return l.r.SetEX(ctx, key, value, expiration)
+func (s *redisStore) Get(ctx context.Context, key string) (string, error) {
+	return s.r.Get(ctx, key)
 }
 
-func (l *redisStore) Del(ctx context.Context, key ...string) (bool, error) {
-	return l.r.Del(ctx, key...)
+func (s *redisStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
+	return s.r.SetEX(ctx, key, value, expiration)
+}
+
+func (s *redisStore) Del(ctx context.Context, key ...string) (bool, error) {
+	return s.r.Del(ctx, key...)
 }

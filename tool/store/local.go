@@ -10,9 +10,13 @@ type localStore struct {
 	cache *freecache.Cache //github.com/coocood/freecache
 }
 
-func (l *localStore) Get(ctx context.Context, key string) (string, error) {
+func NewLocalStore(size int) Store {
+	return &localStore{freecache.NewCache(size)}
+}
+
+func (s *localStore) Get(ctx context.Context, key string) (string, error) {
 	// 获取键值对
-	gotValue, err := l.cache.Get([]byte(key))
+	gotValue, err := s.cache.Get([]byte(key))
 	if err != nil && err == freecache.ErrNotFound {
 		return "", nil
 	}
@@ -22,17 +26,17 @@ func (l *localStore) Get(ctx context.Context, key string) (string, error) {
 	return string(gotValue), nil
 }
 
-func (l *localStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
-	err := l.cache.Set([]byte(key), []byte(value), int(expiration.Seconds()))
+func (s *localStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
+	err := s.cache.Set([]byte(key), []byte(value), int(expiration.Seconds()))
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func (l *localStore) Del(ctx context.Context, key ...string) (bool, error) {
+func (s *localStore) Del(ctx context.Context, key ...string) (bool, error) {
 	for _, k := range key {
-		if ok := l.cache.Del([]byte(k)); !ok {
+		if ok := s.cache.Del([]byte(k)); !ok {
 			return false, nil
 		}
 	}

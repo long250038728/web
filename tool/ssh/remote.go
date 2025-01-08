@@ -20,7 +20,7 @@ type Config struct {
 	PrivatePath string `json:"private_path" yaml:"private_path"`
 }
 
-type RemoteSSH struct {
+type remote struct {
 	host   string
 	port   int32
 	config *ssh.ClientConfig
@@ -28,7 +28,6 @@ type RemoteSSH struct {
 
 func NewRemoteSSH(config *Config) (SSH, error) {
 	var authMethods []ssh.AuthMethod
-
 	if len(config.Host) == 0 {
 		return nil, errors.New("host is null")
 	}
@@ -66,14 +65,14 @@ func NewRemoteSSH(config *Config) (SSH, error) {
 		Timeout:         time.Second * 3,
 	}
 
-	return &RemoteSSH{
+	return &remote{
 		host:   config.Host,
 		port:   config.Port,
 		config: conf,
 	}, nil
 }
 
-func (s *RemoteSSH) Run(script string) (out string, err error) {
+func (s *remote) Run(script string) (out string, err error) {
 	var client *ssh.Client
 	client, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", s.host, s.port), s.config)
 	if err != nil {
@@ -103,7 +102,7 @@ func (s *RemoteSSH) Run(script string) (out string, err error) {
 	return
 }
 
-func (s *RemoteSSH) RunFile(scriptFile string) (string, error) {
+func (s *remote) RunFile(scriptFile string) (string, error) {
 	script, err := os.ReadFile(scriptFile)
 	if err != nil {
 		return "", err

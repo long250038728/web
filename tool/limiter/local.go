@@ -12,6 +12,10 @@ type localLimiter struct {
 	data map[string]int64
 }
 
+func NewLocalLimiter() Limiter {
+	return &localLimiter{data: map[string]int64{}}
+}
+
 func (l *localLimiter) Get(ctx context.Context, key string) (int64, error) {
 	l.rw.RLock()
 	defer l.rw.RUnlock()

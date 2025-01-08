@@ -64,15 +64,15 @@ func init() {
 }
 
 func main() {
-	rootCmd := &cobra.Command{
-		Use:   "linl",
-		Short: "上线快速生成工具",
-	}
-
 	gitCron := client.NewGitCron(gitClient)
 	olineCron := client.NewOnlineCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
 	devopsCron := client.NewDevopsCorn("", "")
 	serverCron := client.NewServerCornCorn("", "")
+
+	rootCmd := &cobra.Command{
+		Use:   "linl",
+		Short: "快速生成工具",
+	}
 
 	rootCmd.AddCommand(gitCron.Branch())
 	rootCmd.AddCommand(gitCron.Pr())
