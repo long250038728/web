@@ -96,9 +96,9 @@ func NewServerCornCorn(path, page string) *ServerCorn {
 
 func (c *ServerCorn) Server() *cobra.Command {
 	return &cobra.Command{
-		Use:   "server [服务名] [http端口] [grpc端口] [版本号]",
-		Short: "创建server： 请输入 [服务名] [http端口] [grpc端口] [版本号]",
-		Long:  "创建server： 请输入 [服务名] [http端口] [grpc端口] [版本号]",
+		Use:   "server [服务名]",
+		Short: "创建server： 请输入 [服务名]",
+		Long:  "创建server： 请输入 [服务名]",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			server := args[0]

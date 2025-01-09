@@ -56,7 +56,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		check.Timeout = "30s"
 		check.Interval = "30s"
 		check.DeregisterCriticalServiceAfter = "30s"
-		check.HTTP = fmt.Sprintf("http://%s:%d", serviceInstance.Address, serviceInstance.Port)
+		check.HTTP = fmt.Sprintf("http://%s:%d/health", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check
 	}
 

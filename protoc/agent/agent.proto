@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package agent;
+
+option go_package = "/agent";
+
+service Auth{
+  rpc Events(EventsRequest) returns (EventsResponse);
+  rpc Logs(LogsRequest) returns (LogsResponse);
+  rpc Resources(ResourcesRequest) returns (ResourcesResponse);
+}
+
+message EventsRequest {
+  string ns = 1;
+  string resource = 2;
+}
+
+message EventsResponse {
+  repeated string event = 1;
+}
+
+message LogsRequest {
+  string ns = 1;
+  string name = 2;
+  string container = 3;
+}
+
+message LogsResponse {
+  repeated string log = 1;
+}
+
+message ResourcesRequest {
+  string ns = 1;
+  string resource = 2;
+}
+
+message ResourcesResponse {
+  repeated string resource = 1;
+}
+
+//
+//
+//message LoginRequest {
+//  string name = 1  [(gogoproto.moretags) = 'form:"name"', (gogoproto.jsontag) = 'name'];
+//  string password = 2  [(gogoproto.moretags) = 'form:"password"', (gogoproto.jsontag) = 'password'];
+//}
+//
+//message RefreshRequest {
+//  string refresh_token = 1  [(gogoproto.moretags) = 'form:"refresh_token"', (gogoproto.jsontag) = 'refresh_token'];
+//}
+//
+//message UserResponse {
+//  string access_token = 1  [(gogoproto.moretags) = 'form:"access_token"', (gogoproto.jsontag) = 'access_token'];
+//  string refresh_token = 2  [(gogoproto.moretags) = 'form:"refresh_token"', (gogoproto.jsontag) = 'refresh_token'];
+//
+//  int32 id = 10  [(gogoproto.moretags) = 'form:"id"', (gogoproto.jsontag) = 'id'];
+//  string name = 11  [(gogoproto.moretags) = 'form:"name"', (gogoproto.jsontag) = 'name'];
+//  string telephone = 12  [(gogoproto.moretags) = 'form:"telephone"', (gogoproto.jsontag) = 'telephone'];
+//  repeated string roles = 13  [(gogoproto.moretags) = 'form:"roles"', (gogoproto.jsontag) = 'roles'];
+//  repeated string permissions = 14  [(gogoproto.moretags) = 'form:"permissions"', (gogoproto.jsontag) = 'permissions'];
+//}
+//

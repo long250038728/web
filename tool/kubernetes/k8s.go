@@ -1,11 +1,11 @@
-package main
+package kubernetes
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	v1 "k8s.io/api/core/v1"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v13 "k8s.io/api/core/v1"
+	v12 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,9 +18,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-//go get k8s.io/client-go@v0.28.0
-//go get k8s.io/api@v0.28.0
-//go get k8s.io/apimachinery@v0.28.0
+//go get kubernetes.io/Client-go@v0.28.0
+//go get kubernetes.io/api@v0.28.0
+//go get kubernetes.io/apimachinery@v0.28.0
 
 //====================================【 获取资源 】============================================
 
@@ -40,7 +40,7 @@ func getGVK() error {
 	}
 
 	// 获取命名空间列表
-	namespaceList, err := client.CoreV1().Namespaces().List(ctx, metaV1.ListOptions{})
+	namespaceList, err := client.CoreV1().Namespaces().List(ctx, v12.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -52,14 +52,14 @@ func getGVK() error {
 	}
 
 	// 获取命名空间下的所有 Pod
-	devPods, err := client.CoreV1().Pods("dev").List(ctx, metaV1.ListOptions{})
+	devPods, err := client.CoreV1().Pods("dev").List(ctx, v12.ListOptions{})
 	fmt.Println("pod dev in the cluster:")
 	for _, pod := range devPods.Items {
 		fmt.Printf("- %s\n", pod.Name)
 	}
 
 	// 删除 Pod
-	err = client.CoreV1().Pods("dev").Delete(ctx, "aristotle-76c7764bc-ht8kw", metaV1.DeleteOptions{})
+	err = client.CoreV1().Pods("dev").Delete(ctx, "aristotle-76c7764bc-ht8kw", v12.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func getGVR() error {
 		return err
 	}
 
-	devPods, err := client.Resource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}).Namespace("dev").List(ctx, metaV1.ListOptions{})
+	devPods, err := client.Resource(schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}).Namespace("dev").List(ctx, v12.ListOptions{})
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func watchGVR() error {
 	listWatch := cache.NewListWatchFromClient(client.CoreV1().RESTClient(), "pods", "dev", fields.Everything())
 
 	// 创建 Informer (周期)
-	informer := cache.NewSharedInformer(listWatch, &v1.Pod{}, 0)
+	informer := cache.NewSharedInformer(listWatch, &v13.Pod{}, 0)
 	res, err := informer.AddEventHandler(&PodHandler{})
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func watchFactoryGVK() error {
 		return err
 	}
 
-	//informer := informers.NewSharedInformerFactory(client, 0)
+	//informer := informers.NewSharedInformerFactory(Client, 0)
 	informer := informers.NewSharedInformerFactoryWithOptions(client, 0, informers.WithNamespace("dev"))
 	pod := informer.Core().V1().Pods()
 	service := informer.Core().V1().Services()
@@ -206,7 +206,7 @@ func watchFactoryGVR() error {
 		return err
 	}
 
-	//informer := informers.NewSharedInformerFactory(client, 0)
+	//informer := informers.NewSharedInformerFactory(Client, 0)
 	informer := informers.NewSharedInformerFactoryWithOptions(client, 0, informers.WithNamespace("dev"))
 
 	pod, err := informer.ForResource(schema.GroupVersionResource{
@@ -241,23 +241,23 @@ func watchFactoryGVR() error {
 type PodHandler struct{}
 
 func (h *PodHandler) OnAdd(obj interface{}, isInInitialList bool) {
-	fmt.Println("PodHandler OnAdd: ", obj.(*v1.Pod).Name, " isInInitialList", isInInitialList)
+	fmt.Println("PodHandler OnAdd: ", obj.(*v13.Pod).Name, " isInInitialList", isInInitialList)
 }
 func (h *PodHandler) OnUpdate(oldObj, newObj interface{}) {
-	fmt.Println("PodHandler OnUpdate: ", oldObj.(*v1.Pod).Name, "   ", newObj.(*v1.Pod).Name)
+	fmt.Println("PodHandler OnUpdate: ", oldObj.(*v13.Pod).Name, "   ", newObj.(*v13.Pod).Name)
 }
 func (h *PodHandler) OnDelete(obj interface{}) {
-	fmt.Println("PodHandler OnDelete: ", obj.(*v1.Pod).Name)
+	fmt.Println("PodHandler OnDelete: ", obj.(*v13.Pod).Name)
 }
 
 type ServiceHandler struct{}
 
 func (h *ServiceHandler) OnAdd(obj interface{}, isInInitialList bool) {
-	fmt.Println("ServiceHandler OnAdd: ", obj.(*v1.Service).Name, " isInInitialList", isInInitialList)
+	fmt.Println("ServiceHandler OnAdd: ", obj.(*v13.Service).Name, " isInInitialList", isInInitialList)
 }
 func (h *ServiceHandler) OnUpdate(oldObj, newObj interface{}) {
-	fmt.Println("ServiceHandler OnUpdate: ", oldObj.(*v1.Service).Name, "   ", newObj.(*v1.Service).Name)
+	fmt.Println("ServiceHandler OnUpdate: ", oldObj.(*v13.Service).Name, "   ", newObj.(*v13.Service).Name)
 }
 func (h *ServiceHandler) OnDelete(obj interface{}) {
-	fmt.Println("ServiceHandler OnDelete: ", obj.(*v1.Service).Name)
+	fmt.Println("ServiceHandler OnDelete: ", obj.(*v13.Service).Name)
 }

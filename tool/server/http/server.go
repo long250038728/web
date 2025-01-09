@@ -36,6 +36,17 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	}
 	fmt.Printf("%s : %s:%d\n", svc.svcInstance.Name, svc.svcInstance.Address, svc.svcInstance.Port)
 
+	// 针对 favicon.ico 请求返回 204 No Content 响应
+	handler.GET("/favicon.ico", func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
+
+	handler.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Page not found",
+		})
+	})
+
 	// health 心跳检测
 	handler.GET("/health", func(gin *gin.Context) {
 		gin.Writer.WriteHeader(http.StatusOK)
@@ -43,7 +54,7 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	})
 
 	// pprof 监控
-	pprof.Register(handler, fmt.Sprintf("/%s/debug/pprof", serverName))
+	pprof.Register(handler, fmt.Sprintf("/%s/pprof", serverName))
 
 	// prometheus
 	// Counter/CounterVec 只有增加指标 (Inc加1   Add加N)
@@ -57,10 +68,10 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	//			Objectives定义了map中3个key 0.5,0.9,0.99这三个key 代表百分之50，百分之90，百分之99有多少值/数量
 	//			Objectives定义了map中key对应value  0.05, 0.01, 0.001 即允许的误差是 5% 1% 0.1%
 	//		Observe(15)方法用于记录值,会根据Observe插入的值进行排序，
-	//			此时0.5代表中位数（位置中间）的值是多少
-	//			此时0.9代表百分之90的位置的值是多少
-	//          此时0.9代表百分之99的位置的值是多少
-	handler.GET(fmt.Sprintf("/%s/metrics", serverName), gin.WrapH(promhttp.Handler()))
+	//			此时0.5代表百分之50的值是多少 (即百分之50的都小于等于该值)
+	//			此时0.9代表百分之90的值是多少 (即百分之90的都小于等于该值)
+	//          此时0.9代表百分之99的值是多少 (即百分之99的都小于等于该值)
+	handler.GET(fmt.Sprintf("/%s/metrics/metrics", serverName), gin.WrapH(promhttp.Handler()))
 
 	handlerFunc(handler)
 	return svc

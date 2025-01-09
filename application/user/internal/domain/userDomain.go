@@ -29,5 +29,5 @@ func (s *Domain) SendSSE(ctx context.Context, request *user.RequestHello) (<-cha
 			Role:    openai.ChatMessageRoleSystem,
 			Content: `You are a Kubernetes expert. You can write Kubernetes related yaml file.`,
 		},
-	})).ChatStream(ctx, "i want to deploy a service in k8s, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
+	})).ChatStream(ctx, "i want to deploy a service in kubernetes, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
 }

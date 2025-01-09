@@ -12,7 +12,7 @@ import (
 const EnvLocal = "dev"
 
 const GrpcLocal = "local"       //本地
-const GrpcK8s = "k8s"           //k8s
+const GrpcK8s = "kubernetes"    //kubernetes
 const GrpcRegister = "register" //注册中心
 
 type Config struct {

@@ -1,26 +1,27 @@
-package main
+package kubernetes
 
 import (
 	"context"
 	"fmt"
 	"io"
-	v1 "k8s.io/api/core/v1"
+	coreV1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
-	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metaV2 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes/scheme"
+	"strings"
 )
 
 type Agent struct {
-	agentClient *client
+	agentClient *Client
 }
 
-func NewAgent() (*Agent, error) {
-	c, err := NewClient()
+func NewAgent(configPath string) (*Agent, error) {
+	c, err := NewClient(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (a *Agent) CreateResource(ctx context.Context, resource, ns, yaml string) e
 	if err != nil {
 		return err
 	}
-	_, err = resourceInterface.Create(ctx, obj, metaV1.CreateOptions{})
+	_, err = resourceInterface.Create(ctx, obj, metaV2.CreateOptions{})
 	if err != nil {
 		return err
 	}
@@ -51,15 +52,18 @@ func (a *Agent) DeleteResource(ctx context.Context, resource, ns, name string) e
 	if err != nil {
 		return err
 	}
-	return resourceInterface.Delete(ctx, name, metaV1.DeleteOptions{})
+	return resourceInterface.Delete(ctx, name, metaV2.DeleteOptions{})
 }
 
-func (a *Agent) ListResource(resource, ns string) ([]runtime.Object, error) {
+func (a *Agent) ListResource(ctx context.Context, resource, ns string) ([]runtime.Object, error) {
 	mapping, err := a.getResourceMapping(a.agentClient.restMapper, resource)
 	if err != nil {
 		return nil, err
 	}
 	informer, _ := a.agentClient.fact.ForResource(mapping.Resource)
+	a.agentClient.fact.Start(ctx.Done())
+	a.agentClient.fact.WaitForCacheSync(ctx.Done())
+
 	list, _ := informer.Lister().ByNamespace(ns).List(labels.Everything())
 	return list, nil
 }
@@ -67,30 +71,34 @@ func (a *Agent) ListResource(resource, ns string) ([]runtime.Object, error) {
 //====================================【 log ,events 】============================================
 
 // GetLogs 获取的应用的的log日志
-func (a *Agent) GetLogs(ctx context.Context, ns, name, container string) ([]byte, error) {
-	req := a.agentClient.client.CoreV1().Pods(ns).GetLogs(name, &v1.PodLogOptions{Container: container})
+func (a *Agent) GetLogs(ctx context.Context, ns, name, container string) ([]string, error) {
+	req := a.agentClient.client.CoreV1().Pods(ns).GetLogs(name, &coreV1.PodLogOptions{Container: container})
 	rc, err := req.Stream(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer rc.Close()
+	defer func() {
+		_ = rc.Close()
+	}()
 
 	logData, err := io.ReadAll(rc)
 	if err != nil {
 		return nil, err
 	}
-	return logData, nil
+	// 使用 strings.Split 将 logData 分割成字符串数组
+	logLines := strings.Split(string(logData), "\n")
+	return logLines, nil
 }
 
 // GetPodEvents 获取的是服务pod的变动日志
-func (a *Agent) GetPodEvents(ctx context.Context, resource, ns string) ([]v1.Event, error) {
+func (a *Agent) GetPodEvents(ctx context.Context, resource, ns string) ([]coreV1.Event, error) {
 	// 获取events 变更列表
-	events, err := a.agentClient.client.CoreV1().Events(ns).List(ctx, metaV1.ListOptions{})
+	events, err := a.agentClient.client.CoreV1().Events(ns).List(ctx, metaV2.ListOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	list := make([]v1.Event, 0, len(events.Items))
+	list := make([]coreV1.Event, 0, len(events.Items))
 	for _, event := range events.Items {
 		if event.InvolvedObject.Kind != resource {
 			continue
@@ -103,7 +111,7 @@ func (a *Agent) GetPodEvents(ctx context.Context, resource, ns string) ([]v1.Eve
 // ====================================【 私有方法 】============================================
 
 // getResourceMapping
-// 像 kubectl 这样的工具需要根据用户输入动态适配各种资源，RESTMapper 是关键组件。
+// 像 kubernetes 这样的工具需要根据用户输入动态适配各种资源，RESTMapper 是关键组件。
 // 1. resource 生成GVR 如果生成成功转 GVK ,然后创建meta.RESTMapping对象
 // 2. resource 生成GVK ,然后创建meta.RESTMapping对象
 func (a *Agent) getResourceMapping(restMapper meta.RESTMapper, resource string) (*meta.RESTMapping, error) {

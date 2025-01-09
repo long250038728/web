@@ -112,7 +112,7 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 				if err := os.WriteFile(filepath.Join("./", c.path, server, "dockerfile"), dockerfileBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join("./", c.path, server, "k8s.yaml"), kubernetesBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join("./", c.path, server, "kubernetes.yaml"), kubernetesBytes, os.ModePerm); err != nil {
 					return err
 				}
 				return nil

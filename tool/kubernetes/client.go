@@ -1,4 +1,4 @@
-package main
+package kubernetes
 
 import (
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-type client struct {
+type Client struct {
 	config        *rest.Config
 	client        *kubernetes.Clientset
 	dynamicClient *dynamic.DynamicClient
@@ -18,9 +18,9 @@ type client struct {
 	fact          informers.SharedInformerFactory
 }
 
-func NewClient() (c *client, err error) {
-	c = &client{}
-	c.config, err = c.getConfig("/root/.kube/config")
+func NewClient(configPath string) (c *Client, err error) {
+	c = &Client{}
+	c.config, err = c.getConfig(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -44,13 +44,13 @@ func NewClient() (c *client, err error) {
 	return c, nil
 }
 
-func (c *client) getConfig(path string) (*rest.Config, error) {
+func (c *Client) getConfig(path string) (*rest.Config, error) {
 	return clientcmd.BuildConfigFromFlags("", path)
 }
 
 // getDynamicClient 获取动态操作GVR客户端，这里的动态是指GVR. Resources。
 // Resources  某些自定义资源但在编译时不知道具体的资源类型时，DynamicClient 提供了一种灵活的方式。(如果很明确的话可以直接使用GVK)
-func (c *client) getDynamicClient(config *rest.Config) (*dynamic.DynamicClient, error) {
+func (c *Client) getDynamicClient(config *rest.Config) (*dynamic.DynamicClient, error) {
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -62,14 +62,14 @@ func (c *client) getDynamicClient(config *rest.Config) (*dynamic.DynamicClient, 
 // RESTMapper 的用途 :
 //  1. GVK 转 GVR
 //  2. 配合dynamic.DynamicClient，动态资源操作
-func (c *client) getRestMapping(config *rest.Config) (meta.RESTMapper, error) {
+func (c *Client) getRestMapping(config *rest.Config) (meta.RESTMapper, error) {
 	// 创建 Kubernetes 客户端
 	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
 
-	// client.Discovery()  用于与 Kubernetes API 服务器的 discovery 子系统交互，检索集群中所有可用资源及其元信息。
+	// Client.Discovery()  用于与 Kubernetes API 服务器的 discovery 子系统交互，检索集群中所有可用资源及其元信息。
 	// restmapper.GetAPIGroupResources(cl discovery.DiscoveryInterface) 获取集群中所有 API 组及其资源信息。返回值是一个 []*restmapper.APIGroupResources，描述了每个 API 组的资源列表。
 	groupResources, err := restmapper.GetAPIGroupResources(client.Discovery())
 	if err != nil {
@@ -81,10 +81,7 @@ func (c *client) getRestMapping(config *rest.Config) (meta.RESTMapper, error) {
 	return mapper, nil
 }
 
-func (c *client) getInformerFactory() informers.SharedInformerFactory {
+func (c *Client) getInformerFactory() informers.SharedInformerFactory {
 	fact := informers.NewSharedInformerFactory(c.client, 0) //创建通用informer工厂
-	ch := make(chan struct{})
-	fact.Start(ch)
-	fact.WaitForCacheSync(ch)
 	return fact
 }
