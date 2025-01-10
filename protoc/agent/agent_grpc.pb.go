@@ -18,158 +18,158 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// AuthClient is the client API for Auth service.
+// AgentClient is the client API for Agent service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type AuthClient interface {
+type AgentClient interface {
 	Events(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*EventsResponse, error)
 	Logs(ctx context.Context, in *LogsRequest, opts ...grpc.CallOption) (*LogsResponse, error)
 	Resources(ctx context.Context, in *ResourcesRequest, opts ...grpc.CallOption) (*ResourcesResponse, error)
 }
 
-type authClient struct {
+type agentClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
-	return &authClient{cc}
+func NewAgentClient(cc grpc.ClientConnInterface) AgentClient {
+	return &agentClient{cc}
 }
 
-func (c *authClient) Events(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*EventsResponse, error) {
+func (c *agentClient) Events(ctx context.Context, in *EventsRequest, opts ...grpc.CallOption) (*EventsResponse, error) {
 	out := new(EventsResponse)
-	err := c.cc.Invoke(ctx, "/agent.Auth/Events", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/agent.Agent/Events", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) Logs(ctx context.Context, in *LogsRequest, opts ...grpc.CallOption) (*LogsResponse, error) {
+func (c *agentClient) Logs(ctx context.Context, in *LogsRequest, opts ...grpc.CallOption) (*LogsResponse, error) {
 	out := new(LogsResponse)
-	err := c.cc.Invoke(ctx, "/agent.Auth/Logs", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/agent.Agent/Logs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) Resources(ctx context.Context, in *ResourcesRequest, opts ...grpc.CallOption) (*ResourcesResponse, error) {
+func (c *agentClient) Resources(ctx context.Context, in *ResourcesRequest, opts ...grpc.CallOption) (*ResourcesResponse, error) {
 	out := new(ResourcesResponse)
-	err := c.cc.Invoke(ctx, "/agent.Auth/Resources", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/agent.Agent/Resources", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AuthServer is the server API for Auth service.
-// All implementations must embed UnimplementedAuthServer
+// AgentServer is the server API for Agent service.
+// All implementations must embed UnimplementedAgentServer
 // for forward compatibility
-type AuthServer interface {
+type AgentServer interface {
 	Events(context.Context, *EventsRequest) (*EventsResponse, error)
 	Logs(context.Context, *LogsRequest) (*LogsResponse, error)
 	Resources(context.Context, *ResourcesRequest) (*ResourcesResponse, error)
-	mustEmbedUnimplementedAuthServer()
+	mustEmbedUnimplementedAgentServer()
 }
 
-// UnimplementedAuthServer must be embedded to have forward compatible implementations.
-type UnimplementedAuthServer struct {
+// UnimplementedAgentServer must be embedded to have forward compatible implementations.
+type UnimplementedAgentServer struct {
 }
 
-func (UnimplementedAuthServer) Events(context.Context, *EventsRequest) (*EventsResponse, error) {
+func (UnimplementedAgentServer) Events(context.Context, *EventsRequest) (*EventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Events not implemented")
 }
-func (UnimplementedAuthServer) Logs(context.Context, *LogsRequest) (*LogsResponse, error) {
+func (UnimplementedAgentServer) Logs(context.Context, *LogsRequest) (*LogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logs not implemented")
 }
-func (UnimplementedAuthServer) Resources(context.Context, *ResourcesRequest) (*ResourcesResponse, error) {
+func (UnimplementedAgentServer) Resources(context.Context, *ResourcesRequest) (*ResourcesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Resources not implemented")
 }
-func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
+func (UnimplementedAgentServer) mustEmbedUnimplementedAgentServer() {}
 
-// UnsafeAuthServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to AuthServer will
+// UnsafeAgentServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AgentServer will
 // result in compilation errors.
-type UnsafeAuthServer interface {
-	mustEmbedUnimplementedAuthServer()
+type UnsafeAgentServer interface {
+	mustEmbedUnimplementedAgentServer()
 }
 
-func RegisterAuthServer(s grpc.ServiceRegistrar, srv AuthServer) {
-	s.RegisterService(&Auth_ServiceDesc, srv)
+func RegisterAgentServer(s grpc.ServiceRegistrar, srv AgentServer) {
+	s.RegisterService(&Agent_ServiceDesc, srv)
 }
 
-func _Auth_Events_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Agent_Events_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Events(ctx, in)
+		return srv.(AgentServer).Events(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/agent.Auth/Events",
+		FullMethod: "/agent.Agent/Events",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Events(ctx, req.(*EventsRequest))
+		return srv.(AgentServer).Events(ctx, req.(*EventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Logs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Agent_Logs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Logs(ctx, in)
+		return srv.(AgentServer).Logs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/agent.Auth/Logs",
+		FullMethod: "/agent.Agent/Logs",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Logs(ctx, req.(*LogsRequest))
+		return srv.(AgentServer).Logs(ctx, req.(*LogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_Resources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Agent_Resources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResourcesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).Resources(ctx, in)
+		return srv.(AgentServer).Resources(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/agent.Auth/Resources",
+		FullMethod: "/agent.Agent/Resources",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).Resources(ctx, req.(*ResourcesRequest))
+		return srv.(AgentServer).Resources(ctx, req.(*ResourcesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
+// Agent_ServiceDesc is the grpc.ServiceDesc for Agent service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Auth_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "agent.Auth",
-	HandlerType: (*AuthServer)(nil),
+var Agent_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "agent.Agent",
+	HandlerType: (*AgentServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Events",
-			Handler:    _Auth_Events_Handler,
+			Handler:    _Agent_Events_Handler,
 		},
 		{
 			MethodName: "Logs",
-			Handler:    _Auth_Logs_Handler,
+			Handler:    _Agent_Logs_Handler,
 		},
 		{
 			MethodName: "Resources",
-			Handler:    _Auth_Resources_Handler,
+			Handler:    _Agent_Resources_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

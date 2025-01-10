@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "Auth"
+      "name": "Agent"
     }
   ],
   "consumes": [
@@ -18,7 +18,7 @@
   "paths": {
     "/agent/info/events": {
       "get": {
-        "operationId": "Auth_Events",
+        "operationId": "Agent_Events",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -48,13 +48,13 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Agent"
         ]
       }
     },
     "/agent/info/logs": {
       "get": {
-        "operationId": "Auth_Logs",
+        "operationId": "Agent_Logs",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -90,13 +90,13 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Agent"
         ]
       }
     },
     "/agent/info/resources": {
       "get": {
-        "operationId": "Auth_Resources",
+        "operationId": "Agent_Resources",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -126,7 +126,7 @@
           }
         ],
         "tags": [
-          "Auth"
+          "Agent"
         ]
       }
     }
