@@ -6,7 +6,7 @@ option go_package = "/agent";
 
 import "google/api/annotations.proto";
 
-service Auth{
+service Agent {
   rpc Events(EventsRequest) returns (EventsResponse){
     option (google.api.http) = {
       get: "/agent/info/events"
