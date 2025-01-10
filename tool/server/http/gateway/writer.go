@@ -62,7 +62,7 @@ func (w *writer) WriteJSON(data interface{}, err error) {
 	if err != nil {
 		res.Code = "999999"
 		res.Message = err.Error()
-		res.Data = nil
+		res.Details = nil
 		marshalByte, _ = json.Marshal(res)
 	}
 	w.WriteBytes(marshalByte)

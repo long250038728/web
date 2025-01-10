@@ -36,6 +36,6 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 }
 
 func RegisterGRPCServer(engine *grpc.Server, srv *service.Service) {
-	agent.RegisterAuthServer(engine, srv)
+	agent.RegisterAgentServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

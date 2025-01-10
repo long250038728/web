@@ -7,8 +7,10 @@ import (
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
+var _ agent.AgentServer = &Service{}
+
 type Service struct {
-	agent.UnimplementedAuthServer
+	agent.UnimplementedAgentServer
 	tool.GrpcHealth
 	domain *domain.Domain
 }

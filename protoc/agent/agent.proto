@@ -1,9 +1,6 @@
 syntax = "proto3";
-
 package agent;
-
 option go_package = "/agent";
-
 import "google/api/annotations.proto";
 
 service Agent {
