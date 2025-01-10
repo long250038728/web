@@ -14,6 +14,7 @@
 ```
 go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
@@ -26,6 +27,7 @@ protoc \
 --go-grpc_out=. \
 --go-grpc_opt=paths=source_relative \
 -I=/Users/linlong/go/src/  -I=./ \
+--openapiv2_out=. \
 userServer.proto
 ```
 
