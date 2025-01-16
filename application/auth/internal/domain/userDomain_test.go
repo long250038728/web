@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 	"github.com/long250038728/web/application/auth/internal/repository"
-	"github.com/long250038728/web/protoc/auth_rpc"
+	"github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/store"
@@ -23,7 +23,7 @@ func authCtx() context.Context {
 
 func TestUserDomain_Login(t *testing.T) {
 	var dm = NewDomain(repository.NewRepository(app.NewUtil()))
-	login, err := dm.Login(authCtx(), &auth_rpc.LoginRequest{
+	login, err := dm.Login(authCtx(), &auth.LoginRequest{
 		Name:     "root",
 		Password: "123456",
 	})
@@ -36,7 +36,7 @@ func TestUserDomain_Login(t *testing.T) {
 
 func TestUserDomain_Refresh(t *testing.T) {
 	var dm = NewDomain(repository.NewRepository(app.NewUtil()))
-	login, err := dm.Refresh(authCtx(), &auth_rpc.RefreshRequest{
+	login, err := dm.Refresh(authCtx(), &auth.RefreshRequest{
 		RefreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTc1ODkzNjMsImlhdCI6MTcxNzQ4MTM2MywiaWQiOjEsIm1kNSI6ImlkOjZiODZiMjczZmYzNGZjZTE5ZDZiODA0ZWZmNWEzZjU3NDdhZGE0ZWFhMjJmMWQ0OWMwMWU1MmRkYjc4NzViNGIifQ.XzABUvbuFbt6D5dCfKwAxEhtSCwUUyuvfpIMwH0KSLM",
 	})
 	if err != nil {

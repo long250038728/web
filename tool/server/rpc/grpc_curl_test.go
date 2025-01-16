@@ -8,7 +8,7 @@ import (
 func TestCurl(t *testing.T) {
 	ctx := context.Background()
 	path := []string{"/Users/linlong/Desktop/web/protoc/order/"}
-	file := "orderServer.proto"
+	file := "order.proto"
 
 	address := "192.168.1.136:9002"
 

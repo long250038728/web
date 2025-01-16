@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/long250038728/web/application/auth/internal/model"
-	"github.com/long250038728/web/protoc/auth_rpc"
+	"github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/sliceconv"
@@ -22,7 +22,7 @@ func NewRepository(util *app.Util) *Repository {
 	}
 }
 
-func (r *Repository) Login(ctx context.Context, name, password string) (*auth_rpc.UserResponse, error) {
+func (r *Repository) Login(ctx context.Context, name, password string) (*auth.UserResponse, error) {
 	userInfo, err := r.GetUser(ctx, 0, name, password)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func (r *Repository) Login(ctx context.Context, name, password string) (*auth_rp
 	return r.getUserResponse(ctx, userInfo)
 }
 
-func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth_rpc.UserResponse, error) {
+func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
 	cache, err := r.util.Cache()
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (r *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*mo
 }
 
 // ======================================================================================================================
-func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth_rpc.UserResponse, error) {
+func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
 	cache, err := r.util.Cache()
 	if err != nil {
 		return nil, err
@@ -156,5 +156,5 @@ func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) 
 	if err != nil {
 		return nil, err
 	}
-	return &auth_rpc.UserResponse{Id: userInfo.Id, Name: userInfo.Name, Telephone: userInfo.Telephone, Roles: roleNames, Permissions: permissionsPath, AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return &auth.UserResponse{Id: userInfo.Id, Name: userInfo.Name, Telephone: userInfo.Telephone, Roles: roleNames, Permissions: permissionsPath, AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }

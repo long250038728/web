@@ -3,12 +3,12 @@ package service
 import (
 	"context"
 	"github.com/long250038728/web/application/auth/internal/domain"
-	"github.com/long250038728/web/protoc/auth_rpc"
+	"github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
 type Service struct {
-	auth_rpc.UnimplementedAuthServer
+	auth.UnimplementedAuthServer
 	tool.GrpcHealth
 	domain *domain.Domain
 }
@@ -29,10 +29,10 @@ func NewService(opts ...UserServerOpt) *Service {
 	return s
 }
 
-func (s *Service) Login(ctx context.Context, request *auth_rpc.LoginRequest) (*auth_rpc.UserResponse, error) {
+func (s *Service) Login(ctx context.Context, request *auth.LoginRequest) (*auth.UserResponse, error) {
 	return s.domain.Login(ctx, request)
 }
 
-func (s *Service) Refresh(ctx context.Context, request *auth_rpc.RefreshRequest) (*auth_rpc.UserResponse, error) {
+func (s *Service) Refresh(ctx context.Context, request *auth.RefreshRequest) (*auth.UserResponse, error) {
 	return s.domain.Refresh(ctx, request)
 }

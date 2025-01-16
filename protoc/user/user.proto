@@ -1,0 +1,25 @@
+syntax = "proto3";
+import "google/api/annotations.proto";
+
+package user;
+option go_package = "/user";
+
+service User{
+  rpc SayHello(RequestHello) returns (ResponseHello){
+    option (google.api.http) = {
+      get: "/user/user/say_hello"
+    };
+  };
+}
+
+message RequestHello {
+  string name = 1;
+  int32 age = 2;
+}
+message ResponseHello {
+  string str = 1;
+}
+
+
+
+

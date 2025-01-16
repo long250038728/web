@@ -1,0 +1,21 @@
+syntax = "proto3";
+import "google/api/annotations.proto";
+
+package order;
+option go_package = "/order";
+
+service Order{
+   rpc OrderDetail(OrderDetailRequest) returns (OrderDetailResponse){
+     option (google.api.http) = {
+       get: "/order/order/detail"
+     };
+   };
+}
+
+message OrderDetailRequest {
+  int32 id = 1;
+}
+message OrderDetailResponse {
+  int32 id = 1;
+  string order_sn = 2;
+}

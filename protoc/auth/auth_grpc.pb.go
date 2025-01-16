@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v5.27.1
-// source: authServer.proto
+// source: auth.proto
 
-package auth_rpc
+package auth
 
 import (
 	context "context"
@@ -36,7 +36,7 @@ func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
 
 func (c *authClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, "/authorization.Auth/Login", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.Auth/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func (c *authClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.C
 
 func (c *authClient) Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*UserResponse, error) {
 	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, "/authorization.Auth/Refresh", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.Auth/Refresh", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func _Auth_Login_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authorization.Auth/Login",
+		FullMethod: "/auth.Auth/Login",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Login(ctx, req.(*LoginRequest))
@@ -112,7 +112,7 @@ func _Auth_Refresh_Handler(srv interface{}, ctx context.Context, dec func(interf
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/authorization.Auth/Refresh",
+		FullMethod: "/auth.Auth/Refresh",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).Refresh(ctx, req.(*RefreshRequest))
@@ -124,7 +124,7 @@ func _Auth_Refresh_Handler(srv interface{}, ctx context.Context, dec func(interf
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Auth_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authorization.Auth",
+	ServiceName: "auth.Auth",
 	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -137,5 +137,5 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "authServer.proto",
+	Metadata: "auth.proto",
 }
