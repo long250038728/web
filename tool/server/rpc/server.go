@@ -7,6 +7,7 @@ import (
 	"github.com/long250038728/web/tool/server/rpc/tool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
 	"time"
@@ -52,6 +53,11 @@ func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	}
 	fmt.Printf("%s : %s:%d\n", svc.svcInstance.Name, svc.svcInstance.Address, svc.svcInstance.Port)
 	handlerFunc(svc.server)
+
+	// grpcurl -plaintext 192.168.0.26:9011 list //查看服务
+	// grpcurl -plaintext 192.168.0.26:9011 describe agent.Agent //查看服务中接口列表
+	// grpcurl -plaintext -d '{}' 192.168.0.26:9011 agent.Agent/Events //访问接口
+	reflection.Register(svc.server) //注册服务反射功能，使客户端可以动态查询服务和方法信息。它在开发和调试过程中极其有用
 	return svc
 }
 

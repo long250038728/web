@@ -49,8 +49,7 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 
 	// health 心跳检测
 	handler.GET("/health", func(gin *gin.Context) {
-		gin.Writer.WriteHeader(http.StatusOK)
-		_, _ = gin.Writer.Write([]byte("health"))
+		gin.String(http.StatusOK, "health")
 	})
 
 	// pprof 监控

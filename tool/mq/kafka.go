@@ -19,7 +19,7 @@ type Kafka struct {
 	config *Config
 }
 
-func NewKafkaMq(config *Config) *Kafka {
+func NewKafkaMq(config *Config) KafkaMq {
 	return &Kafka{
 		config: config,
 	}

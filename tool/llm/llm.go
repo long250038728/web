@@ -63,9 +63,16 @@ func SetMessage(message []openai.ChatCompletionMessage) Opt {
 	}
 }
 
+const BaseURL = "http://119.91.205.157:6399/v1"
+const AccessToken = ""
+const Model = "qwen2.5-coder:32b"
+
 func NewOpenAiClient(opts ...Opt) *QwChat {
-	config := openai.DefaultConfig("sk-bff318c2fa9e4eceb6c292e2990f0dfc")
-	config.BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+	//config := openai.DefaultConfig("sk-bff318c2fa9e4eceb6c292e2990f0dfc")
+	//config.BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+
+	config := openai.DefaultConfig(AccessToken)
+	config.BaseURL = BaseURL
 	return &QwChat{
 		client:  openai.NewClientWithConfig(config),
 		message: []openai.ChatCompletionMessage{},
@@ -82,7 +89,7 @@ func (c *QwChat) Chat(ctx context.Context, msg string) (string, error) {
 	resp, err := c.client.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model:      "qwen-plus",
+			Model:      Model,
 			Messages:   c.message,
 			ToolChoice: "auto", // 工具选择方式让大模型自己根据实际情况选择是否调用工具
 			Tools: []openai.Tool{
@@ -142,7 +149,7 @@ func (c *QwChat) ChatStream(ctx context.Context, msg string) (chan string, error
 	resp, err := c.client.CreateChatCompletionStream(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model:    "qwen-plus",
+			Model:    Model,
 			Messages: c.message,
 		},
 	)
