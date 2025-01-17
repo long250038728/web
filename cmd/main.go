@@ -67,7 +67,7 @@ func main() {
 	gitCron := client.NewGitCron(gitClient)
 	olineCron := client.NewOnlineCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
 	devopsCron := client.NewDevopsCorn("", "")
-	serverCron := client.NewServerCornCorn("", "")
+	serverCron := client.NewServerCornCorn()
 
 	rootCmd := &cobra.Command{
 		Use:   "linl",

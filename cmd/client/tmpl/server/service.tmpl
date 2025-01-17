@@ -1,25 +1,26 @@
 package service
 
 import (
-	"{{.Page}}/activity/internal/domain"
+	"{{.Page}}/{{.Server}}/internal/domain"
+	"{{.Protoc}}/{{.Server}}"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
 type Service struct {
-	{{.Server}}.UnimplementedactivityServer
+	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
 	tool.GrpcHealth
 	domain *domain.Domain
 }
 
-type activityServerOpt func(s *Service)
+type {{serverNameFunc .Server}}ServerOpt func(s *Service)
 
-func SetDomain(domain *domain.Domain) activityServerOpt {
+func SetDomain(domain *domain.Domain) {{serverNameFunc .Server}}ServerOpt {
 	return func(s *Service) {
 		s.domain = domain
 	}
 }
 
-func NewService(opts ...activityServerOpt) *Service {
+func NewService(opts ...{{serverNameFunc .Server}}ServerOpt) *Service {
 	s := &Service{}
 	for _, opt := range opts {
 		opt(s)

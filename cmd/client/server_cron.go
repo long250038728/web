@@ -7,11 +7,14 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+	"strings"
+	"text/template"
 )
 
 type serverValue struct {
 	Server string `json:"server" yaml:"server"`
 	Page   string `json:"page" yaml:"page"`
+	Protoc string `json:"protoc" yaml:"protoc"`
 }
 
 type server struct {
@@ -43,6 +46,9 @@ func (g *server) genMain(data *serverValue) ([]byte, error) {
 		Tmpl:     main,
 		Data:     data,
 		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
 	}).Gen()
 }
 func (g *server) genRouter(data *serverValue) ([]byte, error) {
@@ -51,6 +57,9 @@ func (g *server) genRouter(data *serverValue) ([]byte, error) {
 		Tmpl:     router,
 		Data:     data,
 		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
 	}).Gen()
 }
 func (g *server) genService(data *serverValue) ([]byte, error) {
@@ -59,6 +68,9 @@ func (g *server) genService(data *serverValue) ([]byte, error) {
 		Tmpl:     service,
 		Data:     data,
 		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
 	}).Gen()
 }
 func (g *server) genDomain(data *serverValue) ([]byte, error) {
@@ -67,6 +79,9 @@ func (g *server) genDomain(data *serverValue) ([]byte, error) {
 		Tmpl:     domain,
 		Data:     data,
 		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
 	}).Gen()
 }
 func (g *server) genRepository(data *serverValue) ([]byte, error) {
@@ -75,33 +90,55 @@ func (g *server) genRepository(data *serverValue) ([]byte, error) {
 		Tmpl:     repository,
 		Data:     data,
 		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
 	}).Gen()
 }
 
-type ServerCorn struct {
-	path string
-	page string
+func (g *server) serverName(server string) string {
+	//对server字符串第一个转换为大写
+	return fmt.Sprintf("%s%s", strings.ToUpper(server[:1]), server[1:])
 }
 
-func NewServerCornCorn(path, page string) *ServerCorn {
-	if len(path) == 0 {
-		path = "/Users/linlong/Desktop/web/application"
-	}
+type ServerCorn struct {
+	path   string
+	page   string
+	protoc string
+}
 
-	if len(page) == 0 {
-		page = "github.com/long250038728/web/application"
-	}
-	return &ServerCorn{path: path, page: page}
+func NewServerCornCorn() *ServerCorn {
+	return &ServerCorn{}
 }
 
 func (c *ServerCorn) Server() *cobra.Command {
 	return &cobra.Command{
 		Use:   "server [服务名]",
-		Short: "创建server： 请输入 [服务名]",
-		Long:  "创建server： 请输入 [服务名]",
+		Short: "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
+		Long:  "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			server := args[0]
+			if len(args) >= 2 {
+				c.path = args[1]
+			}
+
+			webBase := "github.com/long250038728/web"
+			application := "application"
+			protoc := "protoc"
+
+			if len(args) >= 3 {
+				webBase = args[2]
+			}
+			if len(args) >= 4 {
+				application = args[3]
+			}
+			if len(args) >= 5 {
+				protoc = args[4]
+			}
+			c.page = filepath.Join(webBase, application)
+			c.protoc = filepath.Join(webBase, protoc)
+
 			devops := func() error {
 				var err error
 
@@ -134,7 +171,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 				var domainBytes []byte
 				var repositoryBytes []byte
 
-				v := &serverValue{Server: server, Page: c.page}
+				v := &serverValue{Server: server, Page: c.page, Protoc: c.protoc}
 
 				if mainBytes, err = g.genMain(v); err != nil {
 					return err

@@ -1,33 +1,28 @@
 package router
 
 import (
-    "context"
 	"github.com/gin-gonic/gin"
-	"{{.Page}}/activity/internal/service"
-	"github.com/long250038728/web/protoc/{{.Server}}"
+	"{{.Page}}/{{.Server}}/internal/service"
+	"{{.Protoc}}/{{.Server}}"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/http/gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-
-
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
-
-	xxxGroup := engine.Group("/activity/xxx/").Use(http.BaseHandle(cache), http.LimitHandle(cache))
+	xxxGroup := engine.Group("/{{.Server}}/xxx/").Use(gateway.BaseHandle(cache))
 	{
-		xxxGroup.POST("xxx", func(c *gin.Context) {
-			//gateway.Json(c, &{{.Server}}.xxx{}).Handle(func(ctx context.Context, req any) (any, error) {
-            //	 return srv.xxx(ctx, req.(*auth_rpc.xxx))
-            //})
+		xxxGroup.GET("xxx", func(c *gin.Context) {
+			//gateway.Json(c, &{{.Server}}.xxxRequest{}).Use(gateway.Limit(), gateway.Cache()).Handle(func(ctx context.Context, req any) (any, error) {
+			//	return srv.XXX(ctx, req.(*{{.Server}}.xxxRequest))
+			//})
 		})
 	}
 }
 
 func RegisterGRPCServer(engine *grpc.Server, srv *service.Service) {
-	{{.Server}}.RegisterAuthServer(engine, srv)
+	{{.Server}}.Register{{serverNameFunc .Server}}Server(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

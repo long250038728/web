@@ -8,7 +8,7 @@ import (
 	"{{.Page}}/{{.Server}}/internal/repository"
 	"{{.Page}}/{{.Server}}/internal/router"
 	"{{.Page}}/{{.Server}}/internal/service"
-	"github.com/long250038728/web/protoc"
+	"{{.Protoc}}"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
 	"github.com/long250038728/web/tool/server/rpc"
@@ -20,7 +20,7 @@ func main() {
 	flag.Parse()
 
 	app.InitPathInfo(path)
-	fmt.Println(Run(protoc.{{.Server}}Service))
+	fmt.Println(Run(protoc.{{serverNameFunc .Server}}Service))
 }
 
 func Run(serverName string) error {
