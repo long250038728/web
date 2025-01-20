@@ -113,7 +113,7 @@ atomic.LoadInt32(&count)    //读
 atomic.SwapInt32(&count, 2) //替换/赋值
 atomic.CompareAndSwapInt32(&count, 2, 4))//先对比成功再替换/赋值 
 atomic.AddInt32(&count, 2)   // 加
-atomic.StoreInt32(&count, 4) //减
+atomic.StoreInt32(&count, 4) //赋值
 ```
 * sync.WaitGroup: 当多个子goroutine执行时，此时当前goroutine如果不等待则会直接退出，所以需要有机制去让当前goroutine等待子goroutine都处理完才退出
 ```
