@@ -68,6 +68,7 @@ func main() {
 	olineCron := client.NewOnlineCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
 	devopsCron := client.NewDevopsCorn("", "")
 	serverCron := client.NewServerCornCorn()
+	chatCron := client.NewChatCorn()
 
 	rootCmd := &cobra.Command{
 		Use:   "linl",
@@ -84,6 +85,9 @@ func main() {
 	rootCmd.AddCommand(olineCron.Cron())
 	rootCmd.AddCommand(devopsCron.Devops())
 	rootCmd.AddCommand(serverCron.Server())
+	rootCmd.AddCommand(chatCron.Chat())
+
+	rootCmd.AddCommand()
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err.Error())
