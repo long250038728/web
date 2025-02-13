@@ -47,7 +47,7 @@
 //
 //			// 检查是否退出
 //			if ExitCommand == message {
-//				assistant.echo("ConversationMemoryLocal session ended.")
+//				assistant.echo("ConversationMemory session ended.")
 //				break
 //			}
 //			memory.AddMessage(message)
@@ -88,32 +88,32 @@
 //
 // // ===============================================
 //
-//	func NewConversationMemoryLocal(prompt string) *ConversationMemoryLocal {
+//	func NewConversationMemoryLocal(prompt string) *ConversationMemory {
 //		list := make([]openai.ChatCompletionMessage, 0, 100)
 //		list = append(list, openai.ChatCompletionMessage{
 //			Role:    openai.ChatMessageRoleSystem,
 //			Content: prompt,
 //		})
-//		return &ConversationMemoryLocal{prompt: prompt, list: list}
+//		return &ConversationMemory{prompt: prompt, list: list}
 //	}
 //
-//	type ConversationMemoryLocal struct {
+//	type ConversationMemory struct {
 //		prompt string
 //		list   []openai.ChatCompletionMessage
 //	}
 //
-//	func (c *ConversationMemoryLocal) AddResponse(message openai.ChatCompletionMessage) {
+//	func (c *ConversationMemory) AddResponse(message openai.ChatCompletionMessage) {
 //		c.list = append(c.list, message)
 //	}
 //
-//	func (c *ConversationMemoryLocal) AddMessage(message string) {
+//	func (c *ConversationMemory) AddMessage(message string) {
 //		c.list = append(c.list, openai.ChatCompletionMessage{
 //			Role:    openai.ChatMessageRoleUser,
 //			Content: message,
 //		})
 //	}
 //
-//	func (c *ConversationMemoryLocal) List() []openai.ChatCompletionMessage {
+//	func (c *ConversationMemory) List() []openai.ChatCompletionMessage {
 //		return c.list
 //	}
 //

@@ -15,7 +15,7 @@ type Config struct {
 
 //====================================================================================
 
-type ConversationMemory interface {
+type Conversation interface {
 	AddMessage(message string)
 	AddResponse(message openai.ChatCompletionMessage)
 	List() []openai.ChatCompletionMessage

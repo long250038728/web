@@ -10,10 +10,10 @@ import (
 type Chat struct {
 	conf               *Config
 	client             *openai.Client
-	conversationMemory ConversationMemory
+	conversationMemory Conversation
 }
 
-func NewChat(conf *Config, conversationMemory ConversationMemory) (*Chat, error) {
+func NewChat(conf *Config, conversationMemory Conversation) (*Chat, error) {
 	if conf.Model == "" {
 		return nil, ModelError
 	}

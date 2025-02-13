@@ -2,30 +2,30 @@ package llm
 
 import "github.com/sashabaranov/go-openai"
 
-type ConversationMemoryLocal struct {
+type ConversationMemory struct {
 	list []openai.ChatCompletionMessage
 }
 
-func NewConversationMemoryLocal(prompt string) ConversationMemory {
+func NewConversationMemoryLocal(prompt string) Conversation {
 	list := make([]openai.ChatCompletionMessage, 0, 100)
 	list = append(list, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleSystem,
 		Content: prompt,
 	})
-	return &ConversationMemoryLocal{list: list}
+	return &ConversationMemory{list: list}
 }
 
-func (c *ConversationMemoryLocal) AddMessage(message string) {
+func (c *ConversationMemory) AddMessage(message string) {
 	c.list = append(c.list, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: message,
 	})
 }
 
-func (c *ConversationMemoryLocal) AddResponse(message openai.ChatCompletionMessage) {
+func (c *ConversationMemory) AddResponse(message openai.ChatCompletionMessage) {
 	c.list = append(c.list, message)
 }
 
-func (c *ConversationMemoryLocal) List() []openai.ChatCompletionMessage {
+func (c *ConversationMemory) List() []openai.ChatCompletionMessage {
 	return c.list
 }
