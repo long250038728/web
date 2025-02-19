@@ -104,11 +104,11 @@ func (o *Task) Build(ctx context.Context, source, target, svcPath string) error 
 	var list []*requestInfo
 	var err error
 	if list, err = o.list(ctx, source, target); err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.HookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err = o.save(ctx, list); err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.HookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 
@@ -121,13 +121,13 @@ func (o *Task) Build(ctx context.Context, source, target, svcPath string) error 
 		if val.Type == TaskTypeSql {
 			sqlBytes, sqlErr = json.MarshalIndent(val.Params["sql"], "", "	")
 			if sqlErr != nil {
-				_ = o.hookSend(ctx, sqlErr.Error())
+				_ = o.HookSend(ctx, sqlErr.Error())
 			} else {
-				_ = o.hookSend(ctx, string(sqlBytes))
+				_ = o.HookSend(ctx, string(sqlBytes))
 			}
 		}
 	}
-	_ = o.hookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
+	_ = o.HookSend(ctx, "发布项目: \n"+strings.Join(projectNames, "\n\n"))
 	return nil
 }
 
@@ -299,23 +299,23 @@ func (o *Task) Request(ctx context.Context) error {
 		//============================================================================
 		endTime := time.Now().Local()
 		if err != nil {
-			_ = o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
+			_ = o.HookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "failure", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), err.Error()))
 			return err
 		}
 
-		_ = o.hookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
+		_ = o.HookSend(ctx, fmt.Sprintf("project: %s \nstatus: %s \nstart: %s   end: %s   sub: %s \nother: \n%s", request.Project, "success", startTime.Format(time.TimeOnly), endTime.Format(time.TimeOnly), endTime.Sub(startTime).String(), other))
 		requestList[index].Success = true
 		_ = o.save(ctx, requestList)
 	}
 
-	_ = o.hookSend(ctx, "The entire pipeline has been processed")
+	_ = o.HookSend(ctx, "The entire pipeline has been processed")
 
 	return nil
 }
 
 //============================================================================================
 
-func (o *Task) hookSend(ctx context.Context, text string) error {
+func (o *Task) HookSend(ctx context.Context, text string) error {
 	if len(text) == 0 {
 		return errors.New("text is empty")
 	}
@@ -325,11 +325,11 @@ func (o *Task) hookSend(ctx context.Context, text string) error {
 func (o *Task) save(ctx context.Context, list []*requestInfo) error {
 	b, err := json.MarshalIndent(list, "", "	")
 	if err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.HookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	if err := os.WriteFile(o.outPath+o.outFileName, b, os.ModePerm); err != nil {
-		_ = o.hookSend(ctx, "生成失败: \n"+err.Error())
+		_ = o.HookSend(ctx, "生成失败: \n"+err.Error())
 		return err
 	}
 	return nil

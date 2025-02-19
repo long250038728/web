@@ -148,6 +148,17 @@ func (c *OlineCorn) Cron() *cobra.Command {
 			spec := fmt.Sprintf("%s %s * * *", m, h)
 			fmt.Println(spec)
 
+			taskClient := NewTaskClient(
+				SetGit(c.gitClient),
+				SetJenkins(c.jenkinsClient),
+				SetOrm(c.ormClient),
+				SetRemoteShell(c.sshClient),
+				SetQyHook(c.hookClient, c.tels),
+				SetOutPath(path),
+			)
+			ctx := context.Background()
+			_ = taskClient.HookSend(ctx, spec)
+
 			//创建任务
 			job := robfig.NewCronJob()
 			job.Start()
@@ -160,15 +171,7 @@ func (c *OlineCorn) Cron() *cobra.Command {
 			ch := make(chan error)
 			_, _ = job.AddFunc(spec, func() {
 				fmt.Println("执行了")
-				ctx := context.Background()
-				ch <- NewTaskClient(
-					SetGit(c.gitClient),
-					SetJenkins(c.jenkinsClient),
-					SetOrm(c.ormClient),
-					SetRemoteShell(c.sshClient),
-					SetQyHook(c.hookClient, c.tels),
-					SetOutPath(path),
-				).Request(ctx)
+				ch <- taskClient.Request(ctx)
 			})
 
 			select {
