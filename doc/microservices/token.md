@@ -116,7 +116,7 @@ OAuth2.0
 
 微信第三方授权流程：
 ```
-    1. 获取component_verify_ticket（通过创建应用时的回到地址，每10分钟会主动推送，有效期12h）
+    1. 获取component_verify_ticket（通过创建应用时的回调地址(授权事件接收配置)，每10分钟会主动推送，有效期12h）
     2. 获取component_access_token （有效期2h）
         POST https://api.weixin.qq.com/cgi-bin/component/api_component_token
             component_appid	string	是	第三方平台 appid
