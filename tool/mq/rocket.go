@@ -13,6 +13,7 @@ import (
 
 type RocketMqConfig struct {
 	Endpoint  string `json:"endpoint" yaml:"endpoint"`
+	NameSpace string `json:"name_space" yaml:"name_space"`
 	AccessKey string `json:"access_key" yaml:"access_key"`
 	SecretKey string `json:"secret_key" yaml:"secret_key"`
 	Env       string `json:"env" yaml:"env"`
@@ -22,12 +23,13 @@ type Rocket struct {
 	config *RocketMqConfig
 }
 
-func NewRocketMq(config *RocketMqConfig) Mq {
-	os.Setenv("mq.consoleAppender.enabled", "true")
+func init() {
+	_ = os.Setenv("mq.consoleAppender.enabled", "true")
 	rmq.ResetLogger()
-	return &Rocket{
-		config: config,
-	}
+}
+
+func NewRocketMq(config *RocketMqConfig) Mq {
+	return &Rocket{config: config}
 }
 
 func (mq *Rocket) Send(ctx context.Context, topic string, key string, message *Message) error {
@@ -35,14 +37,20 @@ func (mq *Rocket) Send(ctx context.Context, topic string, key string, message *M
 }
 
 func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, message []*Message) error {
-	producer, err := rmq.NewProducer(&rmq.Config{
-		Endpoint: mq.config.Endpoint,
+	conf := &rmq.Config{
+		Endpoint:  mq.config.Endpoint,
+		NameSpace: mq.config.NameSpace,
 		Credentials: &credentials.SessionCredentials{
 			AccessKey:    mq.config.AccessKey,
 			AccessSecret: mq.config.SecretKey,
 		},
-	}, rmq.WithTopics(topic),
-	)
+	}
+
+	opts := []rmq.ProducerOption{
+		rmq.WithTopics(topic),
+	}
+
+	producer, err := rmq.NewProducer(conf, opts...)
 	if err != nil {
 		return err
 	}
@@ -56,10 +64,26 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 		if err != nil {
 			return err
 		}
-		msg := &rmq.Message{
-			Topic: topic,
-			Body:  m.Data,
+
+		//fifo 顺序队列
+		if head.MsgType == RocketTypeFIFO && len(head.MessageGroup) == 0 {
+			return errors.New("message group is empty")
 		}
+
+		//delay 延迟队列
+		if head.MsgType == RocketTypeDELAY && head.DelayTimestamp.IsZero() {
+			return errors.New("delay timestamp is empty")
+		}
+
+		//transaction 事务消息
+		if head.MsgType == RocketTypeTRANSACTION {
+			return errors.New("this method not support transaction")
+		}
+	}
+
+	for _, m := range message {
+		head, _ := parseHeader(m.Headers)
+		msg := &rmq.Message{Topic: topic, Body: m.Data}
 
 		if key != "" {
 			msg.SetKeys(key) //一种为消息设置的唯一标识符或分类信息
@@ -72,38 +96,23 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 
 		//fifo 顺序队列
 		if head.MsgType == RocketTypeFIFO {
-			if len(head.MessageGroup) == 0 {
-				return errors.New("message group is empty")
-			}
 			msg.SetMessageGroup(head.MessageGroup)
 		}
 
 		//delay 延迟队列
 		if head.MsgType == RocketTypeDELAY {
-			if head.DelayTimestamp.IsZero() {
-				return errors.New("delay timestamp is empty")
-			}
-			//fmt.Println(head.DelayTimestamp.Format(time.DateTime))
 			msg.SetDelayTimestamp(head.DelayTimestamp)
 		}
 
 		// * 注意创建topic时需要指定类型（顺序，延迟，普通等），如果类型不一致会发生失败
-		if head.MsgType == RocketTypeNORMAL || head.MsgType == RocketTypeFIFO || head.MsgType == RocketTypeDELAY {
-			if head.IsAsync {
-				producer.SendAsync(ctx, msg, func(ctx context.Context, receipts []*rmq.SendReceipt, err error) {
-					fmt.Printf("============%#v\n%v====================", receipts, err)
-				})
-			} else {
-				if _, err = producer.Send(ctx, msg); err != nil {
-					return err
-				}
-			}
+		if head.IsAsync {
+			producer.SendAsync(ctx, msg, func(ctx context.Context, receipts []*rmq.SendReceipt, err error) {
+				fmt.Printf("============%#v\n%v====================", receipts, err)
+			})
 			continue
 		}
-
-		// 事务
-		if head.MsgType == RocketTypeTRANSACTION {
-			//SendWithTransaction(context.Context, *Message, Transaction) ([]*SendReceipt, error) //带事务的
+		if _, err = producer.Send(ctx, msg); err != nil {
+			return err
 		}
 	}
 
@@ -131,6 +140,7 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 	simpleConsumer, err := rmq.NewSimpleConsumer(&rmq.Config{
 		Endpoint:      mq.config.Endpoint,
 		ConsumerGroup: consumerGroup,
+		NameSpace:     mq.config.NameSpace,
 		Credentials: &credentials.SessionCredentials{
 			AccessKey:    mq.config.AccessKey,
 			AccessSecret: mq.config.SecretKey,

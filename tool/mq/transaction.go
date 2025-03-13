@@ -2,77 +2,93 @@ package mq
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"github.com/apache/rocketmq-clients/golang/v5/credentials"
-	"log"
-	"os"
-	"strconv"
-	"time"
-
 	rmq "github.com/apache/rocketmq-clients/golang/v5"
+	"github.com/apache/rocketmq-clients/golang/v5/credentials"
+	"os"
 )
 
-const (
-	Topic     = "xxxxxx"
-	Endpoint  = "xxxxxx"
-	AccessKey = "xxxxxx"
-	SecretKey = "xxxxxx"
-)
+type CheckHandle func(msg *rmq.MessageView) rmq.TransactionResolution
 
-func main() {
-	// log to console
-	os.Setenv("mq.consoleAppender.enabled", "true")
+type RocketTransaction struct {
+	config      *RocketMqConfig
+	checkHandle CheckHandle
+}
+
+func init() {
+	_ = os.Setenv("mq.consoleAppender.enabled", "true")
 	rmq.ResetLogger()
-	// new producer instance
-	producer, err := rmq.NewProducer(&rmq.Config{
-		Endpoint: Endpoint,
+}
+
+func NewRocketTransactionMq(config *RocketMqConfig, checkHandle CheckHandle) Transaction {
+	return &RocketTransaction{config: config, checkHandle: checkHandle}
+}
+
+func (mq *RocketTransaction) Send(ctx context.Context, topic string, key string, m *Message, handle func() bool) error {
+	conf := &rmq.Config{
+		Endpoint:  mq.config.Endpoint,
+		NameSpace: mq.config.NameSpace,
 		Credentials: &credentials.SessionCredentials{
-			AccessKey:    AccessKey,
-			AccessSecret: SecretKey,
+			AccessKey:    mq.config.AccessKey,
+			AccessSecret: mq.config.SecretKey,
 		},
-	},
-		rmq.WithTransactionChecker(&rmq.TransactionChecker{
+	}
+	opts := []rmq.ProducerOption{
+		rmq.WithTopics(topic),
+	}
+
+	if mq.checkHandle != nil {
+		opts = append(opts, rmq.WithTransactionChecker(&rmq.TransactionChecker{
 			Check: func(msg *rmq.MessageView) rmq.TransactionResolution {
-				log.Printf("check transaction message: %v", msg)
-				return rmq.COMMIT
+				return mq.checkHandle(msg)
 			},
-		}),
-		rmq.WithTopics(Topic),
-	)
-	if err != nil {
-		log.Fatal(err)
+		}))
 	}
-	// start producer
-	err = producer.Start()
+
+	producer, err := rmq.NewProducer(conf, opts...)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	// graceful stop producer
+	if err = producer.Start(); err != nil {
+		return err
+	}
 	defer producer.GracefulStop()
-	for i := 0; i < 10; i++ {
-		// new a message
-		msg := &rmq.Message{
-			Topic: Topic,
-			Body:  []byte("this is a message : " + strconv.Itoa(i)),
-		}
-		// set keys and tag
-		msg.SetKeys("a", "b")
-		msg.SetTag("ab")
-		// send message in sync
-		transaction := producer.BeginTransaction()
-		resp, err := producer.SendWithTransaction(context.TODO(), msg, transaction)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for i := 0; i < len(resp); i++ {
-			fmt.Printf("%#v\n", resp[i])
-		}
-		// commit transaction message
-		err = transaction.Commit()
-		if err != nil {
-			log.Fatal(err)
-		}
-		// wait a moment
-		time.Sleep(time.Second * 1)
+
+	head, err := parseHeader(m.Headers)
+	if err != nil {
+		return err
+	}
+
+	if head.MsgType != RocketTypeTRANSACTION {
+		return errors.New("this method is only support transaction")
+	}
+
+	msg := &rmq.Message{Topic: topic, Body: m.Data}
+
+	if key != "" {
+		msg.SetKeys(key) //一种为消息设置的唯一标识符或分类信息
+	}
+	if head.Tag != "" {
+		msg.SetTag(head.Tag) //消费者则可以通过订阅特定的 tag 来过滤并消费消息(指定)
+	} else {
+		msg.SetTag(mq.config.Env) //消费者则可以通过订阅特定的 tag 来过滤并消费消息(如果不存在使用配置的env环境变量)
+	}
+
+	transaction := producer.BeginTransaction()
+	resp, err := producer.SendWithTransaction(context.TODO(), msg, transaction)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(resp); i++ {
+		fmt.Printf("%#v\n", resp[i])
+	}
+
+	ok := handle()
+
+	if ok {
+		return transaction.Commit()
+	} else {
+		return transaction.RollBack()
 	}
 }

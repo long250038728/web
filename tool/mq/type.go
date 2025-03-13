@@ -36,13 +36,30 @@ func NewMessage(data interface{}) (msg *Message, err error) {
 }
 
 type KafkaMq interface {
-	CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
-	DeleteTopic(ctx context.Context, topic string) error
-	Mq
+	Operate
+	Send
+	Subscribe
 }
 
 type Mq interface {
+	Send
+	Subscribe
+}
+
+type Operate interface {
+	CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
+	DeleteTopic(ctx context.Context, topic string) error
+}
+
+type Send interface {
 	Send(ctx context.Context, topic string, key string, message *Message) error
 	BulkSend(ctx context.Context, topic string, key string, message []*Message) error
+}
+
+type Subscribe interface {
 	Subscribe(ctx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) error
+}
+
+type Transaction interface {
+	Send(ctx context.Context, topic string, key string, m *Message, handle func() bool) error
 }

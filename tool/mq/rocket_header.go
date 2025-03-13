@@ -20,6 +20,14 @@ type MsgHeader struct {
 	DelayTimestamp time.Time `json:"delay_timestamp"` //delay
 }
 
+const (
+	MsgType        = "msg_type"
+	IsAsync        = "is_async"
+	Tag            = "tag"
+	MessageGroup   = "message_group"
+	DelayTimestamp = "delay_timestamp"
+)
+
 func NewMessageHeaderNORMAL() *MsgHeader {
 	return &MsgHeader{MsgType: RocketTypeNORMAL}
 }
@@ -32,19 +40,45 @@ func NewMessageHeaderDELAY(delayTimestamp time.Time) *MsgHeader {
 	return &MsgHeader{MsgType: RocketTypeDELAY, DelayTimestamp: delayTimestamp}
 }
 
+func NewMessageHeaderTransaction() *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeTRANSACTION}
+}
+
+func NewAsyncMessageHeaderNORMAL() *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeNORMAL, IsAsync: true}
+}
+
+func NewAsyncMessageHeaderFIFO(messageGroup string) *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeFIFO, MessageGroup: messageGroup, IsAsync: true}
+}
+
+func NewAsyncMessageHeaderDELAY(delayTimestamp time.Time) *MsgHeader {
+	return &MsgHeader{MsgType: RocketTypeDELAY, DelayTimestamp: delayTimestamp, IsAsync: true}
+}
+
+func (header *MsgHeader) SetAsync(isAsync bool) *MsgHeader {
+	header.IsAsync = isAsync
+	return header
+}
+
+func (header *MsgHeader) SetTag(tag string) *MsgHeader {
+	header.Tag = tag
+	return header
+}
+
 func parseHeader(header []Header) (h *MsgHeader, err error) {
 	h = &MsgHeader{}
 	for _, head := range header {
 		switch head.Key {
-		case "msg_type":
+		case MsgType:
 			h.MsgType, err = strconv.Atoi(string(head.Value))
-		case "is_async":
+		case IsAsync:
 			h.IsAsync, err = strconv.ParseBool(string(head.Value))
-		case "tag":
+		case Tag:
 			h.Tag = string(head.Value)
-		case "message_group":
+		case MessageGroup:
 			h.MessageGroup = string(head.Value)
-		case "delay_timestamp":
+		case DelayTimestamp:
 			h.DelayTimestamp, err = time.Parse(time.DateTime, string(head.Value))
 		}
 		if err != nil {
