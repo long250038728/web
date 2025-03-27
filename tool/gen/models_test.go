@@ -18,7 +18,7 @@ func TestModels_Gen(t *testing.T) {
 	var db *orm.Gorm
 	var b []byte
 
-	db, err = orm.NewGorm(&ormConfig)
+	db, err = orm.NewMySQLGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -44,7 +44,7 @@ func TestModels_GenProto(t *testing.T) {
 	var db *orm.Gorm
 	var b []byte
 
-	db, err = orm.NewGorm(&ormConfig)
+	db, err = orm.NewMySQLGorm(&ormConfig)
 	if err != nil {
 		t.Error(err)
 		return

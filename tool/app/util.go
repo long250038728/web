@@ -91,13 +91,13 @@ func NewUtilConfig(config *Config) (*Util, error) {
 
 	//创建db客户端
 	if config.dbConfig != nil && len(config.dbConfig.Address) > 0 {
-		if util.db, err = orm.NewGorm(config.dbConfig); err != nil {
+		if util.db, err = orm.NewMySQLGorm(config.dbConfig); err != nil {
 			return nil, err
 		}
 	}
 	if config.dbReadConfig != nil && len(config.dbReadConfig.Address) > 0 {
 		config.dbReadConfig.ReadOnly = true
-		if util.dbRead, err = orm.NewGorm(config.dbReadConfig); err != nil {
+		if util.dbRead, err = orm.NewMySQLGorm(config.dbReadConfig); err != nil {
 			return nil, err
 		}
 	}

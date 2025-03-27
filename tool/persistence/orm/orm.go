@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
+	"gorm.io/driver/clickhouse"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -27,7 +28,35 @@ type Gorm struct {
 	*gorm.DB
 }
 
-func NewGorm(config *Config) (*Gorm, error) {
+func NewClickhouseGorm(config *Config) (*Gorm, error) {
+	if config.Address == "" || config.Port == 0 || config.Database == "" {
+		return nil, errors.New("configurator is error")
+	}
+
+	cnf := &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			TablePrefix:   config.TablePrefix, //表格前缀
+			SingularTable: true,               //表格后面不加s
+		},
+	}
+
+	dsn := fmt.Sprintf("clickhouse://%s:%s@%s:%d/%s?dial_timeout=10s", config.User, config.Password, config.Address, config.Port, config.Database)
+	//dsn := "clickhouse://admin:123456@192.168.0.41:9000/test?dial_timeout=10s"
+	db, err := gorm.Open(clickhouse.Open(dsn), cnf)
+
+	gorm, err := NewGorm(db)
+	if err != nil {
+		return nil, err
+	}
+
+	//设置只读
+	if config.ReadOnly == true {
+		ReadOnlySetting(db)
+	}
+	return gorm, nil
+}
+
+func NewMySQLGorm(config *Config) (*Gorm, error) {
 	if config.Address == "" || config.Port == 0 || config.Database == "" {
 		return nil, errors.New("configurator is error")
 	}
@@ -42,23 +71,32 @@ func NewGorm(config *Config) (*Gorm, error) {
 	// 注: parseTime=true时
 	// 数据库datetime值为2019-01-25 09:59:44会变成2019-01-25T09:59:44+08:00 时间转换
 	// 所以设置为false
-	db, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=false&loc=Local", config.User, config.Password, config.Address, config.Port, config.Database)), cnf)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=false&loc=Local", config.User, config.Password, config.Address, config.Port, config.Database)
+	db, err := gorm.Open(mysql.Open(dsn), cnf)
 	if err != nil {
 		return nil, err
 	}
 
-	//连接池大小设置
-	if err = connSetting(db); err != nil {
+	gorm, err := NewGorm(db)
+	if err != nil {
 		return nil, err
 	}
-
-	//回调
-	callback(db)
 
 	//设置只读
 	if config.ReadOnly == true {
 		ReadOnlySetting(db)
 	}
+	return gorm, nil
+}
+
+func NewGorm(db *gorm.DB) (*Gorm, error) {
+	//连接池大小设置
+	if err := connSetting(db); err != nil {
+		return nil, err
+	}
+
+	//回调
+	callback(db)
 
 	return &Gorm{db}, nil
 }

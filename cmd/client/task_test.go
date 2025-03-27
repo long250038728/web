@@ -52,7 +52,7 @@ func TestOnlineBuild(t *testing.T) {
 	var ormConfig orm.Config
 	configLoad := configurator.NewYaml()
 	configLoad.MustLoadConfigPath("online/db.yaml", &ormConfig)
-	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+	if ormClient, err = orm.NewMySQLGorm(&ormConfig); err != nil {
 		panic(err)
 	}
 

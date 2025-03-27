@@ -25,7 +25,7 @@ func init() {
 }
 
 func TestCreateGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -48,7 +48,7 @@ func TestCreateGorm(t *testing.T) {
 }
 
 func TestSearchGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -64,7 +64,7 @@ func TestSearchGorm(t *testing.T) {
 }
 
 func TestUpdateGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -87,7 +87,7 @@ func TestUpdateGorm(t *testing.T) {
 }
 
 func TestDeleteGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -96,7 +96,7 @@ func TestDeleteGorm(t *testing.T) {
 }
 
 func TestRawGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -106,7 +106,7 @@ func TestRawGorm(t *testing.T) {
 }
 
 func TestTransactionGorm(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -120,7 +120,7 @@ func TestTransactionGorm(t *testing.T) {
 }
 
 func TestTempTable(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -158,7 +158,7 @@ func TestTempTable(t *testing.T) {
 }
 
 func TestParser(t *testing.T) {
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return
@@ -169,7 +169,7 @@ func TestParser(t *testing.T) {
 
 func TestOnlyReadGorm(t *testing.T) {
 	dbConfig.ReadOnly = true
-	db, err := NewGorm(&dbConfig)
+	db, err := NewMySQLGorm(&dbConfig)
 	if err != nil {
 		t.Error(err)
 		return

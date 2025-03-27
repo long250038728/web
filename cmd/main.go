@@ -52,7 +52,7 @@ func init() {
 	if jenkinsClient, err = jenkins.NewJenkinsClient(&jenkinsConfig); err != nil {
 		panic(err)
 	}
-	if ormClient, err = orm.NewGorm(&ormConfig); err != nil {
+	if ormClient, err = orm.NewMySQLGorm(&ormConfig); err != nil {
 		panic(err)
 	}
 	if sshClient, err = ssh.NewRemoteSSH(&sshConfig); err != nil {

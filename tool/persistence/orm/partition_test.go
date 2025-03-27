@@ -17,7 +17,7 @@ var db *Gorm
 func init() {
 	var err error
 	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
-	if db, err = NewGorm(&dbConfig); err != nil {
+	if db, err = NewMySQLGorm(&dbConfig); err != nil {
 		panic(err)
 	}
 }

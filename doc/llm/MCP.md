@@ -18,6 +18,29 @@ pip install mcp
 ```
 
 ## tool编写
+自定义的请求处理流程
+```python
+from mcp.server.fastmcp import FastMCP
+
+def handle_request(request):
+    """
+    处理客户端请求的函数
+    :param request: 客户端发送的请求数据
+    :return: 响应字符串
+    """
+    print("收到请求：", request)
+    # 添加你的业务逻辑处理，这里返回简单字符串作为示例
+    return "Hello from FastMCP!"
+
+if __name__ == "__main__":
+    # 创建 FastMCP 实例，设置监听地址、端口和请求处理函数
+    server = FastMCP(host="0.0.0.0", port=8080, handler=handle_request)
+    print("FastMCP 服务器启动，监听端口 8080 ...")
+    # 启动服务器，开始接受请求
+    server.start()
+```
+
+注册工具供MCP调用
 ```python
 from mcp.server.fastmcp import FastMCP
 
@@ -29,7 +52,6 @@ mcp = FastMCP("myproject")
 def get_score_by_name(name: str) -> str:
     """根据员工的姓名获取该员工的绩效得分"""
     return f"{name}的分数是100"
-
 ```
 
 ## mcp加载json

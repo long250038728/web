@@ -18,7 +18,7 @@ var config = &orm.Config{
 }
 
 func TestSqlJob_run(t *testing.T) {
-	db, err := orm.NewGorm(config)
+	db, err := orm.NewMySQLGorm(config)
 	if err != nil {
 		t.Error(err)
 		return
