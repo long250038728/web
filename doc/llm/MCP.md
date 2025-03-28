@@ -20,6 +20,8 @@ cd mcp_server
 rm -rf hello.py
 uv add "mcp[cli]" -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install mcp
+touch server.py
+touch sse_server.py
 ```
 client
 ```bash
@@ -28,6 +30,8 @@ cd mcp_client
 rm -rf hello.py
 uv add "mcp[cli]" -i https://pypi.tuna.tsinghua.edu.cn/simple
 pip install mcp
+touch client.py
+touch sse_client.py
 ```
 
 ---
