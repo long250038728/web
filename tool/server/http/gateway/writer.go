@@ -109,7 +109,7 @@ func (w *writer) structToMap(request any) (map[string]any, error) {
 
 //==========================================================================================================
 
-func newJsonWriter(ginContext *gin.Context, request any) (Writer, error) {
+func newJson(ginContext *gin.Context, request any) (Writer, error) {
 	w := &jsonWriter{writer: writer{ginContext: ginContext, request: request}}
 
 	w.ctx = ginContext.Request.Context()
@@ -129,7 +129,7 @@ func newJsonWriter(ginContext *gin.Context, request any) (Writer, error) {
 
 	return w, nil
 }
-func newFileWriter(ginContext *gin.Context, request any) (Writer, error) {
+func newFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}
 	w.ctx = ginContext.Request.Context()
 	w.request = request
@@ -148,7 +148,7 @@ func newFileWriter(ginContext *gin.Context, request any) (Writer, error) {
 
 	return w, nil
 }
-func newSseWriter(ginContext *gin.Context, request any) (Writer, error) {
+func newSse(ginContext *gin.Context, request any) (Writer, error) {
 	w := &sseWriter{writer: writer{ginContext: ginContext, request: request}}
 	w.ctx = ginContext.Request.Context()
 	w.request = request

@@ -10,3 +10,7 @@ def get_score_by_name(name: str) -> str:
     if not name:
         return "你未输入名称所以无法查询"
     return f"{name}的分数是100"
+
+
+if __name__ == "__main__":
+    mcp.run("stdio", port=8001)
