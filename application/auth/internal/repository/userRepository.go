@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/long250038728/web/application/auth/internal/model"
-	"github.com/long250038728/web/protoc/auth"
+	auth "github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/sliceconv"
@@ -74,10 +74,6 @@ func (r *Repository) Logout(ctx context.Context) error {
 //======================================================================================================================
 
 func (r *Repository) GetUser(ctx context.Context, id int32, name, password string) (*model.User, error) {
-	if id == 0 && len(name) == 0 && len(password) == 0 {
-		return nil, errors.New("params is empty")
-	}
-
 	db, err := r.util.Db(ctx)
 	if err != nil {
 		return nil, err

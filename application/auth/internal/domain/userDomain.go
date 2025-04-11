@@ -3,7 +3,7 @@ package domain
 import (
 	"context"
 	"github.com/long250038728/web/application/auth/internal/repository"
-	"github.com/long250038728/web/protoc/auth"
+	auth "github.com/long250038728/web/protoc/auth"
 )
 
 type Domain struct {

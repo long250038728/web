@@ -3,6 +3,6 @@ package protoc
 const (
 	UserService  = "user"
 	OrderService = "order"
-	AuthService  = "authorization"
+	AuthService  = "auth"
 	AgentService = "agent"
 )
