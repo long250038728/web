@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "authXXX.proto",
+    "title": "authorized.proto",
     "version": "version not set"
   },
   "tags": [
@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/authorization/user/login": {
+    "/auth/user/login": {
       "get": {
         "operationId": "Auth_Login",
         "responses": {
@@ -52,7 +52,7 @@
         ]
       }
     },
-    "/authorization/user/refresh": {
+    "/auth/user/refresh": {
       "get": {
         "operationId": "Auth_Refresh",
         "responses": {

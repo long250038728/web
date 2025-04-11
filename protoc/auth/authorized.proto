@@ -7,12 +7,12 @@ option go_package = "/auth";
 service Auth{
   rpc Login(LoginRequest) returns (UserResponse){
     option (google.api.http) = {
-      get: "/authorization/user/login"
+      get: "/auth/user/login"
     };
   };
   rpc Refresh(RefreshRequest) returns (UserResponse){
     option (google.api.http) = {
-      get: "/authorization/user/refresh"
+      get: "/auth/user/refresh"
     };
   };
 }
