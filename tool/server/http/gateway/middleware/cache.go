@@ -8,6 +8,7 @@ import (
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"reflect"
 	"time"
 )
@@ -84,6 +85,11 @@ func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...CacheOpt) 
 		if err == nil && len(b) > 0 {
 			var cacheData *gateway.Response
 			if err := json.Unmarshal([]byte(b), &cacheData); err == nil {
+
+				span := opentelemetry.NewSpan(ctx, "middle_cache: "+key)
+				defer span.Close()
+				span.SetAttribute("middle_cache", true)
+
 				return cacheData, nil
 			}
 		}

@@ -13,10 +13,6 @@ import (
 	"time"
 )
 
-//go func() {
-//	log.Println(http.ListenAndServe("localhost:6060", nil))  //"net/http/pprof"
-//}()
-
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	cache, _ := app.NewUtil().Cache()
 
@@ -27,15 +23,15 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 			gateway.Json(c, &user.RequestHello{}).Use(
 				middleware.Login(),
 				middleware.Validate([]string{"name"}),
-				middleware.Cache(c, cache, []string{}, middleware.SetIsClaims(true), middleware.SetExpiration(time.Second*10)),
+				middleware.Cache(c, cache, []string{"name"}, middleware.SetIsClaims(true), middleware.SetExpiration(time.Second*10)),
 			).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.SayHello(ctx, req.(*user.RequestHello))
 			})
 		})
 
-		userGroup.GET("xls", func(c *gin.Context) {
+		userGroup.GET("file", func(c *gin.Context) {
 			gateway.File(c, &user.RequestHello{}).Handle(func(ctx context.Context, req any) (any, error) {
-				return srv.SayHello(ctx, req.(*user.RequestHello))
+				return srv.File(ctx, req.(*user.RequestHello))
 			})
 		})
 
