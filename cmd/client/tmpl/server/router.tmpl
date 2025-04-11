@@ -1,23 +1,29 @@
 package router
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"{{.Page}}/{{.Server}}/internal/service"
 	"{{.Protoc}}/{{.Server}}"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/server/http/gateway/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
+
+	// 服务/领域/接口
 	xxxGroup := engine.Group("/{{.Server}}/xxx/").Use(gateway.BaseHandle(cache))
 	{
 		xxxGroup.GET("xxx", func(c *gin.Context) {
-			//gateway.Json(c, &{{.Server}}.xxxRequest{}).Use(gateway.Limit(), gateway.Cache()).Handle(func(ctx context.Context, req any) (any, error) {
-			//	return srv.XXX(ctx, req.(*{{.Server}}.xxxRequest))
-			//})
+            //gateway.Json(c, &{{.Server}}.xxxRequest{}).Use(
+            //	middleware.Login(),
+            //).Handle(func(ctx context.Context, req any) (any, error) {
+            //	return srv.XXX(ctx, req.(*{{.Server}}.xxxRequest))
+            //})
 		})
 	}
 }

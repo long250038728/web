@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/internal/repository"
 	"github.com/long250038728/web/protoc/user"
+	"time"
 )
 
 type Domain struct {
@@ -29,5 +30,16 @@ func (s *Domain) SendSSE(ctx context.Context, request *user.RequestHello) (<-cha
 	//	},
 	//})).ChatStream(ctx, "i want to deploy a service in kubernetes, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
 
-	return nil, nil
+	c := make(chan string)
+	go func() {
+		defer func() {
+			close(c)
+		}()
+		for i := 0; i < 100; i++ {
+			c <- "hello   "
+			time.Sleep(time.Second)
+		}
+	}()
+
+	return c, nil
 }

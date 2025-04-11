@@ -7,17 +7,17 @@ import (
 	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http/gateway"
-	"github.com/long250038728/web/tool/server/http/gateway/interceptor"
+	"github.com/long250038728/web/tool/server/http/gateway/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
 	cache, _ := app.NewUtil().Cache()
-	orderGroup := engine.Group("/order/order/").Use(interceptor.BaseHandle(cache))
+	orderGroup := engine.Group("/order/order/").Use(middleware.BaseHandle(cache))
 	{
 		orderGroup.GET("detail", func(c *gin.Context) {
-			gateway.Json(c, &order.OrderDetailRequest{}).Use(interceptor.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &order.OrderDetailRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.OrderDetail(ctx, req.(*order.OrderDetailRequest))
 			})
 		})

@@ -7,23 +7,23 @@ import (
 	"github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http/gateway"
-	"github.com/long250038728/web/tool/server/http/gateway/interceptor"
+	"github.com/long250038728/web/tool/server/http/gateway/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	cache, _ := app.NewUtil().Cache()
-	userGroup := engine.Group("/authorization/user/").Use(interceptor.BaseHandle(cache))
+	userGroup := engine.Group("/authorization/user/").Use(middleware.BaseHandle(cache))
 	{
 		userGroup.POST("login", func(c *gin.Context) {
-			gateway.Json(c, &auth.LoginRequest{}).Use(interceptor.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &auth.LoginRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.Login(ctx, req.(*auth.LoginRequest))
 			})
 		})
 
 		userGroup.POST("refresh", func(c *gin.Context) {
-			gateway.Json(c, &auth.RefreshRequest{}).Use(interceptor.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &auth.RefreshRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.Refresh(ctx, req.(*auth.RefreshRequest))
 			})
 		})

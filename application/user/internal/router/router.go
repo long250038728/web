@@ -7,7 +7,7 @@ import (
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http/gateway"
-	"github.com/long250038728/web/tool/server/http/gateway/interceptor"
+	"github.com/long250038728/web/tool/server/http/gateway/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"time"
@@ -20,13 +20,14 @@ import (
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	cache, _ := app.NewUtil().Cache()
 
-	userGroup := engine.Group("/user/user/").Use(interceptor.BaseHandle(cache))
+	// 服务/领域/接口
+	userGroup := engine.Group("/user/user/").Use(middleware.BaseHandle(cache))
 	{
 		userGroup.GET("say", func(c *gin.Context) {
 			gateway.Json(c, &user.RequestHello{}).Use(
-				interceptor.Login(),
-				interceptor.Validate([]string{"name"}),
-				interceptor.Cache(c, cache, []string{}, interceptor.SetIsClaims(true), interceptor.SetExpiration(time.Second*10)),
+				middleware.Login(),
+				middleware.Validate([]string{"name"}),
+				middleware.Cache(c, cache, []string{}, middleware.SetIsClaims(true), middleware.SetExpiration(time.Second*10)),
 			).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.SayHello(ctx, req.(*user.RequestHello))
 			})
