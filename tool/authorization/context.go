@@ -2,7 +2,7 @@ package authorization
 
 import (
 	"context"
-	"errors"
+	"github.com/long250038728/web/tool/app_error"
 )
 
 type claims struct{}
@@ -15,7 +15,7 @@ func GetClaims(ctx context.Context) (*UserInfo, error) {
 	if val, ok := ctx.Value(claims{}).(*UserInfo); ok {
 		return val, nil
 	}
-	return nil, errors.New("claims is null")
+	return nil, app_error.ClaimsNull
 }
 
 func SetSession(ctx context.Context, userSession *UserSession) context.Context {
@@ -25,5 +25,5 @@ func GetSession(ctx context.Context) (*UserSession, error) {
 	if val, ok := ctx.Value(session{}).(*UserSession); ok {
 		return val, nil
 	}
-	return nil, errors.New("session is null")
+	return nil, app_error.SessionNull
 }

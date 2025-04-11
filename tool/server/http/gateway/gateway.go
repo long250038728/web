@@ -5,23 +5,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func Json(ginContext *gin.Context, request any) *Gateway {
+	return NewGateway(NewJson(ginContext, request))
+}
+
+func File(ginContext *gin.Context, request any) *Gateway {
+	return NewGateway(NewFile(ginContext, request))
+}
+
+func SSE(ginContext *gin.Context, request any) *Gateway {
+	return NewGateway(NewSSE(ginContext, request))
+}
+
+//========================================================================
+
 // Gateway 拦截器管理器
 type Gateway struct {
 	Writer
 	interceptors ServerInterceptor
 	err          error
-}
-
-func Json(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(newJsonWriter(ginContext, request))
-}
-
-func File(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(newFileWriter(ginContext, request))
-}
-
-func SSE(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(newSseWriter(ginContext, request))
 }
 
 func NewGateway(writer Writer, err error) *Gateway {

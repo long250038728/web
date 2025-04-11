@@ -1,4 +1,4 @@
-package gateway
+package interceptor
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/server/http/gateway"
 	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
@@ -31,7 +32,7 @@ func BaseHandle(client redis.Redis) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
-				c.AbortWithStatusJSON(http.StatusOK, NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
+				c.AbortWithStatusJSON(http.StatusOK, gateway.NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
 				return
 			}
 		}()
@@ -93,17 +94,8 @@ func BaseHandle(client redis.Redis) gin.HandlerFunc {
 
 //=================================================================================
 
-func Login() ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler Handler) (resp any, err error) {
-		if _, err = authorization.GetClaims(ctx); err != nil {
-			return nil, err
-		}
-		return handler(ctx, request)
-	}
-}
-
-func Api(path string) ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler Handler) (resp any, err error) {
+func Api(path string) gateway.ServerInterceptor {
+	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		//获取session对象(session对象默认是有本地store及分布式store的，为了解决频繁获取分布式session的问题)
 		sess, err := authorization.GetSession(ctx)
 		if err != nil {
@@ -126,18 +118,9 @@ func Api(path string) ServerInterceptor {
 	}
 }
 
-// Cache 示例中间件：缓存拦截器
-func Cache() ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler Handler) (resp any, err error) {
-		fmt.Println("store")
-		// 检查缓存逻辑（省略实际实现）
-		return handler(ctx, request)
-	}
-}
-
 // Limit 示例中间件：限流拦截器
-func Limit() ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler Handler) (resp any, err error) {
+func Limit() gateway.ServerInterceptor {
+	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		fmt.Println("limit")
 		// 限流逻辑（省略实际实现）
 		return handler(ctx, request)
@@ -185,7 +168,7 @@ func Limit() ServerInterceptor {
 //}
 //
 //// LimitHandle 限流中间件 (优先获取用户的token信息，如果接口无需token参数，那通过IP的方式 ---- 单个用户)
-//func LimitHandle(client store.Redis) gin.HandlerFunc {
+//func LimitHandle(client store.Cache) gin.HandlerFunc {
 //	return func(c *gin.Context) {
 //		if client != nil {
 //			identification := c.GetHeader(server.AuthorizationKey)

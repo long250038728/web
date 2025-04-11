@@ -4,8 +4,6 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/internal/repository"
 	"github.com/long250038728/web/protoc/user"
-	"github.com/long250038728/web/tool/llm"
-	"github.com/sashabaranov/go-openai"
 )
 
 type Domain struct {
@@ -24,10 +22,12 @@ func (s *Domain) SayHello(ctx context.Context, request *user.RequestHello) (*use
 }
 
 func (s *Domain) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan string, error) {
-	return llm.NewOpenAiClient(llm.SetMessage([]openai.ChatCompletionMessage{
-		{
-			Role:    openai.ChatMessageRoleSystem,
-			Content: `You are a Kubernetes expert. You can write Kubernetes related yaml file.`,
-		},
-	})).ChatStream(ctx, "i want to deploy a service in kubernetes, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
+	//return llm.NewOpenAiClient(llm.SetMessage([]openai.ChatCompletionMessage{
+	//	{
+	//		Role:    openai.ChatMessageRoleSystem,
+	//		Content: `You are a Kubernetes expert. You can write Kubernetes related yaml file.`,
+	//	},
+	//})).ChatStream(ctx, "i want to deploy a service in kubernetes, i have a docker image is ccr.ccs.tencentyun.com/linl/user:v1 , exposing ports 8001 and 9001")
+
+	return nil, nil
 }

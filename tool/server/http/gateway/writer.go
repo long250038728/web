@@ -57,7 +57,18 @@ func (w *writer) WriteErr(err error) {
 }
 
 func (w *writer) WriteJSON(data interface{}, err error) {
-	res := NewResponse(data, err)
+	var res *Response
+
+	switch data.(type) {
+	case Response:
+		val, _ := data.(Response)
+		res = &val
+	case *Response:
+		res = data.(*Response)
+	default:
+		res = NewResponse(data, err)
+	}
+
 	marshalByte, err := json.Marshal(res)
 	if err != nil {
 		res.Code = "999999"
@@ -109,7 +120,7 @@ func (w *writer) structToMap(request any) (map[string]any, error) {
 
 //==========================================================================================================
 
-func newJson(ginContext *gin.Context, request any) (Writer, error) {
+func NewJson(ginContext *gin.Context, request any) (Writer, error) {
 	w := &jsonWriter{writer: writer{ginContext: ginContext, request: request}}
 
 	w.ctx = ginContext.Request.Context()
@@ -129,7 +140,7 @@ func newJson(ginContext *gin.Context, request any) (Writer, error) {
 
 	return w, nil
 }
-func newFile(ginContext *gin.Context, request any) (Writer, error) {
+func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}
 	w.ctx = ginContext.Request.Context()
 	w.request = request
@@ -148,7 +159,7 @@ func newFile(ginContext *gin.Context, request any) (Writer, error) {
 
 	return w, nil
 }
-func newSse(ginContext *gin.Context, request any) (Writer, error) {
+func NewSSE(ginContext *gin.Context, request any) (Writer, error) {
 	w := &sseWriter{writer: writer{ginContext: ginContext, request: request}}
 	w.ctx = ginContext.Request.Context()
 	w.request = request
