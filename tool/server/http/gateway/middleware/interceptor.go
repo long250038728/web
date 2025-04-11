@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server"
@@ -14,8 +13,6 @@ import (
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
-	"regexp"
-	"strings"
 )
 
 // middle 中间件处理规范
@@ -94,30 +91,6 @@ func BaseHandle(client redis.Redis) gin.HandlerFunc {
 
 //=================================================================================
 
-func Api(path string) gateway.ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
-		//获取session对象(session对象默认是有本地store及分布式store的，为了解决频繁获取分布式session的问题)
-		sess, err := authorization.GetSession(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		//判断该url是否在session存在
-		isApiAuthorized := false
-		for _, url := range sess.AuthList {
-			if CamelToSnake(url) == path {
-				isApiAuthorized = true
-				break
-			}
-		}
-		if !isApiAuthorized {
-			return nil, app_error.Unauthorized
-		}
-
-		return handler(ctx, request)
-	}
-}
-
 // Limit 示例中间件：限流拦截器
 func Limit() gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
@@ -185,11 +158,3 @@ func Limit() gateway.ServerInterceptor {
 //		c.Next()
 //	}
 //}
-
-func CamelToSnake(url string) string {
-	// 使用正则表达式匹配大写字母，并在前面添加下划线
-	re := regexp.MustCompile("([a-z0-9])([A-Z])")
-	snake := re.ReplaceAllString(url, "${1}_${2}")
-	// 将结果转换为小写
-	return strings.ToLower(snake)
-}

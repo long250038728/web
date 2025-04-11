@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server/http/gateway"
@@ -13,37 +14,34 @@ import (
 	"time"
 )
 
-type cacheSetting struct {
+type middlewareInfo struct {
 	isClaims   bool
 	expiration time.Duration
 }
 
-func NewDefaultCacheSetting() *cacheSetting {
-	return &cacheSetting{
-		expiration: time.Minute,
-	}
+func NewDefaultMiddlewareInfo() *middlewareInfo {
+	return &middlewareInfo{expiration: time.Minute}
 }
 
-type CacheOpt func(setting *cacheSetting)
+type Opt func(setting *middlewareInfo)
 
-func SetExpiration(expiration time.Duration) CacheOpt {
-	return func(setting *cacheSetting) {
+func Expiration(expiration time.Duration) Opt {
+	return func(setting *middlewareInfo) {
 		setting.expiration = expiration
 	}
 }
-func SetIsClaims(isClaims bool) CacheOpt {
-	return func(setting *cacheSetting) {
+func IsClaims(isClaims bool) Opt {
+	return func(setting *middlewareInfo) {
 		setting.isClaims = isClaims
 	}
 }
 
-//=======================================================================================================
-
-func getCacheKey(c *gin.Context, setting *cacheSetting, keys []string, requestInfo map[string]any) (string, bool) {
+// =======================================================================================================
+func getKey(c *gin.Context, isClaims bool, keys []string, requestInfo map[string]any) (string, bool) {
 	key := c.Request.URL.Path
 	dataIsAllMatch := true
 
-	if setting.isClaims {
+	if isClaims {
 		c, err := authorization.GetClaims(c.Request.Context())
 		if err != nil {
 			dataIsAllMatch = false
@@ -65,14 +63,40 @@ func getCacheKey(c *gin.Context, setting *cacheSetting, keys []string, requestIn
 	return key, dataIsAllMatch
 }
 
-func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...CacheOpt) gateway.ServerInterceptor {
+// =======================================================================================================
+
+// Locker 解决并发锁
+func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
-		setting := NewDefaultCacheSetting()
+		setting := NewDefaultMiddlewareInfo()
 		for _, opt := range opts {
 			opt(setting)
 		}
 		expiration := setting.expiration
-		key, dataIsAllMatch := getCacheKey(c, setting, keys, requestInfo)
+		key, dataIsAllMatch := getKey(c, setting.isClaims, keys, requestInfo)
+		if !dataIsAllMatch {
+			return nil, app_error.Vaildate
+		}
+		ok, err := client.SetNX(ctx, key, "1", expiration)
+		if err != nil || !ok {
+			return nil, app_error.ApiTooManyRequests
+		}
+		defer func() {
+			_, _ = client.Del(ctx, key)
+		}()
+		return handler(ctx, request)
+	}
+}
+
+// Cache  接口缓存
+func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
+	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
+		setting := NewDefaultMiddlewareInfo()
+		for _, opt := range opts {
+			opt(setting)
+		}
+		expiration := setting.expiration
+		key, dataIsAllMatch := getKey(c, setting.isClaims, keys, requestInfo)
 
 		if !dataIsAllMatch {
 			return handler(ctx, request)

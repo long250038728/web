@@ -21,9 +21,11 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	{
 		userGroup.GET("say", func(c *gin.Context) {
 			gateway.Json(c, &user.RequestHello{}).Use(
-				middleware.Login(),
-				middleware.Validate([]string{"name"}),
-				middleware.Cache(c, cache, []string{"name"}, middleware.SetIsClaims(true), middleware.SetExpiration(time.Second*10)),
+				middleware.Login(),                    //需要登录
+				middleware.Validate([]string{"name"}), //参数必填项
+				middleware.Rule(c),                    //权限判断
+				middleware.Locker(c, cache, []string{"name"}, middleware.IsClaims(true), middleware.Expiration(time.Second*3)), //分布式锁处理
+				middleware.Cache(c, cache, []string{"name"}, middleware.IsClaims(true)),                                        //缓存处理
 			).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.SayHello(ctx, req.(*user.RequestHello))
 			})

@@ -7,6 +7,7 @@ import (
 	"reflect"
 )
 
+// Validate 校验请求参数
 func Validate(keys []string) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		for _, k := range keys {
