@@ -44,6 +44,6 @@ func TestRefresh(t *testing.T) {
 		return
 	}
 
-	t.Log((refreshCla.ExpiresAt - time.Now().Local().Unix()) / 60 / 60 / 24)
-	t.Log(refreshCla.ExpiresAt-time.Now().Local().Unix() <= 60*60*24)
+	t.Log((refreshCla.ExpiresAt.Time.Unix() - time.Now().Local().Unix()) / 60 / 60 / 24)
+	t.Log(refreshCla.ExpiresAt.Time.Unix()-time.Now().Local().Unix() <= 60*60*24)
 }

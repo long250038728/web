@@ -52,7 +52,7 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.Us
 	resp, err := r.getUserResponse(ctx, userInfo) //生成新的accessToken及refreshToken
 
 	//如果refreshToken的有效期大于24小时，则返回之前refreshToken，否则返回新的refreshToken
-	if refreshCla.ExpiresAt-time.Now().Local().Unix() >= 60*60*24 {
+	if refreshCla.ExpiresAt.Time.Unix()-time.Now().Local().Unix() >= 60*60*24 {
 		resp.RefreshToken = refreshToken
 	}
 	return resp, err

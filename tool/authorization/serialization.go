@@ -1,7 +1,7 @@
 package authorization
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/long250038728/web/tool/app_error"
 )
 

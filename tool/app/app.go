@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,6 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"golang.org/x/sync/errgroup"
 )
 
 type Application interface {

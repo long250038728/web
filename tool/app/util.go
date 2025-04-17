@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/golang/groupcache/singleflight"
 	"github.com/long250038728/web/tool/locker"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/paths"
@@ -12,7 +13,6 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
-	"golang.org/x/sync/singleflight"
 	"sync"
 	"time"
 )

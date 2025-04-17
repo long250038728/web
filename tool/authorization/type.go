@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type TokenType int32
@@ -19,13 +19,13 @@ const (
 
 // AccessClaims 带有jwt的UserInfo
 type AccessClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	*UserInfo
 }
 
 // RefreshClaims 带有jwt的Refresh
 type RefreshClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	*Refresh
 }
 

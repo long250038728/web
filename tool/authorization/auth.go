@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/long250038728/web/tool/store"
 	"time"
-
-	"github.com/golang-jwt/jwt"
 )
 
 type Opt func(r *CacheAuth)
@@ -68,8 +67,8 @@ func NewAuth(s store.Store, opts ...Opt) Auth {
 // Signed token生成
 func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
 	now := time.Now().Local()
-	access := &AccessClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(p.accessExpires).Unix(), IssuedAt: now.Unix()}, UserInfo: userClaims}
-	refresh := &RefreshClaims{StandardClaims: jwt.StandardClaims{ExpiresAt: now.Add(p.refreshExpires).Unix(), IssuedAt: now.Unix()}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
+	access := &AccessClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(p.accessExpires)), IssuedAt: jwt.NewNumericDate(now)}, UserInfo: userClaims}
+	refresh := &RefreshClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(p.refreshExpires)), IssuedAt: jwt.NewNumericDate(now)}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
 
 	if accessToken, err = p.SignedToken(access); err != nil {
 		return "", "", fmt.Errorf("access token signed failed: %w", err)

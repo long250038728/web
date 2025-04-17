@@ -151,7 +151,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 
 	if len(o.services.Shell) > 0 {
 		//bash /soft/scripts/menu_script/run.sh 2024/sm1205/menu* 2024/sm1205/group* check
-		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2024/%s/menu* 2024/%s/group* prod", o.services.Shell, o.services.Shell)})
+		address = append(address, &requestInfo{Type: TaskTypeRemoteShell, Project: fmt.Sprintf("bash /soft/scripts/menu_script/run.sh 2025/%s/menu* 2025/%s/group* prod", o.services.Shell, o.services.Shell)})
 	}
 
 	for _, addr := range ProductList {
