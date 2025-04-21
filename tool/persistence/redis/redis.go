@@ -76,3 +76,8 @@ func (r *redisClient) Del(ctx context.Context, key ...string) (bool, error) {
 func (r *redisClient) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
 	return r.client.Eval(ctx, script, keys, args...).Result()
 }
+
+func (r *redisClient) LPush(ctx context.Context, key string, value string) (bool, error) {
+	res, err := r.client.LPush(ctx, key, value).Result()
+	return res > 0, err
+}

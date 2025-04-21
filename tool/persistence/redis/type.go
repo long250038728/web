@@ -20,4 +20,6 @@ type Redis interface {
 
 	Del(ctx context.Context, key ...string) (bool, error)
 	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
+
+	LPush(ctx context.Context, key string, value string) (bool, error)
 }
