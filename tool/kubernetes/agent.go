@@ -110,6 +110,9 @@ func (a *Agent) GetPodEvents(ctx context.Context, resource, ns string) ([]coreV1
 
 // ====================================【 私有方法 】============================================
 
+// GVK 唯一标识 Kubernetes 资源的`逻辑类型`   应用场景: 编码时通过 Scheme 将 GVK 映射到 Go 语言中的具体结构体（YAML ↔ Go 结构体映射）
+// GVR 唯一标识 Kubernetes 资源的`HTTP路径`  应用场景： GVR 向 API Server 发起 RESTful 请求 （通过 RESTMapper 实现 GVK 到 GVR 的映射）（GVK → HTTP 路径）
+
 // getResourceMapping
 // 像 kubernetes 这样的工具需要根据用户输入动态适配各种资源，RESTMapper 是关键组件。
 // 1. resource 生成GVR 如果生成成功转 GVK ,然后创建meta.RESTMapping对象

@@ -5,53 +5,30 @@ import (
 	"testing"
 )
 
-func TestAgent_GetLogs(t *testing.T) {
+func getClient() *Agent {
 	client, err := NewAgent("/Users/linlong/Downloads/cls-09eyrddg-config")
 	if err != nil {
-		t.Error(err)
-		return
+		panic(err)
 	}
-	ctx := context.Background()
+	return client
+}
 
-	////http://192.168.1.136:8011/agent/info/logs?ns=dev&name=aristotle-6fc64f487b-c76js&container=aristotle
-	logs, err := client.GetLogs(ctx, "dev", "aristotle-56d79d59c5-f9dvq", "aristotle")
+func TestAgent_GetLogs(t *testing.T) {
+	logs, err := getClient().GetLogs(context.Background(), "dev", "aristotle-56d79d59c5-f9dvq", "aristotle")
 	t.Log(logs, err)
 }
 
 func TestAgent_GetPodEvents(t *testing.T) {
-	client, err := NewAgent("/Users/linlong/Downloads/cls-09eyrddg-config")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	ctx := context.Background()
-
-	//http://192.168.1.136:8011/agent/info/events?ns=dev&resource=Pod
-	logs, err := client.GetPodEvents(ctx, "Pod", "dev")
+	logs, err := getClient().GetPodEvents(context.Background(), "Pod", "dev")
 	t.Log(logs, err)
 }
 
 func TestAgent_ListResource(t *testing.T) {
-	client, err := NewAgent("/Users/linlong/Downloads/cls-09eyrddg-config")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	ctx := context.Background()
-
-	//http://192.168.1.136:8011/agent/info/events?ns=dev&resource=Pod
-	logs, err := client.ListResource(ctx, "Pod", "dev")
+	logs, err := getClient().ListResource(context.Background(), "Pod", "dev")
 	t.Log(logs, err)
 }
 
 func TestAgent_DeleteResource(t *testing.T) {
-	client, err := NewAgent("/Users/linlong/Downloads/cls-09eyrddg-config")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	ctx := context.Background()
-
-	err = client.DeleteResource(ctx, "Pod", "dev", "aristotle-56d79d59c5-lzgfm")
+	err := getClient().DeleteResource(context.Background(), "Pod", "dev", "aristotle-56d79d59c5-lzgfm")
 	t.Log(err)
 }
