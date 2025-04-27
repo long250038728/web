@@ -25,7 +25,7 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 	ctx := context.Background()
 
 	//获取服务器配置列表
-	if err := configLoad.Load(filepath.Join(rootPath, "config.yaml"), &conf); err != nil {
+	if err := configLoad.Load(filepath.Join(rootPath, "server.yaml"), &conf); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 
 	if len(yaml) == 0 {
 		yaml = defaultConfigs
-		if conf.GRPC == GrpcLocal || conf.GRPC == GrpcK8s {
+		if conf.GRPC == GrpcLocal || conf.GRPC == GrpcKubernetes {
 			yaml = defaultLocalConfigs
 		}
 	}

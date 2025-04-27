@@ -91,7 +91,7 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 			}
 			target = fmt.Sprintf("%s:%d", util.Info.IP, port.GrpcPort)
 		}
-	case app.GrpcK8s:
+	case app.GrpcKubernetes:
 		{
 			port, ok := util.Info.Servers[c.serverName]
 			if !ok {

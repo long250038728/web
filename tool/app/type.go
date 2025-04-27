@@ -11,9 +11,9 @@ import (
 
 const EnvLocal = "dev"
 
-const GrpcLocal = "local"       //本地
-const GrpcK8s = "kubernetes"    //kubernetes
-const GrpcRegister = "register" //注册中心
+const GrpcLocal = "local"           //本地
+const GrpcKubernetes = "kubernetes" //kubernetes
+const GrpcRegister = "register"     //注册中心
 
 type Config struct {
 	//ServerName string `json:"server_name" yaml:"server_name"`
