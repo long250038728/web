@@ -15,7 +15,7 @@ import (
 )
 
 type middlewareInfo struct {
-	isClaims   bool
+	claims     bool
 	expiration time.Duration
 }
 
@@ -30,9 +30,9 @@ func Expiration(expiration time.Duration) Opt {
 		setting.expiration = expiration
 	}
 }
-func IsClaims(isClaims bool) Opt {
+func Claims(claims bool) Opt {
 	return func(setting *middlewareInfo) {
-		setting.isClaims = isClaims
+		setting.claims = claims
 	}
 }
 
@@ -73,7 +73,7 @@ func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gate
 			opt(setting)
 		}
 		expiration := setting.expiration
-		key, dataIsAllMatch := getKey(c, setting.isClaims, keys, requestInfo)
+		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
 		if !dataIsAllMatch {
 			return nil, app_error.Vaildate
 		}
@@ -96,7 +96,7 @@ func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gatew
 			opt(setting)
 		}
 		expiration := setting.expiration
-		key, dataIsAllMatch := getKey(c, setting.isClaims, keys, requestInfo)
+		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
 
 		if !dataIsAllMatch {
 			return handler(ctx, request)

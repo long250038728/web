@@ -8,7 +8,6 @@ import (
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/sliceconv"
-	"github.com/long250038728/web/tool/store"
 	"time"
 )
 
@@ -22,22 +21,22 @@ func NewRepository(util *app.Util) *Repository {
 	}
 }
 
-func (r *Repository) Login(ctx context.Context, name, password string) (*auth.UserResponse, error) {
-	userInfo, err := r.GetUser(ctx, 0, name, password)
+func (repository *Repository) Login(ctx context.Context, name, password string) (*auth.UserResponse, error) {
+	userInfo, err := repository.GetUser(ctx, 0, name, password)
 	if err != nil {
 		return nil, err
 	}
-	return r.getUserResponse(ctx, userInfo)
+	return repository.getUserResponse(ctx, userInfo)
 }
 
-func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
-	cache, err := r.util.Cache()
+func (repository *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
+	refreshCla := &authorization.RefreshClaims{}
+
+	auth, err := repository.util.Auth()
 	if err != nil {
 		return nil, err
 	}
-
-	refreshCla := &authorization.RefreshClaims{}
-	if err = authorization.NewAuth(store.NewRedisStore(cache)).Refresh(ctx, refreshToken, refreshCla); err != nil {
+	if err = auth.Refresh(ctx, refreshToken, refreshCla); err != nil {
 		return nil, err
 	}
 
@@ -45,11 +44,11 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.Us
 	if refresh.Md5 != authorization.GetSessionId(refresh.Id) {
 		return nil, errors.New("refresh token error")
 	}
-	userInfo, err := r.GetUser(ctx, refresh.Id, "", "")
+	userInfo, err := repository.GetUser(ctx, refresh.Id, "", "")
 	if err != nil {
 		return nil, err
 	}
-	resp, err := r.getUserResponse(ctx, userInfo) //生成新的accessToken及refreshToken
+	resp, err := repository.getUserResponse(ctx, userInfo) //生成新的accessToken及refreshToken
 
 	//如果refreshToken的有效期大于24小时，则返回之前refreshToken，否则返回新的refreshToken
 	if refreshCla.ExpiresAt.Time.Unix()-time.Now().Local().Unix() >= 60*60*24 {
@@ -58,23 +57,22 @@ func (r *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.Us
 	return resp, err
 }
 
-func (r *Repository) Logout(ctx context.Context) error {
+func (repository *Repository) Logout(ctx context.Context) error {
 	claims, err := authorization.GetClaims(ctx)
 	if err == nil {
 		return err
 	}
-	cache, err := r.util.Cache()
+	auth, err := repository.util.Auth()
 	if err != nil {
 		return err
 	}
-	sessionClient := authorization.NewAuth(store.NewRedisStore(cache))
-	return sessionClient.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
+	return auth.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
 }
 
 //======================================================================================================================
 
-func (r *Repository) GetUser(ctx context.Context, id int32, name, password string) (*model.User, error) {
-	db, err := r.util.Db(ctx)
+func (repository *Repository) GetUser(ctx context.Context, id int32, name, password string) (*model.User, error) {
+	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +88,8 @@ func (r *Repository) GetUser(ctx context.Context, id int32, name, password strin
 	return userInfo, dao.Find(userInfo).Error
 }
 
-func (r *Repository) GetRoles(ctx context.Context, userId int32) ([]*model.Role, error) {
-	db, err := r.util.Db(ctx)
+func (repository *Repository) GetRoles(ctx context.Context, userId int32) ([]*model.Role, error) {
+	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +102,8 @@ func (r *Repository) GetRoles(ctx context.Context, userId int32) ([]*model.Role,
 	return roles, db.Where("id in ?", ids).Where("status = 1").Find(&roles).Error
 }
 
-func (r *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*model.Permission, error) {
-	db, err := r.util.Db(ctx)
+func (repository *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*model.Permission, error) {
+	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -119,14 +117,9 @@ func (r *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*mo
 }
 
 // ======================================================================================================================
-func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
-	cache, err := r.util.Cache()
-	if err != nil {
-		return nil, err
-	}
-
+func (repository *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
 	//角色
-	roles, err := r.GetRoles(ctx, userInfo.Id)
+	roles, err := repository.GetRoles(ctx, userInfo.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +127,7 @@ func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) 
 	roleNames := sliceconv.Extract(roles, func(item *model.Role) string { return item.Name })
 
 	//权限列表
-	permissions, err := r.GetPermissions(ctx, roleIds)
+	permissions, err := repository.GetPermissions(ctx, roleIds)
 	if err != nil {
 		return nil, err
 	}
@@ -144,11 +137,15 @@ func (r *Repository) getUserResponse(ctx context.Context, userInfo *model.User) 
 	claims := &authorization.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
 	sess := &authorization.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
 
-	sessionClient := authorization.NewAuth(store.NewRedisStore(cache))
-	if err = sessionClient.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
+	authorized, err := repository.util.Auth()
+	if err != nil {
 		return nil, err
 	}
-	accessToken, refreshToken, err := sessionClient.Signed(ctx, claims)
+
+	if err = authorized.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
+		return nil, err
+	}
+	accessToken, refreshToken, err := authorized.Signed(ctx, claims)
 	if err != nil {
 		return nil, err
 	}

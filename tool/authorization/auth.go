@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-type Opt func(r *CacheAuth)
+type Opt func(r *auth)
 
-type CacheAuth struct {
+type auth struct {
 	Serialization
 	Session
 	accessExpires  time.Duration
@@ -19,39 +19,37 @@ type CacheAuth struct {
 }
 
 func SecretKey(secretKey []byte) Opt {
-	return func(r *CacheAuth) {
+	return func(r *auth) {
 		r.SecretKey = secretKey
 	}
 }
 
 func AccessExpires(accessExpires time.Duration) Opt {
-	return func(r *CacheAuth) {
+	return func(r *auth) {
 		r.accessExpires = accessExpires
 	}
 }
 
 func RefreshExpires(refreshExpires time.Duration) Opt {
-	return func(r *CacheAuth) {
+	return func(r *auth) {
 		r.refreshExpires = refreshExpires
 	}
 }
 
-func LocalStore(localStore store.Store) Opt {
-	return func(r *CacheAuth) {
-		r.LocalStore = localStore
+func AddStore(s store.Store) Opt {
+	return func(r *auth) {
+		r.Stores = append(r.Stores, s)
 	}
 }
 
 func NewAuth(s store.Store, opts ...Opt) Auth {
-	p := &CacheAuth{}
+	p := &auth{}
 
 	//默认值
 	p.SecretKey = []byte("secretKey")
-	p.accessExpires = 5 * time.Minute
-	p.refreshExpires = 60 * 24 * 7 * time.Minute
-
-	p.Store = s
-	p.LocalStore = store.NewLocalStore(5 * 1024 * 1024)
+	p.accessExpires = 20 * time.Minute
+	p.refreshExpires = 24 * 7 * time.Hour
+	p.Stores = []store.Store{s}
 
 	for _, opt := range opts {
 		opt(p)
@@ -65,15 +63,15 @@ func NewAuth(s store.Store, opts ...Opt) Auth {
 // ===============================通过 Claims Session 生成token=============================
 
 // Signed token生成
-func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
+func (auth *auth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error) {
 	now := time.Now().Local()
-	access := &AccessClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(p.accessExpires)), IssuedAt: jwt.NewNumericDate(now)}, UserInfo: userClaims}
-	refresh := &RefreshClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(p.refreshExpires)), IssuedAt: jwt.NewNumericDate(now)}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
+	access := &AccessClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(auth.accessExpires)), IssuedAt: jwt.NewNumericDate(now)}, UserInfo: userClaims}
+	refresh := &RefreshClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(auth.refreshExpires)), IssuedAt: jwt.NewNumericDate(now)}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
 
-	if accessToken, err = p.SignedToken(access); err != nil {
+	if accessToken, err = auth.SignedToken(access); err != nil {
 		return "", "", fmt.Errorf("access token signed failed: %w", err)
 	}
-	if refreshToken, err = p.SignedToken(refresh); err != nil {
+	if refreshToken, err = auth.SignedToken(refresh); err != nil {
 		return "", "", fmt.Errorf("refresh token signed failed: %w", err)
 	}
 	return accessToken, refreshToken, nil
@@ -82,13 +80,13 @@ func (p *CacheAuth) Signed(ctx context.Context, userClaims *UserInfo) (accessTok
 // ===============================解析token 生成 Claims Session=============================
 
 // Parse 通过accessToken转换 userClaims userSession 并存到ctx中
-func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Context, error) {
+func (auth *auth) Parse(ctx context.Context, accessToken string) (context.Context, error) {
 	if len(accessToken) == 0 {
 		return ctx, nil
 	}
 	//获取Claims对象
 	claims := &AccessClaims{}
-	if err := p.ParseToken(accessToken, claims, AccessToken); err != nil {
+	if err := auth.ParseToken(accessToken, claims, AccessToken); err != nil {
 		return ctx, err
 	}
 	if err := claims.Valid(); err != nil {
@@ -97,7 +95,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 	ctx = SetClaims(ctx, claims.UserInfo)
 
 	//获取Session对象
-	userSession, err := p.GetSession(ctx, GetSessionId(claims.UserInfo.Id))
+	userSession, err := auth.GetSession(ctx, GetSessionId(claims.UserInfo.Id))
 	if err != nil {
 		return ctx, err
 	}
@@ -107,7 +105,7 @@ func (p *CacheAuth) Parse(ctx context.Context, accessToken string) (context.Cont
 
 // ===============================Refresh 生成 Claims Session=============================
 
-func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims Claims) error {
+func (auth *auth) Refresh(ctx context.Context, refreshToken string, claims Claims) error {
 	if len(refreshToken) == 0 {
 		return errors.New("refresh token is null")
 	}
@@ -116,7 +114,7 @@ func (p *CacheAuth) Refresh(ctx context.Context, refreshToken string, claims Cla
 		return ctx.Err()
 	default:
 	}
-	if err := p.ParseToken(refreshToken, claims, RefreshToken); err != nil {
+	if err := auth.ParseToken(refreshToken, claims, RefreshToken); err != nil {
 		return err
 	}
 	return claims.Valid()

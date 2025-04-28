@@ -14,18 +14,25 @@ import (
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
-	cache, _ := app.NewUtil().Cache()
+	authorized, err := app.NewUtil().Auth()
+	if err != nil {
+		panic(err)
+	}
+	cache, err := app.NewUtil().Cache()
+	if err != nil {
+		panic(err)
+	}
 
 	// 服务/领域/接口
-	userGroup := engine.Group("/user/user/").Use(middleware.BaseHandle(cache))
+	userGroup := engine.Group("/user/user/").Use(middleware.BaseHandle(authorized))
 	{
 		userGroup.GET("say", func(c *gin.Context) {
 			gateway.Json(c, &user.RequestHello{}).Use(
 				middleware.Login(),                    //需要登录
 				middleware.Validate([]string{"name"}), //参数必填项
 				middleware.Rule(c),                    //权限判断
-				middleware.Locker(c, cache, []string{"name"}, middleware.IsClaims(true), middleware.Expiration(time.Second*3)), //分布式锁处理
-				middleware.Cache(c, cache, []string{"name"}, middleware.IsClaims(true)),                                        //缓存处理
+				middleware.Locker(c, cache, []string{"name"}, middleware.Claims(true), middleware.Expiration(time.Second*3)), //分布式锁处理
+				middleware.Cache(c, cache, []string{"name"}, middleware.Claims(true)),                                        //缓存处理
 			).Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.SayHello(ctx, req.(*user.RequestHello))
 			})

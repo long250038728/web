@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/groupcache/singleflight"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/locker"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/paths"
@@ -12,6 +13,7 @@ import (
 	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
+	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"sync"
 	"time"
@@ -198,4 +200,14 @@ func (u *Util) Exporter() (opentelemetry.SpanExporter, error) {
 func (u *Util) Port(svcName string) (Port, bool) {
 	port, ok := u.Info.Servers[svcName]
 	return port, ok
+}
+
+func (u *Util) Auth() (authorization.Auth, error) {
+	c, err := u.Cache()
+	if err != nil {
+		return nil, err
+	}
+
+	auth := authorization.NewAuth(store.NewLocalStore(10000), authorization.AddStore(store.NewRedisStore(c)))
+	return auth, nil
 }

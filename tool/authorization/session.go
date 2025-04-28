@@ -10,8 +10,7 @@ import (
 )
 
 type Session struct {
-	LocalStore    store.Store
-	Store         store.Store
+	Stores        []store.Store
 	accessExpires time.Duration
 }
 
@@ -22,7 +21,7 @@ func (p *Session) GetSession(ctx context.Context, sessionId string) (session *Us
 	var sessionStr string
 
 	// 按照优先级获取
-	for _, s := range []store.Store{p.LocalStore, p.Store} {
+	for _, s := range p.Stores {
 		if s != nil {
 			sessionStr, err = s.Get(ctx, sessionId)
 			if err != nil {
@@ -53,15 +52,13 @@ func (p *Session) SetSession(ctx context.Context, sessionId string, session *Use
 	}
 
 	// 数据添加到缓存中
-	for _, s := range []store.Store{p.LocalStore, p.Store} {
-		if s != nil {
-			if ok, err = s.Set(ctx, sessionId, string(b), p.accessExpires); err != nil {
-				return err
-			}
-			if !ok {
-				err = errors.New("session setting is err")
-				return
-			}
+	for _, s := range p.Stores {
+		if ok, err = s.Set(ctx, sessionId, string(b), p.accessExpires); err != nil {
+			return err
+		}
+		if !ok {
+			err = errors.New("session setting is err")
+			return
 		}
 	}
 	return
@@ -73,11 +70,9 @@ func (p *Session) DeleteSession(ctx context.Context, sessionId string) error {
 	}
 
 	// 数据添加到缓存中
-	for _, s := range []store.Store{p.LocalStore, p.Store} {
-		if s != nil {
-			if _, err := p.Store.Del(ctx, sessionId); err != nil {
-				return err
-			}
+	for _, s := range p.Stores {
+		if _, err := s.Del(ctx, sessionId); err != nil {
+			return err
 		}
 	}
 	return nil

@@ -13,8 +13,12 @@ import (
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
-	cache, _ := app.NewUtil().Cache()
-	userGroup := engine.Group("/auth/user/").Use(middleware.BaseHandle(cache))
+	authorized, err := app.NewUtil().Auth()
+	if err != nil {
+		panic(err)
+	}
+
+	userGroup := engine.Group("/auth/user/").Use(middleware.BaseHandle(authorized))
 	{
 		userGroup.POST("login", func(c *gin.Context) {
 			gateway.Json(c, &auth.LoginRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {

@@ -6,9 +6,7 @@ import (
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/app_error"
-	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -49,13 +47,13 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
-			cache, err := app.NewUtil().Cache()
+			auth, err := app.NewUtil().Auth()
 			if err != nil {
 				return handler(ctx, req)
 			}
 
 			if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
-				ctx, _ = authorization.NewAuth(store.NewRedisStore(cache)).Parse(ctx, authorizationToken[0])
+				ctx, _ = auth.Parse(ctx, authorizationToken[0])
 			}
 		}
 		return handler(ctx, req)

@@ -13,8 +13,12 @@ import (
 )
 
 func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
-	cache, _ := app.NewUtil().Cache()
-	orderGroup := engine.Group("/order/order/").Use(middleware.BaseHandle(cache))
+	authorized, err := app.NewUtil().Auth()
+	if err != nil {
+		panic(err)
+	}
+
+	orderGroup := engine.Group("/order/order/").Use(middleware.BaseHandle(authorized))
 	{
 		orderGroup.GET("detail", func(c *gin.Context) {
 			gateway.Json(c, &order.OrderDetailRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {

@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/server/http/gateway"
-	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -25,7 +23,7 @@ import (
 // LimitHandle 限流中间件 （对单个用户(token存在获取token，不存在则获取ip)进行限流处理）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
-func BaseHandle(client redis.Redis) gin.HandlerFunc {
+func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -77,9 +75,8 @@ func BaseHandle(client redis.Redis) gin.HandlerFunc {
 		}
 
 		// 用户处理
-		if client != nil {
-			authSession := authorization.NewAuth(store.NewRedisStore(client))
-			if parseCtx, err := authSession.Parse(ctx, c.GetHeader("Authorization")); err == nil {
+		if auth != nil {
+			if parseCtx, err := auth.Parse(ctx, c.GetHeader("Authorization")); err == nil {
 				ctx = parseCtx
 			}
 		}
