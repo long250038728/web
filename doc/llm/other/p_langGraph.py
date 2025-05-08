@@ -26,7 +26,10 @@ def c(state):
     print(state,"c")
     return {"result":["this is c"]}
 
-
+def conditional_state(state):
+    if len(state["result"]) < 2:
+        return "LOOP"
+    return "NEXT"
 
 def main():
     graph = StateGraph(State)
@@ -36,12 +39,20 @@ def main():
 
     # 单边连接
     graph.add_edge(START,"a")
-    graph.add_edge("a","b")
-    graph.add_edge("b","c")
-    graph.add_edge("c",END)
+
 
     # 条件边连接
-    # graph.add_conditional_edges(...)
+    graph.add_conditional_edges(
+        "a",                        # 上一节点 a
+        conditional_state,          # 逻辑判断会返回key
+        {                           # dict是key value格式 根据返回的key选择是哪个node
+            "LOOP":"b",
+            "NEXT":"c"
+        }
+    )
+
+
+    graph.add_edge("c",END)
 
     app = graph.compile()
 
