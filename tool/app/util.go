@@ -89,8 +89,9 @@ func NewUtilPath(root string, configType int32, yaml ...string) (*Util, error) {
 // NewUtilConfig 根据配置获取Util工具箱
 func NewUtilConfig(config *Config) (*Util, error) {
 	util := &Util{
-		Info: config,
-		Sf:   &singleflight.Group{},
+		Info:  config,
+		Sf:    &singleflight.Group{},
+		cache: map[int]redis.Redis{},
 	}
 	var err error
 
