@@ -5,7 +5,7 @@ import akshare as ak
 import pandas as pd
 
 
-def main(symbol :str ,start_date :str ,end_date :str):
+def main(symbol :str ,start_date:str ,end_date:str):
     df = ak.stock_zh_a_hist(
         symbol=symbol,
         period="daily", # choice of {'daily', 'weekly', 'monthly'}
@@ -16,6 +16,18 @@ def main(symbol :str ,start_date :str ,end_date :str):
 
     if len(df) == 0:
         return
+
+    # pd常见操作
+    print(df.head())  # 前5行
+    print(df.tail(3))  # 后3行
+    print(df.info())  # 数据概况
+    print(df.describe())  # 数值型统计摘要
+    print(df.shape)  # 行列数
+
+    print(df["日期"])
+    print(df[["日期","开盘"]])
+    print(df[df["开盘"] >= 47])
+
 
     # df的日期列改为datetime格式
     df["日期"] = pd.to_datetime(df["日期"])

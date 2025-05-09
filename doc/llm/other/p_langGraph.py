@@ -46,8 +46,8 @@ def main():
     # 条件边连接
     graph.add_conditional_edges(
         "a",                           # 上一节点 a
-        conditional_state,                    # 逻辑判断会返回key
-        {                           # dict是key value格式 根据返回的key选择是哪个node
+        conditional_state,             # 逻辑判断会返回key
+        {                              # dict是key value格式 根据返回的key选择是哪个node
             "LOOP":"b",
             "NEXT":"c"
         }
