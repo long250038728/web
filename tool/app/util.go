@@ -174,7 +174,7 @@ func (u *Util) Mq() (mq.Mq, error) {
 }
 
 func (u *Util) Cache() (redis.Redis, error) {
-	if u.cache == nil {
+	if u.cache[u.cacheDb] == nil {
 		return nil, errors.New("store is not initialized")
 	}
 	return u.cache[u.cacheDb], nil
