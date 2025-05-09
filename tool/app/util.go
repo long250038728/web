@@ -181,7 +181,10 @@ func (u *Util) Cache() (redis.Redis, error) {
 }
 
 func (u *Util) CacheDb(db int) (redis.Redis, error) {
-	if c, ok := u.cache[u.cacheDb]; ok {
+	u.locker.Lock()
+	defer u.locker.Unlock()
+
+	if c, ok := u.cache[db]; ok {
 		return c, nil
 	}
 
@@ -189,12 +192,10 @@ func (u *Util) CacheDb(db int) (redis.Redis, error) {
 		return nil, errors.New("cache config is empty")
 	}
 
-	u.locker.Lock()
-	defer u.locker.Unlock()
-
-	u.Info.cacheConfig.Db = db
-	c := redis.NewRedis(u.Info.cacheConfig)
-	u.cache[u.cacheDb] = c
+	cacheConfig := *u.Info.cacheConfig
+	cacheConfig.Db = db
+	c := redis.NewRedis(&cacheConfig)
+	u.cache[db] = c
 
 	return c, nil
 }
