@@ -29,8 +29,9 @@ var path = ""
 var configType int32 = ConfigPath
 
 type Util struct {
-	Info *Config
-	Sf   *singleflight.Group
+	Info   *Config
+	Sf     *singleflight.Group
+	locker sync.Locker
 
 	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
 	db       *orm.Gorm
@@ -39,7 +40,9 @@ type Util struct {
 	exporter opentelemetry.SpanExporter
 
 	//store mq 主要是一些通用的东西，可以用接口代替
-	cache    redis.Redis
+	cache   map[int]redis.Redis
+	cacheDb int
+
 	mq       mq.Mq
 	register register.Register
 }
@@ -106,7 +109,8 @@ func NewUtilConfig(config *Config) (*Util, error) {
 
 	//创建redis && locker
 	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
-		util.cache = redis.NewRedis(config.cacheConfig)
+		util.cache[config.cacheConfig.Db] = redis.NewRedis(config.cacheConfig)
+		util.cacheDb = config.cacheConfig.Db
 	}
 
 	//创建mq
@@ -173,14 +177,33 @@ func (u *Util) Cache() (redis.Redis, error) {
 	if u.cache == nil {
 		return nil, errors.New("store is not initialized")
 	}
-	return u.cache, nil
+	return u.cache[u.cacheDb], nil
+}
+
+func (u *Util) CacheDb(db int) (redis.Redis, error) {
+	if c, ok := u.cache[u.cacheDb]; ok {
+		return c, nil
+	}
+
+	if u.Info.cacheConfig == nil || len(u.Info.cacheConfig.Address) == 0 {
+		return nil, errors.New("cache config is empty")
+	}
+
+	u.locker.Lock()
+	defer u.locker.Unlock()
+
+	u.Info.cacheConfig.Db = db
+	c := redis.NewRedis(u.Info.cacheConfig)
+	u.cache[u.cacheDb] = c
+
+	return c, nil
 }
 
 func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (locker.Locker, error) {
 	if u.cache == nil {
 		return nil, errors.New("locker is not initialized")
 	}
-	return locker.NewRedisLocker(u.cache, key, identification, RefreshTime), nil
+	return locker.NewRedisLocker(u.cache[u.cacheDb], key, identification, RefreshTime), nil
 }
 
 func (u *Util) Register() (register.Register, error) {
