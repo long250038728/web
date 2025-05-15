@@ -1,6 +1,15 @@
 module github.com/long250038728/web
 
-go 1.23.8
+go 1.23.8 // 最低要求 Go 1.23.8
+
+//toolchain go1.23.8  // 建议使用go1.23.8及以上版本开发
+
+//环境变量
+//GOTOOLCHAIN=local           强制使用本地go版本，如果低于go.mod定义的则会报错
+//GOTOOLCHAIN=go1.X.Y	      强制使用指定go版本
+//GOTOOLCHAIN=auto			  (默认)会优先使用toolchain版本/go.mod版本 如果不存在会安装到GOMODCACHE中
+//GOTOOLCHAIN=go1.X.Y+auto    默认使用指定go版本，如果基础版本不够使用auto
+//GOTOOLCHAIN=go1.X.Y+path	  默认使用指定go版本, 如果基础版本不够使用当前系统local
 
 require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
