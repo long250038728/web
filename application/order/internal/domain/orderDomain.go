@@ -21,7 +21,7 @@ func NewDomain(repository *repository.Repository) *Domain {
 
 func (d *Domain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
 	// 创建rpc客户端
-	conn, err := rpc.NewClient().Dial(ctx, protoc.UserService)
+	conn, err := rpc.NewClient(d.repository.Util).Dial(ctx, protoc.UserService)
 	if err != nil {
 		return nil, err
 	}

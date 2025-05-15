@@ -22,6 +22,7 @@ type Client struct {
 	svcInstances []*register.ServiceInstance
 	balancer     tool.Balancer
 	once         sync.Once
+	util         *app.Util
 }
 
 var clientParameters = keepalive.ClientParameters{
@@ -54,9 +55,10 @@ func Balancer(balancer tool.Balancer) ClientOpt {
 //=================================================================================================
 
 // NewClient 构造函数
-func NewClient(opts ...ClientOpt) *Client {
+func NewClient(util *app.Util, opts ...ClientOpt) *Client {
 	c := &Client{
 		balancer: tool.NewRandBalancer(), //默认随机算法
+		util:     util,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -79,21 +81,20 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 		grpc.WithKeepaliveParams(clientParameters),
 	}
 
-	util := app.NewUtil()
 	target := ""
 
-	switch util.Info.GRPC {
+	switch c.util.Info.GRPC {
 	case app.GrpcLocal:
 		{ //获取本地ip
-			port, ok := util.Info.Servers[c.serverName]
+			port, ok := c.util.Info.Servers[c.serverName]
 			if !ok {
 				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
 			}
-			target = fmt.Sprintf("%s:%d", util.Info.IP, port.GrpcPort)
+			target = fmt.Sprintf("%s:%d", c.util.Info.IP, port.GrpcPort)
 		}
 	case app.GrpcKubernetes:
 		{
-			port, ok := util.Info.Servers[c.serverName]
+			port, ok := c.util.Info.Servers[c.serverName]
 			if !ok {
 				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
 			}
@@ -106,7 +107,7 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 			c.once.Do(func() {
 				resolver.Register(&MyResolversBuild{})
 			})
-			r, err := util.Register()
+			r, err := c.util.Register()
 			if err != nil {
 				return nil, fmt.Errorf("grpc client dial register is err : %w", err)
 			}
