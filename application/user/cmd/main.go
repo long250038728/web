@@ -34,13 +34,16 @@ func Run(serverName string) error {
 	svc := service.NewService(
 		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
 	)
+
+	r := router.NewRouter(util)
+
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
-				router.RegisterHTTPServer(engine, svc)
+				r.RegisterHTTPServer(engine, svc)
 			}),
 			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
-				router.RegisterGRPCServer(engine, svc)
+				r.RegisterGRPCServer(engine, svc)
 			}),
 		),
 	}

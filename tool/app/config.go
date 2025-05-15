@@ -9,7 +9,7 @@ import (
 )
 
 var configLoad = configurator.NewYaml()
-var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
+var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing", "register"}
 var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
 func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {

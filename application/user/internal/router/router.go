@@ -13,12 +13,22 @@ import (
 	"time"
 )
 
-func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
-	authorized, err := app.NewUtil().Auth()
+type Router struct {
+	util *app.Util
+}
+
+func NewRouter(util *app.Util) *Router {
+	return &Router{
+		util: util,
+	}
+}
+
+func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
+	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
 	}
-	cache, err := app.NewUtil().Cache()
+	cache, err := r.util.Cache()
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +62,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
 	}
 }
 
-func RegisterGRPCServer(engine *grpc.Server, srv *service.UserService) {
+func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.UserService) {
 	user.RegisterUserServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

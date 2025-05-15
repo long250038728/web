@@ -33,18 +33,17 @@ type Util struct {
 	Sf     *singleflight.Group
 	locker sync.Locker
 
-	//db es 里面涉及库内操作，在没有封装之前暴露第三方的库
-	db       *orm.Gorm
-	dbRead   *orm.Gorm
-	es       *es.ES
+	register register.Register
 	exporter opentelemetry.SpanExporter
 
-	//store mq 主要是一些通用的东西，可以用接口代替
-	cache   map[int]cache.Cache
-	cacheDb int
+	db     *orm.Gorm
+	dbRead *orm.Gorm
 
-	mq       mq.Mq
-	register register.Register
+	cacheDb int
+	cache   map[int]cache.Cache
+
+	es *es.ES
+	mq mq.Mq
 
 	storeClient store.Store
 }

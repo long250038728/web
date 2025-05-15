@@ -12,8 +12,18 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
-	authorized, err := app.NewUtil().Auth()
+type Router struct {
+	util *app.Util
+}
+
+func NewRouter(util *app.Util) *Router {
+	return &Router{
+		util: util,
+	}
+}
+
+func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
+	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +38,7 @@ func RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
 	}
 }
 
-func RegisterGRPCServer(engine *grpc.Server, srv *service.OrderService) {
+func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.OrderService) {
 	order.RegisterOrderServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }
