@@ -28,6 +28,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.OrderServic
 		panic(err)
 	}
 
+	// 服务/领域/接口
 	orderGroup := engine.Group("/order/order/").Use(middleware.BaseHandle(authorized))
 	{
 		orderGroup.GET("detail", func(c *gin.Context) {

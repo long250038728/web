@@ -28,6 +28,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 		panic(err)
 	}
 
+	// 服务/领域/接口
 	userGroup := engine.Group("/auth/user/").Use(middleware.BaseHandle(authorized))
 	{
 		userGroup.POST("login", func(c *gin.Context) {

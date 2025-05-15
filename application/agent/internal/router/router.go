@@ -28,6 +28,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 		panic(err)
 	}
 
+	// 服务/领域/接口
 	infoGroup := engine.Group("/agent/info/").Use(middleware.BaseHandle(authorized))
 	{
 		infoGroup.GET("logs", func(c *gin.Context) {
