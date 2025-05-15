@@ -8,9 +8,9 @@ import (
 	"github.com/long250038728/web/tool/locker"
 	"github.com/long250038728/web/tool/mq"
 	"github.com/long250038728/web/tool/paths"
+	"github.com/long250038728/web/tool/persistence/cache"
 	"github.com/long250038728/web/tool/persistence/es"
 	"github.com/long250038728/web/tool/persistence/orm"
-	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/store"
@@ -40,11 +40,13 @@ type Util struct {
 	exporter opentelemetry.SpanExporter
 
 	//store mq 主要是一些通用的东西，可以用接口代替
-	cache   map[int]redis.Redis
+	cache   map[int]cache.Cache
 	cacheDb int
 
 	mq       mq.Mq
 	register register.Register
+
+	storeClient store.Store
 }
 
 func InitPathInfo(configPath *string) {
@@ -91,7 +93,7 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	util := &Util{
 		Info:  config,
 		Sf:    &singleflight.Group{},
-		cache: map[int]redis.Redis{},
+		cache: map[int]cache.Cache{},
 	}
 	var err error
 
@@ -108,9 +110,9 @@ func NewUtilConfig(config *Config) (*Util, error) {
 		}
 	}
 
-	//创建redis && locker
+	//cache && locker
 	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
-		util.cache[config.cacheConfig.Db] = redis.NewRedis(config.cacheConfig)
+		util.cache[config.cacheConfig.Db] = cache.NewRedis(config.cacheConfig)
 		util.cacheDb = config.cacheConfig.Db
 	}
 
@@ -141,8 +143,56 @@ func NewUtilConfig(config *Config) (*Util, error) {
 		}
 	}
 
+	// store
+	if c, ok := util.cache[config.cacheConfig.Db]; ok {
+		util.storeClient = store.NewMultiStore(c, 10000, "del_session")
+	}
 	return util, nil
 }
+
+func (u *Util) Port(svcName string) (Port, bool) {
+	port, ok := u.Info.Servers[svcName]
+	return port, ok
+}
+
+func (u *Util) Close() {
+	if u.storeClient != nil {
+		u.storeClient.Close()
+	}
+}
+
+//========================================================================================
+
+func (u *Util) Register() (register.Register, error) {
+	if u.register == nil {
+		return nil, errors.New("register is not initialized")
+	}
+	return u.register, nil
+}
+
+func (u *Util) Exporter() (opentelemetry.SpanExporter, error) {
+	if u.exporter == nil {
+		return nil, errors.New("exporter is not initialized")
+	}
+	return u.exporter, nil
+}
+
+func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (locker.Locker, error) {
+	if u.cache == nil {
+		return nil, errors.New("locker is not initialized")
+	}
+	return locker.NewRedisLocker(u.cache[u.cacheDb], key, identification, RefreshTime), nil
+}
+
+func (u *Util) Auth() (authorization.Auth, error) {
+	if u.storeClient == nil {
+		return nil, errors.New("store is not init")
+	}
+	auth := authorization.NewAuth(u.storeClient)
+	return auth, nil
+}
+
+//========================================================================================
 
 // Db 读写库
 func (u *Util) Db(ctx context.Context) (*orm.Gorm, error) {
@@ -160,28 +210,16 @@ func (u *Util) DbReadOnly(ctx context.Context) (*orm.Gorm, error) {
 	return &orm.Gorm{DB: u.dbRead.DB.WithContext(ctx)}, nil
 }
 
-func (u *Util) Es() (*es.ES, error) {
-	if u.es == nil {
-		return nil, errors.New("es is not initialized")
-	}
-	return u.es, nil
-}
+//========================================================================================
 
-func (u *Util) Mq() (mq.Mq, error) {
-	if u.es == nil {
-		return nil, errors.New("mq is not initialized")
-	}
-	return u.mq, nil
-}
-
-func (u *Util) Cache() (redis.Redis, error) {
+func (u *Util) Cache() (cache.Cache, error) {
 	if u.cache[u.cacheDb] == nil {
 		return nil, errors.New("store is not initialized")
 	}
 	return u.cache[u.cacheDb], nil
 }
 
-func (u *Util) CacheDb(db int) (redis.Redis, error) {
+func (u *Util) CacheDb(db int) (cache.Cache, error) {
 	u.locker.Lock()
 	defer u.locker.Unlock()
 
@@ -195,44 +233,24 @@ func (u *Util) CacheDb(db int) (redis.Redis, error) {
 
 	cacheConfig := *u.Info.cacheConfig
 	cacheConfig.Db = db
-	c := redis.NewRedis(&cacheConfig)
+	c := cache.NewRedis(&cacheConfig)
 	u.cache[db] = c
 
 	return c, nil
 }
 
-func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (locker.Locker, error) {
-	if u.cache == nil {
-		return nil, errors.New("locker is not initialized")
+//========================================================================================
+
+func (u *Util) Es() (*es.ES, error) {
+	if u.es == nil {
+		return nil, errors.New("es is not initialized")
 	}
-	return locker.NewRedisLocker(u.cache[u.cacheDb], key, identification, RefreshTime), nil
+	return u.es, nil
 }
 
-func (u *Util) Register() (register.Register, error) {
-	if u.register == nil {
-		return nil, errors.New("register is not initialized")
+func (u *Util) Mq() (mq.Mq, error) {
+	if u.es == nil {
+		return nil, errors.New("mq is not initialized")
 	}
-	return u.register, nil
-}
-
-func (u *Util) Exporter() (opentelemetry.SpanExporter, error) {
-	if u.exporter == nil {
-		return nil, errors.New("exporter is not initialized")
-	}
-	return u.exporter, nil
-}
-
-func (u *Util) Port(svcName string) (Port, bool) {
-	port, ok := u.Info.Servers[svcName]
-	return port, ok
-}
-
-func (u *Util) Auth() (authorization.Auth, error) {
-	c, err := u.Cache()
-	if err != nil {
-		return nil, err
-	}
-
-	auth := authorization.NewAuth(store.NewLocalStore(10000), authorization.AddStore(store.NewRedisStore(c)))
-	return auth, nil
+	return u.mq, nil
 }

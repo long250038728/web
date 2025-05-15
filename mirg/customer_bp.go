@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/excel"
+	"github.com/long250038728/web/tool/persistence/cache"
 	"github.com/long250038728/web/tool/persistence/orm"
-	"github.com/long250038728/web/tool/persistence/redis"
 	"github.com/long250038728/web/tool/sliceconv"
 	"math"
 	"time"
@@ -153,9 +153,9 @@ func CustomerBpAction(accessToken int) {
 
 	// 发送消息
 	ctx := context.Background()
-	var redisConfig redis.Config
+	var redisConfig cache.Config
 	configurator.NewYaml().MustLoadConfigPath("online/redis.yaml", &redisConfig)
-	mq := redis.NewRedis(&redisConfig)
+	mq := cache.NewRedis(&redisConfig)
 	for _, item := range customerBpLog {
 		b, err := json.Marshal(&item)
 		if err != nil {

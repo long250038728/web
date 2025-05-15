@@ -36,12 +36,6 @@ func RefreshExpires(refreshExpires time.Duration) Opt {
 	}
 }
 
-func AddStore(s store.Store) Opt {
-	return func(r *auth) {
-		r.Stores = append(r.Stores, s)
-	}
-}
-
 func NewAuth(s store.Store, opts ...Opt) Auth {
 	p := &auth{}
 
@@ -49,7 +43,7 @@ func NewAuth(s store.Store, opts ...Opt) Auth {
 	p.SecretKey = []byte("secretKey")
 	p.accessExpires = 20 * time.Minute
 	p.refreshExpires = 24 * 7 * time.Hour
-	p.Stores = []store.Store{s}
+	p.store = s
 
 	for _, opt := range opts {
 		opt(p)

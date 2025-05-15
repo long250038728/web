@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/persistence/redis"
+	"github.com/long250038728/web/tool/persistence/cache"
 	"github.com/long250038728/web/tool/server/http/gateway"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"reflect"
@@ -66,7 +66,7 @@ func getKey(c *gin.Context, isClaims bool, keys []string, requestInfo map[string
 // =======================================================================================================
 
 // Locker 解决并发锁
-func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
+func Locker(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		setting := NewDefaultMiddlewareInfo()
 		for _, opt := range opts {
@@ -89,7 +89,7 @@ func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gate
 }
 
 // Cache  接口缓存
-func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
+func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		setting := NewDefaultMiddlewareInfo()
 		for _, opt := range opts {
@@ -125,7 +125,7 @@ func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gatew
 		if err == nil {
 			cacheData := gateway.NewResponse(resp, err)
 			if b, err := json.Marshal(cacheData); err == nil {
-				_, _ = client.SetEX(ctx, key, string(b), expiration)
+				_, _ = client.Set(ctx, key, string(b), expiration)
 			}
 			return cacheData, err
 		}

@@ -42,3 +42,7 @@ func (s *localStore) Del(ctx context.Context, key ...string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (s *localStore) Close() {
+	
+}
