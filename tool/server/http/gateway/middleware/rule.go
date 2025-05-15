@@ -48,7 +48,7 @@ func Rule(c *gin.Context) gateway.ServerInterceptor {
 			}
 
 			//校验path路径
-			if u.Path != path {
+			if CamelToSnake(u.Path) != CamelToSnake(path) {
 				continue
 			}
 

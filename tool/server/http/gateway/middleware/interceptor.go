@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -18,9 +17,6 @@ import (
 // 2. 中间件中由于只提供next() 及 Abort() 方法，只控制继续或停止，无法对实际处理的handle进行捕获。
 // 3. 不依赖与request中的参数，response的响应。 所以对接口的缓存，防抖的操作不在middle中处理
 // BaseHandle 基本中间件（创建链路及jwt解析，生成新的ctx替换到c.Request.Context中）
-// LoginCheckHandle 登录中间件检验 (通过BaseHandle生成的ctx获取Claims对象，获取不到则报错)
-// AuthCheckHandle  权限中间件  (通过BaseHandle生成的ctx获取Session对象，根据session中判断是否能进行访问)
-// LimitHandle 限流中间件 （对单个用户(token存在获取token，不存在则获取ip)进行限流处理）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
 func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
@@ -87,71 +83,3 @@ func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
 }
 
 //=================================================================================
-
-// Limit 示例中间件：限流拦截器
-func Limit() gateway.ServerInterceptor {
-	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
-		fmt.Println("limit")
-		// 限流逻辑（省略实际实现）
-		return handler(ctx, request)
-	}
-}
-
-//// LoginCheckHandle 登录中间件检验（校验jwt是否有效）前提是需要执行BaseHandle 中间件
-//func LoginCheckHandle() gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		_, err := authorization.GetClaims(c.Request.Context())
-//		if err != nil {
-//			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
-//			return
-//		}
-//		c.Next()
-//	}
-//}
-//
-//// AuthCheckHandle 权限中间件(校验jwt中对应的session是否有路径访问权限) 前提是需要执行BaseHandle 中间件
-//func AuthCheckHandle() gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		//获取session对象(session对象默认是有本地store及分布式store的，为了解决频繁获取分布式session的问题)
-//		sess, err := authorization.GetSession(c.Request.Context())
-//		if err != nil {
-//			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
-//			return
-//		}
-//
-//		//判断该url是否在session存在
-//		isApiAuthorized := false
-//		for _, url := range sess.AuthList {
-//			if CamelToSnake(url) == c.Request.URL.Path {
-//				isApiAuthorized = true
-//				break
-//			}
-//		}
-//
-//		if !isApiAuthorized {
-//			c.AbortWithStatusJSON(http.StatusUnauthorized, NewResponse(nil, app_error.Unauthorized))
-//			return
-//		}
-//
-//		c.Next()
-//	}
-//}
-//
-//// LimitHandle 限流中间件 (优先获取用户的token信息，如果接口无需token参数，那通过IP的方式 ---- 单个用户)
-//func LimitHandle(client store.Cache) gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		if client != nil {
-//			identification := c.GetHeader(server.AuthorizationKey)
-//			if len(identification) == 0 {
-//				identification = c.ClientIP()
-//			}
-//
-//			// 1s 10次
-//			limit := limiter.NewCacheLimiter(client, limiter.SetExpiration(time.Second), limiter.SetTimes(10))
-//			if err := limit.Allow(c.Request.Context(), fmt.Sprintf("http:%s", identification)); err != nil {
-//				c.AbortWithStatusJSON(http.StatusTooManyRequests, NewResponse(nil, app_error.TooManyRequests))
-//			}
-//		}
-//		c.Next()
-//	}
-//}
