@@ -2,9 +2,11 @@ package tool
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/long250038728/web/tool/app_error"
+	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc"
@@ -45,16 +47,21 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 // ServerAuthInterceptor 鉴权拦截器
 func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		//if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
-		//	auth, err := app.NewUtil().Auth()
-		//	if err != nil {
-		//		return handler(ctx, req)
-		//	}
-		//
-		//	if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
-		//		ctx, _ = auth.Parse(ctx, authorizationToken[0])
-		//	}
-		//}
+		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
+
+			if claims, ok := md["claims"]; ok && len(claims) == 1 {
+				userClaims := &authorization.UserInfo{}
+				if err := json.Unmarshal([]byte(claims[0]), &userClaims); err == nil {
+					ctx = authorization.SetClaims(ctx, userClaims)
+				}
+			}
+			if session, ok := md["session"]; ok && len(session) == 1 {
+				userSession := &authorization.UserSession{}
+				if err := json.Unmarshal([]byte(session[0]), &userSession); err == nil {
+					ctx = authorization.SetSession(ctx, userSession)
+				}
+			}
+		}
 		return handler(ctx, req)
 	}
 }

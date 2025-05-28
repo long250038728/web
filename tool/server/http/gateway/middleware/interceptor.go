@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -50,25 +51,21 @@ func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
 		ctx := c.Request.Context()
 
 		//链路追踪
-		{
-			//生成一个新的带有span的context
-			// 1. c.Request.Context() 获取ctx上下文 (也可以通过context.Background()创建)
-			// 2. 通过 telemetry 提取 http请求头中的参数生成一个名称为请求URI的 span (如果请求头中有traceparent 则生成一个子span，如果无则生成一个root span)
-			// 3. 通过span 获取新的 ctx 以后续使用
-			span := opentelemetry.NewSpan(opentelemetry.ExtractHttp(c.Request.Context(), c.Request), c.Request.RequestURI) //记录请求头
-			defer span.Close()
 
-			ctx = span.Context()
+		//生成一个新的带有span的context
+		// 1. c.Request.Context() 获取ctx上下文 (也可以通过context.Background()创建)
+		// 2. 通过 telemetry 提取 http请求头中的参数生成一个名称为请求URI的 span (如果请求头中有traceparent 则生成一个子span，如果无则生成一个root span)
+		// 3. 通过span 获取新的 ctx 以后续使用
+		span := opentelemetry.NewSpan(opentelemetry.ExtractHttp(c.Request.Context(), c.Request), c.Request.RequestURI) //记录请求头
+		defer span.Close()
 
-			mCarrier := map[string]string{server.AuthorizationKey: c.GetHeader("Authorization")} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
-			opentelemetry.InjectMap(ctx, mCarrier)                                               // 把 telemetry的id等信息写入mCarrier
+		ctx = span.Context()
 
-			span.AddEvent(mCarrier)
-			c.Header(server.TraceParentKey, mCarrier[server.TraceParentKey])
+		mCarrier := map[string]string{server.AuthorizationKey: c.GetHeader("Authorization")} // mCarrier["authorization"] = authorization // 把 http 请求头中的Authorization信息写入mCarrier
+		opentelemetry.InjectMap(ctx, mCarrier)                                               // 把 telemetry的id等信息写入mCarrier
 
-			//把所有信息写入metadata中并生成新的ctx
-			ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
-		}
+		span.AddEvent(mCarrier)
+		c.Header(server.TraceParentKey, mCarrier[server.TraceParentKey])
 
 		// 用户处理
 		if auth != nil {
@@ -76,6 +73,19 @@ func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
 				ctx = parseCtx
 			}
 		}
+
+		//把所有信息写入metadata中并生成新的ctx
+		if c, err := authorization.GetClaims(ctx); err == nil {
+			if b, err := json.Marshal(c); err == nil {
+				mCarrier["claims"] = string(b)
+			}
+		}
+		if s, err := authorization.GetSession(ctx); err == nil {
+			if b, err := json.Marshal(s); err == nil {
+				mCarrier["session"] = string(b)
+			}
+		}
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
 
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()

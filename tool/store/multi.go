@@ -59,7 +59,7 @@ func (s *MultiStore) Get(ctx context.Context, key string) (string, error) {
 }
 
 func (s *MultiStore) Set(ctx context.Context, key string, value string, expiration time.Duration) (bool, error) {
-	success := false
+	success := true
 	var err error
 
 	// 都需要完全写入才算成功
