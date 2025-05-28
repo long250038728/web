@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/long250038728/web/protoc"
+	"github.com/long250038728/web/protoc/order"
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
@@ -10,18 +12,18 @@ import (
 )
 
 type Repository struct {
-	Util *app.Util
+	util *app.Util
 }
 
 func NewRepository(util *app.Util) *Repository {
 	return &Repository{
-		Util: util,
+		util: util,
 	}
 }
 
 func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	//orm
-	db, err := r.Util.Db(ctx)
+	db, err := r.util.Db(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -40,14 +42,14 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 	db.Where("id = ?", 1).Find(c)
 
 	////mq
-	//_ = r.Util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
+	//_ = r.util.Mq.Send(ctx, "aaa", "", &mq.Message{Data: []byte("hello")})
 
 	////store
-	//_, _ = r.Util.Cache.Set(ctx, "hello", "1")
-	//_, _ = r.Util.Cache.Get(ctx, "hello")
+	//_, _ = r.util.Cache.Set(ctx, "hello", "1")
+	//_, _ = r.util.Cache.Get(ctx, "hello")
 
 	////lock
-	//lock, err := r.Util.Locker("hello", "123", time.Second*5)
+	//lock, err := r.util.Locker("hello", "123", time.Second*5)
 	//if err != nil {
 	//	return "", err
 	//}
@@ -59,7 +61,7 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 	//	elastic.NewTermQuery("merchant_id", 168),
 	//	elastic.NewRangeQuery("age").Gt(10).Lte(20),
 	//)
-	//res, _ := r.Util.Es.Search("hello").Query(query).From(0).Size(100).Do(ctx)
+	//res, _ := r.util.Es.Search("hello").Query(query).From(0).Size(100).Do(ctx)
 	//for _, data := range res.Hits.Hits {
 	//	fmt.Println(data.Source)
 	//}
@@ -76,4 +78,22 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", data)
 
 	return "hello:" + request.Name + " " + c.Name, nil
+}
+
+func (r *Repository) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (string, error) {
+	// 创建rpc客户端
+	conn, err := r.util.Rpc().Dial(ctx, protoc.UserService)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = conn.Close()
+	}()
+
+	// grpc获取数据
+	resp, err := user.NewUserClient(conn).SayHello(ctx, &user.RequestHello{Name: "long"})
+	if err != nil {
+		return "", err
+	}
+	return resp.Str, nil
 }

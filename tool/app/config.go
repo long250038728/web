@@ -5,11 +5,11 @@ import (
 	"errors"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/configurator/config_center"
+	"github.com/long250038728/web/tool/const_g"
 	"path/filepath"
 )
 
 var configLoad = configurator.NewYaml()
-var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing", "register"}
 var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
 func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
@@ -40,14 +40,14 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 		"tracing":  &conf.tracingConfig,
 	}
 
-	if conf.GRPC == "" {
-		conf.GRPC = GrpcLocal
+	if conf.RpcType == "" {
+		conf.RpcType = const_g.RpcLocal
 	}
 
 	if len(yaml) == 0 {
-		yaml = defaultConfigs
-		if conf.GRPC == GrpcLocal || conf.GRPC == GrpcKubernetes {
-			yaml = defaultLocalConfigs
+		yaml = defaultLocalConfigs
+		if conf.RpcType == const_g.RpcRegister {
+			yaml = append(yaml, "register")
 		}
 	}
 

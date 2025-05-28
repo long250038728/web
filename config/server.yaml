@@ -1,6 +1,6 @@
 ip: ""
 env: dev    # 可用于环境的区分
-grpc: local # 支持local,kubernetes,register
+rpc_type: local # 支持local,kubernetes,register
 servers:
   user:
     http_port: 8001

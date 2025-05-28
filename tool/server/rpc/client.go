@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/long250038728/web/tool/app"
+	"github.com/long250038728/web/tool/const_g"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 	"google.golang.org/grpc"
@@ -18,11 +18,14 @@ import (
 
 // Client 客户端
 type Client struct {
-	serverName   string
 	svcInstances []*register.ServiceInstance
 	balancer     tool.Balancer
 	once         sync.Once
-	util         *app.Util
+
+	rpcType string
+	rpcPort map[string]int
+	r       register.Register
+	ip      string
 }
 
 var clientParameters = keepalive.ClientParameters{
@@ -55,14 +58,21 @@ func Balancer(balancer tool.Balancer) ClientOpt {
 //=================================================================================================
 
 // NewClient 构造函数
-func NewClient(util *app.Util, opts ...ClientOpt) *Client {
+func NewClient(ip string, rpcType string, rpcPort map[string]int, r register.Register, opts ...ClientOpt) *Client {
 	c := &Client{
+		ip:       ip,
 		balancer: tool.NewRandBalancer(), //默认随机算法
-		util:     util,
+		rpcType:  rpcType,
+		rpcPort:  rpcPort,
+		r:        r,
 	}
 	for _, opt := range opts {
 		opt(c)
 	}
+
+	c.once.Do(func() {
+		resolver.Register(&MyResolversBuild{})
+	})
 	return c
 }
 
@@ -74,45 +84,38 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 	}()
 
 	//获取target 信息
-	c.serverName = serverName
 	opts := []grpc.DialOption{
 		grpc.WithUnaryInterceptor(tool.ServerCircuitInterceptor(circuitList)),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
 	}
 
-	target := ""
+	port, ok := c.rpcPort[serverName]
+	if (c.rpcType == const_g.RpcLocal || c.rpcType == const_g.RpcKubernetes) && !ok {
+		return nil, fmt.Errorf("grpc client dial server port not find : %s", serverName)
+	}
 
-	switch c.util.Info.GRPC {
-	case app.GrpcLocal:
-		{ //获取本地ip
-			port, ok := c.util.Info.Servers[c.serverName]
-			if !ok {
-				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
-			}
-			target = fmt.Sprintf("%s:%d", c.util.Info.IP, port.GrpcPort)
-		}
-	case app.GrpcKubernetes:
+	if c.rpcType == const_g.RpcRegister && c.r == nil {
+		return nil, fmt.Errorf("grpc client dial register is err : %w", err)
+	}
+
+	target := ""
+	switch c.rpcType {
+	case const_g.RpcLocal:
 		{
-			port, ok := c.util.Info.Servers[c.serverName]
-			if !ok {
-				return nil, fmt.Errorf("grpc client dial server port not find : %s", c.serverName)
-			}
+			//获取本地ip:port
+			target = fmt.Sprintf("%s:%d", c.ip, port)
+		}
+	case const_g.RpcKubernetes:
+		{
 			// server-name.default.svc.cluster.local:port
 			// 如果客户端和服务在同一个命名空间（例如 default），可以直接使用短地址: server-name:port
-			target = fmt.Sprintf("%s:%d", c.serverName, port.GrpcPort)
+			target = fmt.Sprintf("%s:%d", serverName, port)
 		}
-	case app.GrpcRegister:
+	case const_g.RpcRegister:
 		{ //服务注册与发现
-			c.once.Do(func() {
-				resolver.Register(&MyResolversBuild{})
-			})
-			r, err := c.util.Register()
-			if err != nil {
-				return nil, fmt.Errorf("grpc client dial register is err : %w", err)
-			}
-			target = fmt.Sprintf("%s:///%s", Scheme, c.serverName)
-			opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: r})) //服务发现
+			target = fmt.Sprintf("%s:///%s", Scheme, serverName)
+			opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: c.r})) //服务发现
 		}
 	default:
 		return nil, errors.New("config grpc is err")
@@ -163,9 +166,8 @@ type MyResolver struct {
 	cc     resolver.ClientConn
 	opts   resolver.BuildOptions
 
-	serverName string
-	register   register.Register
-	ctx        context.Context
+	register register.Register
+	ctx      context.Context
 }
 
 func (r *MyResolver) ResolveNow(options resolver.ResolveNowOptions) {

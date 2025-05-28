@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/afex/hystrix-go/hystrix"
-	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/server"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
@@ -46,16 +45,16 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 // ServerAuthInterceptor 鉴权拦截器
 func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
-			auth, err := app.NewUtil().Auth()
-			if err != nil {
-				return handler(ctx, req)
-			}
-
-			if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
-				ctx, _ = auth.Parse(ctx, authorizationToken[0])
-			}
-		}
+		//if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
+		//	auth, err := app.NewUtil().Auth()
+		//	if err != nil {
+		//		return handler(ctx, req)
+		//	}
+		//
+		//	if authorizationToken, ok := md[server.AuthorizationKey]; ok && len(authorizationToken) == 1 {
+		//		ctx, _ = auth.Parse(ctx, authorizationToken[0])
+		//	}
+		//}
 		return handler(ctx, req)
 	}
 }

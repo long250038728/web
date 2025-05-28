@@ -13,6 +13,7 @@ import (
 	"github.com/long250038728/web/tool/persistence/orm"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
+	"github.com/long250038728/web/tool/server/rpc"
 	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"sync"
@@ -46,6 +47,8 @@ type Util struct {
 	mq mq.Mq
 
 	storeClient store.Store
+
+	rpc *rpc.Client
 }
 
 func InitPathInfo(configPath *string) {
@@ -146,6 +149,16 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	if c, ok := util.cache[config.cacheConfig.Db]; ok {
 		util.storeClient = store.NewMultiStore(c, 10000, "del_session")
 	}
+
+	rpcPort := func() map[string]int {
+		ports := map[string]int{}
+		for svc, port := range util.Info.Servers {
+			ports[svc] = port.GrpcPort
+		}
+		return ports
+	}()
+
+	util.rpc = rpc.NewClient(util.Info.IP, util.Info.RpcType, rpcPort, util.register)
 	return util, nil
 }
 
@@ -252,4 +265,10 @@ func (u *Util) Mq() (mq.Mq, error) {
 		return nil, errors.New("mq is not initialized")
 	}
 	return u.mq, nil
+}
+
+//========================================================================================
+
+func (u *Util) Rpc() *rpc.Client {
+	return u.rpc
 }
