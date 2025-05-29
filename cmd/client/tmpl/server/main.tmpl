@@ -31,8 +31,8 @@ func Run(serverName string) error {
 	}
 
 	// 定义服务
-	svc := service.NewService(
-		service.SetDomain(domain.New{{serverNameFunc .Server}}Domain(repository.New{{serverNameFunc .Server}}Repository(util))),
+	svc := service.New{{serverNameFunc .Server}}Service(
+		service.Set{{serverNameFunc .Server}}Domain(domain.New{{serverNameFunc .Server}}Domain(repository.New{{serverNameFunc .Server}}Repository(util))),
 	)
 
 	r := router.NewRouter(util)

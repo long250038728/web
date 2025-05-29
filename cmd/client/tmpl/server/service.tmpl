@@ -9,12 +9,12 @@ import (
 type {{serverNameFunc .Server}}Service struct {
 	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
 	tool.GrpcHealth
-	domain *domain.Domain
+	domain *domain.{{serverNameFunc .Server}}Domain
 }
 
 type {{serverNameFunc .Server}}ServerOpt func(s *{{serverNameFunc .Server}}Service)
 
-func SetDomain(domain *domain.Domain) {{serverNameFunc .Server}}ServerOpt {
+func Set{{serverNameFunc .Server}}Domain(domain *domain.{{serverNameFunc .Server}}Domain) {{serverNameFunc .Server}}ServerOpt {
 	return func(s *{{serverNameFunc .Server}}Service) {
 		s.domain = domain
 	}

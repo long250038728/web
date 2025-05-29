@@ -112,8 +112,10 @@ func NewServerCornCorn() *ServerCorn {
 }
 
 func (c *ServerCorn) Server() *cobra.Command {
+	//go run main.go server test /Users/linlong/Desktop/web/application
+	//go run main.go server test /Users/linlong/Desktop/web/application application protoc
 	return &cobra.Command{
-		Use:   "server [服务名]",
+		Use:   "server [服务名] [输出路径] ",
 		Short: "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
 		Long:  "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
 		Args:  cobra.MinimumNArgs(1),
@@ -123,7 +125,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 				c.path = args[1]
 			}
 
-			webBase := "github.com/long250038728/web"
+			webBase := "github.com/long250038728/web" //项目包名
 			application := "application"
 			protoc := "protoc"
 

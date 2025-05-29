@@ -5,9 +5,9 @@ import (
 )
 
 type {{serverNameFunc .Server}}Domain struct {
-	repository *repository.Repository
+	repository *repository.{{serverNameFunc .Server}}Repository
 }
 
-func New{{serverNameFunc .Server}}Domain(repository *repository.{{serverNameFunc .Server}}Repository) *Domain {
+func New{{serverNameFunc .Server}}Domain(repository *repository.{{serverNameFunc .Server}}Repository) *{{serverNameFunc .Server}}Domain {
 	return &{{serverNameFunc .Server}}Domain{repository: repository}
 }
