@@ -82,7 +82,7 @@ func (r *Repository) GetName(ctx context.Context, request *user.RequestHello) (s
 
 func (r *Repository) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (string, error) {
 	// 创建rpc客户端
-	conn, err := r.util.Rpc().Dial(ctx, protoc.UserService)
+	conn, err := r.util.Rpc(ctx, protoc.UserService)
 	if err != nil {
 		return "", err
 	}

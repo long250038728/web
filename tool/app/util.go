@@ -269,6 +269,6 @@ func (u *Util) Mq() (mq.Mq, error) {
 
 //========================================================================================
 
-func (u *Util) Rpc() *rpc.Client {
-	return u.rpc
+func (u *Util) Rpc(ctx context.Context, serverName string) (conn *rpc.ClientConn, err error) {
+	return u.rpc.Dial(ctx, serverName)
 }

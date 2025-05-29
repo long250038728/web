@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/long250038728/web/tool/const_g"
+	"github.com/long250038728/web/tool/app_const"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 	"google.golang.org/grpc"
@@ -15,6 +15,16 @@ import (
 	"sync"
 	"time"
 )
+
+type ClientConn struct {
+	*grpc.ClientConn
+}
+
+func (c *ClientConn) Close() error {
+	return c.ClientConn.Close()
+}
+
+//=================================================================================================
 
 // Client 客户端
 type Client struct {
@@ -76,7 +86,7 @@ func NewClient(ip string, rpcType string, rpcPort map[string]int, r register.Reg
 	return c
 }
 
-func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.ClientConn, err error) {
+func (c *Client) Dial(ctx context.Context, serverName string) (conn *ClientConn, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("grpc client dial err: %v", r)
@@ -91,28 +101,28 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 	}
 
 	port, ok := c.rpcPort[serverName]
-	if (c.rpcType == const_g.RpcLocal || c.rpcType == const_g.RpcKubernetes) && !ok {
+	if (c.rpcType == app_const.RpcLocal || c.rpcType == app_const.RpcKubernetes) && !ok {
 		return nil, fmt.Errorf("grpc client dial server port not find : %s", serverName)
 	}
 
-	if c.rpcType == const_g.RpcRegister && c.r == nil {
+	if c.rpcType == app_const.RpcRegister && c.r == nil {
 		return nil, fmt.Errorf("grpc client dial register is err : %w", err)
 	}
 
 	target := ""
 	switch c.rpcType {
-	case const_g.RpcLocal:
+	case app_const.RpcLocal:
 		{
 			//获取本地ip:port
 			target = fmt.Sprintf("%s:%d", c.ip, port)
 		}
-	case const_g.RpcKubernetes:
+	case app_const.RpcKubernetes:
 		{
 			// server-name.default.svc.cluster.local:port
 			// 如果客户端和服务在同一个命名空间（例如 default），可以直接使用短地址: server-name:port
 			target = fmt.Sprintf("%s:%d", serverName, port)
 		}
-	case const_g.RpcRegister:
+	case app_const.RpcRegister:
 		{ //服务注册与发现
 			target = fmt.Sprintf("%s:///%s", Scheme, serverName)
 			opts = append(opts, grpc.WithResolvers(&MyResolversBuild{ctx: ctx, register: c.r})) //服务发现
@@ -122,9 +132,11 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *grpc.Client
 	}
 
 	//创建socket 连接
-	return grpc.NewClient(target,
-		opts...,
-	)
+	clientConn, err := grpc.NewClient(target, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &ClientConn{clientConn}, err
 }
 
 const Scheme = "svc"

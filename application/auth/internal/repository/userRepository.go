@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/long250038728/web/application/auth/internal/model"
-	auth "github.com/long250038728/web/protoc/auth"
+	"github.com/long250038728/web/protoc/auth"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/sliceconv"

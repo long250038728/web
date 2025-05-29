@@ -1,4 +1,4 @@
-package const_g
+package app_const
 
 const RpcLocal = "local"           //本地
 const RpcKubernetes = "kubernetes" //kubernetes

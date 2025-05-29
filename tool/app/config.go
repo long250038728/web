@@ -3,9 +3,9 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/long250038728/web/tool/app_const"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/configurator/config_center"
-	"github.com/long250038728/web/tool/const_g"
 	"path/filepath"
 )
 
@@ -41,12 +41,12 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 	}
 
 	if conf.RpcType == "" {
-		conf.RpcType = const_g.RpcLocal
+		conf.RpcType = app_const.RpcLocal
 	}
 
 	if len(yaml) == 0 {
 		yaml = defaultLocalConfigs
-		if conf.RpcType == const_g.RpcRegister {
+		if conf.RpcType == app_const.RpcRegister {
 			yaml = append(yaml, "register")
 		}
 	}
