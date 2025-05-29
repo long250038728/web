@@ -8,25 +8,23 @@ import (
 	"time"
 )
 
-type Domain struct {
-	repository *repository.Repository
+type UserDomain struct {
+	repository *repository.UserRepository
 }
 
-func NewDomain(repository *repository.Repository) *Domain {
-	return &Domain{
-		repository: repository,
-	}
+func NewUserDomain(repository *repository.UserRepository) *UserDomain {
+	return &UserDomain{repository: repository}
 }
 
-func (s *Domain) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {
+func (s *UserDomain) SayHello(ctx context.Context, request *user.RequestHello) (*user.ResponseHello, error) {
 	str, err := s.repository.GetName(ctx, request)
 	return &user.ResponseHello{Str: str}, err
 }
-func (s *Domain) File(ctx context.Context, request *user.RequestHello) (gateway.FileInterface, error) {
+func (s *UserDomain) File(ctx context.Context, request *user.RequestHello) (gateway.FileInterface, error) {
 	return &fileDemo{}, nil
 }
 
-func (s *Domain) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan string, error) {
+func (s *UserDomain) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan string, error) {
 	//return llm.NewOpenAiClient(llm.SetMessage([]openai.ChatCompletionMessage{
 	//	{
 	//		Role:    openai.ChatMessageRoleSystem,

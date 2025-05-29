@@ -32,7 +32,7 @@ func Run(serverName string) error {
 
 	// 定义服务
 	svc := service.NewService(
-		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
+		service.SetDomain(domain.NewUserDomain(repository.NewUserRepository(util))),
 	)
 
 	r := router.NewRouter(util)

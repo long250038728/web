@@ -6,17 +6,15 @@ import (
 	"github.com/long250038728/web/protoc/order"
 )
 
-type Domain struct {
-	repository *repository.Repository
+type OrderDomain struct {
+	repository *repository.OrderRepository
 }
 
-func NewDomain(repository *repository.Repository) *Domain {
-	return &Domain{
-		repository: repository,
-	}
+func NewOrderDomain(repository *repository.OrderRepository) *OrderDomain {
+	return &OrderDomain{repository: repository}
 }
 
-func (d *Domain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
+func (d *OrderDomain) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (*order.OrderDetailResponse, error) {
 	// 创建rpc客户端
 	orderSn, err := d.repository.OrderDetail(ctx, request)
 	if err != nil {

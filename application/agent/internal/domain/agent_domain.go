@@ -9,13 +9,13 @@ import (
 	"github.com/long250038728/web/tool/kubernetes"
 )
 
-type Domain struct {
-	repository           *repository.Repository
+type AgentDomain struct {
+	repository           *repository.AgentRepository
 	kubernetesConfigPath string
 }
 
-func NewDomain(repository *repository.Repository) *Domain {
-	return &Domain{
+func NewAgentDomain(repository *repository.AgentRepository) *AgentDomain {
+	return &AgentDomain{
 		kubernetesConfigPath: "/Users/linlong/Downloads/cls-09eyrddg-config",
 		repository:           repository,
 	}
@@ -26,7 +26,7 @@ func NewDomain(repository *repository.Repository) *Domain {
 //http://192.168.1.136:8011/agent/info/resources?ns=dev&resource=Pod
 
 // Logs 获取日志列表(namespace下 pod的log日志)
-func (s *Domain) Logs(ctx context.Context, req *agent.LogsRequest) (*agent.LogsResponse, error) {
+func (s *AgentDomain) Logs(ctx context.Context, req *agent.LogsRequest) (*agent.LogsResponse, error) {
 	if req.Ns == "" || req.Name == "" || req.Container == "" {
 		return nil, fmt.Errorf("ns,name,container is required")
 	}
@@ -42,7 +42,7 @@ func (s *Domain) Logs(ctx context.Context, req *agent.LogsRequest) (*agent.LogsR
 }
 
 // Events 获取事件列表(namespace下 resource的资事件列表)
-func (s *Domain) Events(ctx context.Context, req *agent.EventsRequest) (*agent.EventsResponse, error) {
+func (s *AgentDomain) Events(ctx context.Context, req *agent.EventsRequest) (*agent.EventsResponse, error) {
 	if req.Ns == "" || req.Resource == "" {
 		return nil, fmt.Errorf("ns,resource is required")
 	}
@@ -67,7 +67,7 @@ func (s *Domain) Events(ctx context.Context, req *agent.EventsRequest) (*agent.E
 }
 
 // Resources 获取资源列表(namespace下 resource的资源列表)
-func (s *Domain) Resources(ctx context.Context, req *agent.ResourcesRequest) (*agent.ResourcesResponse, error) {
+func (s *AgentDomain) Resources(ctx context.Context, req *agent.ResourcesRequest) (*agent.ResourcesResponse, error) {
 	if req.Ns == "" || req.Resource == "" {
 		return nil, fmt.Errorf("ns,resource is required")
 	}

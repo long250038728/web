@@ -11,17 +11,15 @@ import (
 	"time"
 )
 
-type Repository struct {
+type AuthRepository struct {
 	util *app.Util
 }
 
-func NewRepository(util *app.Util) *Repository {
-	return &Repository{
-		util: util,
-	}
+func NewAuthRepository(util *app.Util) *AuthRepository {
+	return &AuthRepository{util: util}
 }
 
-func (repository *Repository) Login(ctx context.Context, name, password string) (*auth.UserResponse, error) {
+func (repository *AuthRepository) Login(ctx context.Context, name, password string) (*auth.UserResponse, error) {
 	userInfo, err := repository.GetUser(ctx, 0, name, password)
 	if err != nil {
 		return nil, err
@@ -29,7 +27,7 @@ func (repository *Repository) Login(ctx context.Context, name, password string) 
 	return repository.getUserResponse(ctx, userInfo)
 }
 
-func (repository *Repository) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
+func (repository *AuthRepository) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
 	refreshCla := &authorization.RefreshClaims{}
 
 	auth, err := repository.util.Auth()
@@ -57,7 +55,7 @@ func (repository *Repository) Refresh(ctx context.Context, refreshToken string) 
 	return resp, err
 }
 
-func (repository *Repository) Logout(ctx context.Context) error {
+func (repository *AuthRepository) Logout(ctx context.Context) error {
 	claims, err := authorization.GetClaims(ctx)
 	if err == nil {
 		return err
@@ -71,7 +69,7 @@ func (repository *Repository) Logout(ctx context.Context) error {
 
 //======================================================================================================================
 
-func (repository *Repository) GetUser(ctx context.Context, id int32, name, password string) (*model.User, error) {
+func (repository *AuthRepository) GetUser(ctx context.Context, id int32, name, password string) (*model.User, error) {
 	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
@@ -88,7 +86,7 @@ func (repository *Repository) GetUser(ctx context.Context, id int32, name, passw
 	return userInfo, dao.Find(userInfo).Error
 }
 
-func (repository *Repository) GetRoles(ctx context.Context, userId int32) ([]*model.Role, error) {
+func (repository *AuthRepository) GetRoles(ctx context.Context, userId int32) ([]*model.Role, error) {
 	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
@@ -102,7 +100,7 @@ func (repository *Repository) GetRoles(ctx context.Context, userId int32) ([]*mo
 	return roles, db.Where("id in ?", ids).Where("status = 1").Find(&roles).Error
 }
 
-func (repository *Repository) GetPermissions(ctx context.Context, roleIds []int32) ([]*model.Permission, error) {
+func (repository *AuthRepository) GetPermissions(ctx context.Context, roleIds []int32) ([]*model.Permission, error) {
 	db, err := repository.util.Db(ctx)
 	if err != nil {
 		return nil, err
@@ -117,7 +115,7 @@ func (repository *Repository) GetPermissions(ctx context.Context, roleIds []int3
 }
 
 // ======================================================================================================================
-func (repository *Repository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
+func (repository *AuthRepository) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
 	//角色
 	roles, err := repository.GetRoles(ctx, userInfo.Id)
 	if err != nil {

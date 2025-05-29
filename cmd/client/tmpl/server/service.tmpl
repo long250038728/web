@@ -6,22 +6,22 @@ import (
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
-type Service struct {
+type {{serverNameFunc .Server}}Service struct {
 	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
 	tool.GrpcHealth
 	domain *domain.Domain
 }
 
-type {{serverNameFunc .Server}}ServerOpt func(s *Service)
+type {{serverNameFunc .Server}}ServerOpt func(s *{{serverNameFunc .Server}}Service)
 
 func SetDomain(domain *domain.Domain) {{serverNameFunc .Server}}ServerOpt {
-	return func(s *Service) {
+	return func(s *{{serverNameFunc .Server}}Service) {
 		s.domain = domain
 	}
 }
 
-func NewService(opts ...{{serverNameFunc .Server}}ServerOpt) *Service {
-	s := &Service{}
+func New{{serverNameFunc .Server}}Service(opts ...{{serverNameFunc .Server}}ServerOpt) *{{serverNameFunc .Server}}Service {
+	s := &{{serverNameFunc .Server}}Service{}
 	for _, opt := range opts {
 		opt(s)
 	}

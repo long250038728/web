@@ -14,7 +14,7 @@ import (
 
 func TestOrderDomain_OrderDetail(t *testing.T) {
 	rpc.SetCircuits([]string{"/user.User/SayHello"})
-	d := NewDomain(repository.NewRepository(app.NewUtil()))
+	d := NewOrderDomain(repository.NewRepository(app.NewUtil()))
 
 	f := func() {
 		resp, err := d.OrderDetail(context.Background(), &order.OrderDetailRequest{Id: 11111})

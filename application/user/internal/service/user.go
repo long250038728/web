@@ -11,12 +11,12 @@ import (
 type UserService struct {
 	user.UnimplementedUserServer
 	tool.GrpcHealth
-	domain *domain.Domain
+	domain *domain.UserDomain
 }
 
 type UserServerOpt func(s *UserService)
 
-func SetDomain(domain *domain.Domain) UserServerOpt {
+func SetDomain(domain *domain.UserDomain) UserServerOpt {
 	return func(s *UserService) {
 		s.domain = domain
 	}

@@ -4,12 +4,10 @@ import (
 	"{{.Page}}/{{.Server}}/internal/repository"
 )
 
-type Domain struct {
+type {{serverNameFunc .Server}}Domain struct {
 	repository *repository.Repository
 }
 
-func NewDomain(repository *repository.Repository) *Domain {
-	return &Domain{
-		repository: repository,
-	}
+func New{{serverNameFunc .Server}}Domain(repository *repository.{{serverNameFunc .Server}}Repository) *Domain {
+	return &{{serverNameFunc .Server}}Domain{repository: repository}
 }

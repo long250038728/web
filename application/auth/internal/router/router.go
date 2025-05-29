@@ -22,7 +22,7 @@ func NewRouter(util *app.Util) *Router {
 	}
 }
 
-func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
+func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.AuthService) {
 	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
@@ -45,7 +45,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.Service) {
 	}
 }
 
-func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.Service) {
+func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.AuthService) {
 	auth.RegisterAuthServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }
