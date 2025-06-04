@@ -162,9 +162,14 @@ func NewUtilConfig(config *Config) (*Util, error) {
 	return util, nil
 }
 
-func (u *Util) Port(svcName string) (Port, bool) {
-	port, ok := u.Info.Servers[svcName]
-	return port, ok
+func (u *Util) CheckPort(svcName string) bool {
+	_, ok := u.Info.Servers[svcName]
+	return ok
+}
+
+func (u *Util) Port(svcName string) Port {
+	port, _ := u.Info.Servers[svcName]
+	return port
 }
 
 func (u *Util) Close() {

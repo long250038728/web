@@ -4,10 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/agent/internal/domain"
-	"github.com/long250038728/web/application/agent/internal/repository"
 	"github.com/long250038728/web/application/agent/internal/router"
-	"github.com/long250038728/web/application/agent/internal/service"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -25,24 +22,20 @@ func main() {
 
 func Run(serverName string) error {
 	util := app.NewUtil()
-	port, ok := util.Port(serverName)
-	if !ok {
+	if !util.CheckPort(serverName) {
 		return fmt.Errorf("server %s is not bind port", serverName)
 	}
 
 	// 定义服务
-	svc := service.NewService(
-		service.SetDomain(domain.NewAgentDomain(repository.NewAgentRepository(util))),
-	)
-
+	svc := InitServer(util)
 	r := router.NewRouter(util)
 
 	opts := []app.Option{
 		app.Servers( // 服务
-			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
+			http.NewHttp(serverName, util.Info.IP, util.Port(serverName).HttpPort, func(engine *gin.Engine) {
 				r.RegisterHTTPServer(engine, svc)
 			}),
-			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
+			rpc.NewGrpc(serverName, util.Info.IP, util.Port(serverName).GrpcPort, func(engine *grpc.Server) {
 				r.RegisterGRPCServer(engine, svc)
 			}),
 		),

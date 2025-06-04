@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/google/wire"
 	"github.com/long250038728/web/application/agent/internal/domain"
 	"github.com/long250038728/web/protoc/agent"
 	"github.com/long250038728/web/tool/server/rpc/tool"
@@ -9,25 +10,16 @@ import (
 
 var _ agent.AgentServer = &AgentService{}
 
+var ProviderSet = wire.NewSet(NewService)
+
 type AgentService struct {
 	agent.UnimplementedAgentServer
 	tool.GrpcHealth
 	domain *domain.AgentDomain
 }
 
-type AgentServerOpt func(s *AgentService)
-
-func SetDomain(domain *domain.AgentDomain) AgentServerOpt {
-	return func(s *AgentService) {
-		s.domain = domain
-	}
-}
-
-func NewService(opts ...AgentServerOpt) *AgentService {
-	s := &AgentService{}
-	for _, opt := range opts {
-		opt(s)
-	}
+func NewService(domain *domain.AgentDomain) *AgentService {
+	s := &AgentService{domain: domain}
 	return s
 }
 

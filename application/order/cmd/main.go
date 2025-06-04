@@ -24,8 +24,7 @@ func main() {
 
 func Run(serverName string) error {
 	util := app.NewUtil()
-	port, ok := util.Port(serverName)
-	if !ok {
+	if !util.CheckPort(serverName) {
 		return fmt.Errorf("server %s is not bind port", serverName)
 	}
 
@@ -38,10 +37,10 @@ func Run(serverName string) error {
 
 	opts := []app.Option{
 		app.Servers( // 服务
-			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
+			http.NewHttp(serverName, util.Info.IP, util.Port(serverName).HttpPort, func(engine *gin.Engine) {
 				r.RegisterHTTPServer(engine, svc)
 			}),
-			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
+			rpc.NewGrpc(serverName, util.Info.IP, util.Port(serverName).GrpcPort, func(engine *grpc.Server) {
 				r.RegisterGRPCServer(engine, svc)
 			}),
 		),

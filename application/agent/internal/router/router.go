@@ -17,9 +17,7 @@ type Router struct {
 }
 
 func NewRouter(util *app.Util) *Router {
-	return &Router{
-		util: util,
-	}
+	return &Router{util: util}
 }
 
 func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.AgentService) {

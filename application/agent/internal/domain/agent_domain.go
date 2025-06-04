@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/wire"
 	"github.com/long250038728/web/application/agent/internal/repository"
 	"github.com/long250038728/web/protoc/agent"
 	"github.com/long250038728/web/tool/kubernetes"
 )
+
+var ProviderSet = wire.NewSet(NewAgentDomain)
 
 type AgentDomain struct {
 	repository           *repository.AgentRepository
