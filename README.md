@@ -64,6 +64,7 @@
 5. 172.40.0.6 etcd
 6. 172.40.0.7 mysql
 7. 172.40.0.8 canal
+8. 172.40.0.9 redis
 
 ## docker运行
 1.docker network 创建
@@ -170,15 +171,15 @@ kafka.bootstrap.servers = 159.75.1.200:9093
 
 ## web服务应用
 ```
-docker pull golang:1.20 
+如果是docker外部需要访问时加上(register模式由于是docker network 内部调用，不需要加上。其他模式需要): -p #http_port:#http_port -p #grpc_port:#grpc_port
 
-docker run --network=my-service-network --name=user -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
+docker run --network=my-service-network --name=user -e WEB="/app"  -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/user/cmd/main.go -path /app
 
 
-docker run --network=my-service-network --name=order -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
+docker run --network=my-service-network --name=order -e WEB="/app"  -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/order/cmd/main.go -path /app
