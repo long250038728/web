@@ -74,30 +74,13 @@ docker network create --driver bridge --subnet 172.40.0.0/24 my-service-network
 
 2.consul 创建
 ```
-docker pull consul:1.15
-
-docker run --name=consul \
---ip=172.40.0.2 \
---network=my-service-network \
--d -p 8500:8500  \
-consul:1.15 agent -dev -ui -client='0.0.0.0'
+docker run --name=consul --ip=172.40.0.2 --network=my-service-network -d -p 8500:8500  consul:1.15 agent -dev -ui -client='0.0.0.0'
 ```
 
 3.kong 创建
 ```
-docker pull postgres
-docker pull kong
-docker pull pantsel/konga
-
 #这里指定ip是因为kong需要用到，同时还需要暴露给consul的dns使用
-docker run -d --name kong-database \
---ip=172.40.0.3 \
---network=my-service-network \
--p 5432:5432 \
--e "POSTGRES_USER=kong" \
--e "POSTGRES_DB=kong" \
--e "POSTGRES_PASSWORD=kong" \
-postgres
+docker run -d --name kong-database --ip=172.40.0.3 --network=my-service-network -p 5432:5432 -e "POSTGRES_USER=kong" -e "POSTGRES_DB=kong" -e "POSTGRES_PASSWORD=kong" postgres
 
 docker run --rm \
 --network=my-service-network \
@@ -131,11 +114,7 @@ docker run -d --name kong \
 -p 8444:8444 \
 kong
 
-docker run -d --name konga \
---ip=172.40.0.5 \
---network=my-service-network \
--p 1337:1337 \
-pantsel/konga
+docker run -d --name konga --ip=172.40.0.5 --network=my-service-network -p 1337:1337 pantsel/konga
 
 
 DNS验证
@@ -146,35 +125,18 @@ DNS验证
 
 4.etcd 创建
 ```
-docker pull bitnami/etcd:latest
-
-docker run -d \
-  --ip=172.40.0.6 \
-  --network=my-service-network \
-  --name etcd \
-  --restart always \
-  -p 2379:2379 \
-  -p 2380:2380 \
-  -e ALLOW_NONE_AUTHENTICATION=yes \
-  bitnami/etcd:latest
+docker run -d --ip=172.40.0.6 --network=my-service-network --name etcd --restart always -p 2379:2379  -p 2380:2380 -e ALLOW_NONE_AUTHENTICATION=yes  bitnami/etcd:latest
 ```
 
 5.mysql 创建
 ```
-docker run --name mysql \
- --ip=172.40.0.7 \
- --network=my-service-network \
- -e MYSQL_ROOT_PASSWORD=root123456 \
- -p 3306:3306 -itd \
- mysql:8.0
+docker run --name mysql  --ip=172.40.0.7  --network=my-service-network  -e MYSQL_ROOT_PASSWORD=root123456  -p 3306:3306 -itd  mysql:8.0
 ```
 
 6.canal 创建
 >https://github.com/alibaba/canal/wiki/Docker-QuickStart
 https://github.com/alibaba/canal/wiki/Canal-Kafka-RocketMQ-QuickStart
 ```
-docker pull canal/canal-server:latest
-
 docker run -itd \
   --ip=172.40.0.8 \
   --name canal-server \
@@ -210,13 +172,13 @@ kafka.bootstrap.servers = 159.75.1.200:9093
 ```
 docker pull golang:1.20 
 
-docker run --network=my-service-network --name=user -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=user -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/user/cmd/main.go -path /app
 
 
-docker run --network=my-service-network --name=order -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.20 
+docker run --network=my-service-network --name=order -e WEB="/app" -p #http_port:#http_port #grpc_port:#grpc_port -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
 go run application/order/cmd/main.go -path /app
@@ -226,7 +188,7 @@ go run application/order/cmd/main.go -path /app
 指定kong地址
 ```
 创建
-    admin api: 172.40.0.4:8001
+    admin api: http://172.40.0.4:8001
 ```
 微服务网关配置
 ```    

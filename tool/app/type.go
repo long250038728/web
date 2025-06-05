@@ -12,7 +12,7 @@ import (
 type Config struct {
 	//ServerName string `json:"server_name" yaml:"server_name"`
 	//Type       ipType `json:"type" yaml:"type"`
-	IP      string          `json:"IP" yaml:"IP"`
+	IP      string          `json:"ip" yaml:"ip"`
 	Servers map[string]Port `json:"servers" yaml:"servers"` //所有服务Port信息
 	RpcType string          `json:"rpc_type" yaml:"rpc_type"`
 	Env     string          `json:"env"  yaml:"env"`
