@@ -96,7 +96,9 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	var span *opentelemetry.Span
 	if req.Method != http.MethodHead {
-		span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
+		if s, err := opentelemetry.SpanFromContext(req.Context()); s != nil && err == nil {
+			span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
+		}
 	}
 
 	defer func() {

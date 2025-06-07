@@ -83,6 +83,7 @@ func main() {
 	rootCmd.AddCommand(olineCron.Json())
 	rootCmd.AddCommand(olineCron.Action())
 	rootCmd.AddCommand(olineCron.Cron())
+
 	rootCmd.AddCommand(devopsCron.Devops())
 	rootCmd.AddCommand(serverCron.Server())
 	rootCmd.AddCommand(chatCron.Chat())
