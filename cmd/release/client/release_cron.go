@@ -16,7 +16,7 @@ import (
 	"syscall"
 )
 
-type OlineCorn struct {
+type ReleaseCorn struct {
 	gitClient     git.Git
 	jenkinsClient *jenkins.Client
 	ormClient     *orm.Gorm
@@ -25,8 +25,8 @@ type OlineCorn struct {
 	tels          []string
 }
 
-func NewOnlineCron(gitClient git.Git, jenkinsClient *jenkins.Client, ormClient *orm.Gorm, sshClient ssh.SSH, hookClient hook.Hook, tels []string) *OlineCorn {
-	return &OlineCorn{
+func NewReleaseCron(gitClient git.Git, jenkinsClient *jenkins.Client, ormClient *orm.Gorm, sshClient ssh.SSH, hookClient hook.Hook, tels []string) *ReleaseCorn {
+	return &ReleaseCorn{
 		gitClient:     gitClient,
 		jenkinsClient: jenkinsClient,
 		ormClient:     ormClient,
@@ -36,7 +36,7 @@ func NewOnlineCron(gitClient git.Git, jenkinsClient *jenkins.Client, ormClient *
 	}
 }
 
-func (c *OlineCorn) Json() *cobra.Command {
+func (c *ReleaseCorn) Json() *cobra.Command {
 	return &cobra.Command{
 		Use:   "json [来源分支] [目标分支] [kobe/marx列表(.yaml)]",
 		Short: "shell生成： 请输入【来源分支】【目标分支】【项目列表文件】",
@@ -66,7 +66,7 @@ func (c *OlineCorn) Json() *cobra.Command {
 	}
 }
 
-func (c *OlineCorn) Action() *cobra.Command {
+func (c *ReleaseCorn) Action() *cobra.Command {
 	return &cobra.Command{
 		Use:   "action",
 		Short: "上线操作",
@@ -106,7 +106,7 @@ func (c *OlineCorn) Action() *cobra.Command {
 	}
 }
 
-func (c *OlineCorn) Cron() *cobra.Command {
+func (c *ReleaseCorn) Cron() *cobra.Command {
 	return &cobra.Command{
 		Use:   "cron [执行时] [执行分]",
 		Short: "cron： 执行请输入时间",

@@ -115,28 +115,23 @@ func (c *ServerCorn) Server() *cobra.Command {
 	//go run main.go server test /Users/linlong/Desktop/web/application
 	//go run main.go server test /Users/linlong/Desktop/web/application github.com/long250038728/web application protoc
 	return &cobra.Command{
-		Use:   "server [服务名] [输出路径] ",
-		Short: "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
-		Long:  "创建server： 请输入 [服务名] [输出路径] [项目包名] [项目相对路径] [proto相对路径]",
-		Args:  cobra.MinimumNArgs(1),
+		Use:   "server [服务名] [输出路径] [module-path:默认github.com/long250038728/web] [项目相对路径:默认application] [proto相对路径:默认protoc]",
+		Short: "创建server： 请输入 [服务名] [输出路径] [module-path:默认github.com/long250038728/web] [项目相对路径:默认application] [proto相对路径:默认protoc]",
+		Long:  "创建server： 请输入 [服务名] [输出路径] [module-path:默认github.com/long250038728/web] [项目相对路径:默认application] [proto相对路径:默认protoc]",
+		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-
-			if len(args) <= 2 {
-				fmt.Println("执行出错", "输出参数至少为2个")
-				return
-			}
 
 			server := args[0]
 			if len(args) >= 2 {
 				c.path = args[1]
 			}
 
-			webBase := "github.com/long250038728/web" //项目包名
+			modulePath := "github.com/long250038728/web"
 			application := "application"
 			protoc := "protoc"
 
 			if len(args) >= 3 {
-				webBase = args[2]
+				modulePath = args[2]
 			}
 			if len(args) >= 4 {
 				application = args[3]
@@ -144,8 +139,8 @@ func (c *ServerCorn) Server() *cobra.Command {
 			if len(args) >= 5 {
 				protoc = args[4]
 			}
-			c.page = filepath.Join(webBase, application)
-			c.protoc = filepath.Join(webBase, protoc)
+			c.page = filepath.Join(modulePath, application)
+			c.protoc = filepath.Join(modulePath, protoc)
 
 			devops := func() error {
 				var err error

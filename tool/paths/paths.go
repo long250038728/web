@@ -32,5 +32,5 @@ func RootConfigPath(path string) (string, error) {
 			return root, nil
 		}
 	}
-	return "", errors.New("config path is empty")
+	return "", errors.New("config path is empty, You can  1.INPUT CONFIG  2.SET ENV CONFIG  3.CURR PATH has config dir")
 }

@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	client "github.com/long250038728/web/cmd/client"
+	"github.com/long250038728/web/cmd/gen/client"
+	client2 "github.com/long250038728/web/cmd/release/client"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/hook"
@@ -13,16 +14,6 @@ import (
 )
 
 // go get -u github.com/spf13/cobra
-//
-// 打包成工具
-// go build tool
-// mv tool linl
-//
-// 使用
-// ./linl -h
-// ./linl branch master feature/sm100 hume locke
-
-//var services = &client.Svc{Kobe: make([]string, 0, 0), Marx: make([]string, 0, 0)}
 
 var gitConfig git.Config
 var jenkinsConfig jenkins.Config
@@ -64,11 +55,10 @@ func init() {
 }
 
 func main() {
-	gitCron := client.NewGitCron(gitClient)
-	olineCron := client.NewOnlineCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
+	gitCron := client2.NewGitCron(gitClient)
+	olineCron := client2.NewReleaseCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
 	devopsCron := client.NewDevopsCorn("", "")
 	serverCron := client.NewServerCornCorn()
-	chatCron := client.NewChatCorn()
 
 	rootCmd := &cobra.Command{
 		Use:   "linl",
@@ -86,8 +76,6 @@ func main() {
 
 	rootCmd.AddCommand(devopsCron.Devops())
 	rootCmd.AddCommand(serverCron.Server())
-	rootCmd.AddCommand(chatCron.Chat())
-
 	rootCmd.AddCommand()
 
 	if err := rootCmd.Execute(); err != nil {

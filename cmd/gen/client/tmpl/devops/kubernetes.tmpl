@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.Server}}-{{.Version}}-deployment
+  name: {{.Server}}-deployment
 spec:
   replicas: 1
   selector:
@@ -23,7 +23,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{.Server}}
+  name: {{.Server}}-service
 spec:
   selector:
     app: {{.Server}}
@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: {{.Http}}
       targetPort: {{.Http}}
-      name: {{.Server}}-port-{{.Http}}
+      name: {{.Server}}-http-port-{{.Http}}
     - protocol: TCP
       port: {{.Grpc}}
       targetPort: {{.Grpc}}
-      name: {{.Server}}-port-{{.Grpc}}
+      name: {{.Server}}-grpc-port-{{.Grpc}}
   type: ClusterIP
