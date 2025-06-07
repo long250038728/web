@@ -156,8 +156,8 @@ admin api: http://172.40.0.4:8001
 ```bash
 创建service配置信息
 curl -X POST http://192.168.0.74:8001/services \
-  --data "name=order - http" \
-  --data "host=order - HTTP.service.consul" \
+  --data "name=order-http" \
+  --data "host=order-HTTP.service.consul" \
   --data "protocol=http" 
 
 # 返回的json字段，设置也使用相同的字段 
@@ -167,7 +167,7 @@ curl -X POST http://192.168.0.74:8001/services \
 curl -X POST http://192.168.0.74:8001/routes \
   --data "name=order_routes" \
   --data "paths[]=/order" \
-  --data "service.name=order - http" \
+  --data "service.name=order-http" \
   --data "strip_path=false"
 
 # 返回的json字段，设置也使用相同的字段  
