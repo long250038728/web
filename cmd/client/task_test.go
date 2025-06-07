@@ -27,9 +27,9 @@ func init() {
 
 	var err error
 	configLoad := configurator.NewYaml()
-	configLoad.MustLoadConfigPath("gitee.yaml", &gitConfig)
-	configLoad.MustLoadConfigPath("jenkins.yaml", &jenkinsConfig)
-	configLoad.MustLoadConfigPath("ssh.yaml", &sshConfig)
+	configLoad.MustLoadConfigPath("other/gitee.yaml", &gitConfig)
+	configLoad.MustLoadConfigPath("other/jenkins.yaml", &jenkinsConfig)
+	configLoad.MustLoadConfigPath("other/ssh.yaml", &sshConfig)
 
 	if gitClient, err = git.NewGiteeClient(&gitConfig); err != nil {
 		panic(err)

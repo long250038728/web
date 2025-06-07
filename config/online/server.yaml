@@ -1,0 +1,16 @@
+ip:
+env: dev    # 可用于环境的区分
+rpc_type: local # 支持local,kubernetes,register
+servers:
+  user:
+    http_port: 18001
+    grpc_port: 19001
+  order:
+    http_port: 18002
+    grpc_port: 19002
+  auth:
+    http_port: 18003
+    grpc_port: 19003
+  agent:
+    http_port: 18011
+    grpc_port: 19011

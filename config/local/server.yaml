@@ -1,6 +1,6 @@
-ip: 192.168.1.20
+ip: 
 env: dev    # 可用于环境的区分
-rpc_type: local # 支持local,kubernetes,register
+rpc_type: register # 支持local,kubernetes,register
 servers:
   user:
     http_port: 18001

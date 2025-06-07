@@ -109,22 +109,22 @@ kafka.bootstrap.servers = 159.75.1.200:9093
 
 ## web服务应用启动实例
 ```bash
-docker run --network=web_my - service - network --name=user -e WEB="/app" -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
+docker run --network=web_my-service-network --name=user -e CONFIG="/app/config/local" -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/user/cmd/main.go -path /app
+go run application/user/cmd/main.go
 ```
 ```bash
-docker run --network=web_my - service - network --name=order -e WEB="/app" -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
+docker run --network=web_my-service-network --name=order -e WEB="/app/config/local" -itd -v /Users/linlong/Desktop/web:/app golang:1.23.8 
 export GOPROXY=https://goproxy.cn,direct
 cd /app
-go run application/order/cmd/main.go -path /app
+go run application/order/cmd/main.go
 ```
 
 ## konga配置（127.0.0.1:1337）
 ### 微服务配置信息
 ```bash
-admin api: http://172.40.0.4:8001
+admin api: http://172.40.0.22:8001
 
 创建service配置信息
     Protocol: http                          # 指定发送http请求

@@ -12,8 +12,9 @@ import (
 	"google.golang.org/grpc"
 )
 
+// main 1.默认读取命令行config配置信息，2.读取Config环境变量，3.获取当前路径下面的config文件
 func main() {
-	path := flag.String("path", "", "root path")
+	path := flag.String("config", "", "config path")
 	flag.Parse()
 
 	app.InitPathInfo(path)

@@ -10,17 +10,11 @@ func RootConfigPath(path string) (string, error) {
 	//获取配置
 	var cfgPaths = []func() string{
 		func() string {
-			if len(path) == 0 {
-				return path
-			}
-			return filepath.Join(path, "config") //init的参数变量
+			return path
 		},
 		func() string {
-			rootPath := os.Getenv("WEB")
-			if len(rootPath) == 0 {
-				return rootPath
-			}
-			return filepath.Join(rootPath, "config") //获取环境变量CONFIG_PATH
+			rootPath := os.Getenv("CONFIG")
+			return rootPath
 		},
 		func() string {
 			wd, _ := os.Getwd()
@@ -38,5 +32,5 @@ func RootConfigPath(path string) (string, error) {
 			return root, nil
 		}
 	}
-	return "", errors.New("root path is empty")
+	return "", errors.New("config path is empty")
 }
