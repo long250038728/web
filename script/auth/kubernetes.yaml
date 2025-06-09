@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth-container
+          image: auth
+          ports:
+            - containerPort: 18003
+            - containerPort: 19003
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth
+  ports:
+    - protocol: TCP
+      port: 18003
+      targetPort: 18003
+      name: auth-http-port-18003
+    - protocol: TCP
+      port: 19003
+      targetPort: 19003
+      name: auth-grpc-port-19003
+  type: ClusterIP
