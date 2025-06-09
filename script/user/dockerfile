@@ -15,5 +15,6 @@ FROM ubuntu:latest
 WORKDIR /opt/app
 COPY --from=builder /app/application/user/cmd/main /opt/app/main
 COPY --from=builder /app/config /opt/app/config
-EXPOSE 8001 9001
+ENV CONFIG=/app/config
+EXPOSE 18001 19001
 CMD ["/opt/app/main",">>","log.txt"]

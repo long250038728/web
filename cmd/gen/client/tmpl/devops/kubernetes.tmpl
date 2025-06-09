@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: {{.Server}}-container
-          image: {{.Hub}}/{{.Server}}:{{.Version}}
+          image: {{.Server}}
           ports:
             - containerPort: {{.Http}}
             - containerPort: {{.Grpc}}

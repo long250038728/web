@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type devopsValue struct {
@@ -17,8 +16,6 @@ type devopsValue struct {
 }
 type kubernetesValue struct {
 	*devopsValue
-	Version string `json:"version" yaml:"version"`
-	Hub     string `json:"hub" yaml:"hub"`
 }
 
 type devops struct {
@@ -34,6 +31,9 @@ var dockerfileTmpl string
 //go:embed tmpl/devops/kubernetes.tmpl
 var kubernetesTmpl string
 
+//go:embed tmpl/devops/script.tmp
+var bashTmpl string
+
 // genDockerfile 生成
 func (g *devops) genDockerfile(data *devopsValue) ([]byte, error) {
 	return (&gen.Impl{
@@ -47,6 +47,14 @@ func (g *devops) genKubernetes(data *kubernetesValue) ([]byte, error) {
 		Name: "gen kubernetes",
 		Tmpl: kubernetesTmpl,
 		Data: data,
+	}).Gen()
+}
+
+// genBashFile 生成
+func (g *devops) genBashFile() ([]byte, error) {
+	return (&gen.Impl{
+		Name: "gen bashFile",
+		Tmpl: bashTmpl,
 	}).Gen()
 }
 
@@ -79,19 +87,10 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 			http := args[2]
 			grpc := args[3]
 
-			version := time.Now().Format("20060102_15_04_05")
-			hub := "ccr.ccs.tencentyun.com/linl"
-
-			if len(args) >= 5 {
-				version = args[4]
-			}
-			if len(args) >= 6 {
-				hub = args[4]
-			}
-
 			devops := func() error {
 				var dockerfileBytes []byte
 				var kubernetesBytes []byte
+				var bashBytes []byte
 				var err error
 
 				_, err = os.Stat(filepath.Join(path, server))
@@ -106,7 +105,10 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 				if dockerfileBytes, err = g.genDockerfile(&devopsValue{Server: server, Http: http, Grpc: grpc}); err != nil {
 					return err
 				}
-				if kubernetesBytes, err = g.genKubernetes(&kubernetesValue{devopsValue: &devopsValue{Server: server, Http: http, Grpc: grpc}, Version: version, Hub: hub}); err != nil {
+				if kubernetesBytes, err = g.genKubernetes(&kubernetesValue{devopsValue: &devopsValue{Server: server, Http: http, Grpc: grpc}}); err != nil {
+					return err
+				}
+				if bashBytes, err = g.genBashFile(); err != nil {
 					return err
 				}
 
@@ -115,6 +117,9 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 					return err
 				}
 				if err := os.WriteFile(filepath.Join(path, server, "kubernetes.yaml"), kubernetesBytes, os.ModePerm); err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(path, "script.sh"), bashBytes, os.ModePerm); err != nil {
 					return err
 				}
 				return nil
