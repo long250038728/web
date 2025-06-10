@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/long250038728/web/cmd/gen/client"
-	client2 "github.com/long250038728/web/cmd/release/client"
+	"github.com/long250038728/web/cmd/release/client"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/git"
 	"github.com/long250038728/web/tool/hook"
@@ -55,10 +54,8 @@ func init() {
 }
 
 func main() {
-	gitCron := client2.NewGitCron(gitClient)
-	olineCron := client2.NewReleaseCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
-	devopsCron := client.NewDevopsCorn("", "")
-	serverCron := client.NewServerCornCorn()
+	gitCron := client.NewGitCron(gitClient)
+	olineCron := client.NewReleaseCron(gitClient, jenkinsClient, ormClient, sshClient, hookClient, tels)
 
 	rootCmd := &cobra.Command{
 		Use:   "linl",
@@ -74,8 +71,6 @@ func main() {
 	rootCmd.AddCommand(olineCron.Action())
 	rootCmd.AddCommand(olineCron.Cron())
 
-	rootCmd.AddCommand(devopsCron.Devops())
-	rootCmd.AddCommand(serverCron.Server())
 	rootCmd.AddCommand()
 
 	if err := rootCmd.Execute(); err != nil {

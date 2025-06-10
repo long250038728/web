@@ -1,36 +1,29 @@
 pipeline {
-    agent none
+    agent {label 'mac'}
+
+    environment {
+        PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
+    }
+
     stages {
-        stage('docker image 构建') {
-            agent{
-                label 'master'   //选择master的节点
-            }
+        stage('Checkout') {
             steps {
-                dir("/biz-code/socrates"){   //切换工作目录，在节点拉取最新的代码
-                    checkout([$class: 'GitSCM', branches: [[name: 'master']], doGenerateSubmoduleConfigurations: false, extensions: [],  submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'zhubaoe-pwd', url: 'https://gitee.com/zhubaoe/socrates.git']]])
+                dir('/Users/linlong/Desktop/web') {
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "refs/heads/master"]],
+                        userRemoteConfigs: [[
+                            url: 'https://github.com/long250038728/web',
+                        ]]
+                    ])
                 }
-                sh './script/build.sh'
             }
         }
-    }
-    stages {
-        stage('web1') {
-            agent{
-                label 'web2'   //选择web的节点
-            }
+        stage('Run') {
             steps {
-                sh 'docker stop web_user'
-                sh 'docker exec -itd  --rm --name  -p 8001:8001  -p 9001:9001 web_user ccr.ccs.tencentyun.com/linl/user:latest  /bin/bash'
-            }
-        }
-    }
-    stages {
-        stage('k8s') {
-            agent{
-                label 'k8s'  //选择k8s的节点
-            }
-            steps {
-                sh 'kubectl apply -f ./script/k8s.yaml'
+                dir('/Users/linlong/Desktop/web/script') {
+                    sh "bash script.sh ${params.SERVER}  ${params.CONFIG_PATH} ${params.DOCKER_IMAGE} ${params.NETWORK} "
+                }
             }
         }
     }

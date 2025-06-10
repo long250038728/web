@@ -38,7 +38,7 @@ docker build -f ./app/dockerfile  -t  $IMAGE_NAME .
 rm -rf  $BASE_DIR
 
 ## 运行
-docker run -itd --name $SERVER_NAME --network=$DOCKER_NETWORK $IMAGE_NAME
+docker run -itd --name "${SERVER_NAME}-$(((RANDOM % 1000) + 1))" --network=$DOCKER_NETWORK $IMAGE_NAME
 #kubectl set image deployment/"SERVER_NAME"-deployment test-container=$IMAGE_NAME
 
 

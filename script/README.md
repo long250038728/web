@@ -1,8 +1,11 @@
 ### 通过Jenkins构建gitee仓库，部署到服务器上
 
-
 #### 1.安装Jenkins
-docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:lts
+docker run -d -p 8080:8080 -p 50000:50000  --name jenkins   -v /Users/linlong/Desktop/jenkin:/var/jenkins_home jenkins/jenkins:lts
+
+# 初次登录需要解锁密码：
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
 ```
     -p 8080:8080: 将容器的8080端口映射到宿主机的8080端口，这是Jenkins的Web界面端口。
     -p 50000:50000: 将容器的50000端口映射到宿主机的50000端口，这是Jenkins用于构建的代理端口。
@@ -15,18 +18,31 @@ docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenk
 
 
 #### 3.新建Credentials（Dashboard ->  系统管理  ->  凭证）
-生成公钥及密钥
+生成公钥及密钥 
 密码：对应生成的密钥  （公钥放在gitee项目中）
+```
+ssh-keygen -t rsa -b 2048 -C "250038728@qq.com"
+cat ~/.ssh/id_rsa   私钥
+cat ~/.ssh/id_rsa.pub  公钥
+```
 
 
-#### 4.添加节点(Dashboard ->  系统管理  ->  节点列表)
-新建节点
-    *远程工作目录  /home/zhubaoe/jenkins_workspace  (在执行构建任务时，用于存放所有相关文件和工作空间的目录)
-    *启动方式   Launch agents via SSH
-    *主机    服务器ip
-    *Credentials  选择已经创建的Credentials
-    *Host Key Verification Strategy    Non verifying Verification Starategy
-    *可用性  尽量保持代理在线
+
+#### 4.添加节点(Dashboard ->  系统管理  ->  节点列表) ———— 注意节点上需要安装java
+Launch agents via SSH
+* 远程工作目录  /home/zhubaoe/jenkins_workspace  (在执行构建任务时，用于存放所有相关文件和工作空间的目录)
+* 启动方式   Launch agents via SSH
+* 主机    服务器ip
+* Credentials  选择已经创建的Credentials
+*  Host Key Verification Strategy    Non verifying Verification Starategy
+* 可用性  尽量保持代理在线
+SSH Username with private key
+* 远程工作目录  /home/zhubaoe/jenkins_workspace  (在执行构建任务时，用于存放所有相关文件和工作空间的目录)
+* 启动方式   SSH Username with private key
+* 主机     服务器ip
+* private 通过下面生成的 cat ~/.ssh/id_rsa 粘贴（把 cat ~/.ssh/id_rsa.pub 粘贴到服务器上的 ~/.ssh/authorized_keys）
+    ssh-keygen -t rsa -b 2048 -C "250038728@qq.com"
+* 可用性  尽量保持代理在线
 ```
 启动方式
     Launch agent via execution of command on the master （在Jenkins的主节点（master）上执行）
@@ -44,7 +60,7 @@ Host Key Verification Strategy:
 
 
 
-#### 5.新增流水线
+#### 5.新增流水线（自由风格）
 General
     *构建触发器 （触发构建）
             gitee webhook触发构建  （gitee项目中的管理webhooks。新建 url填写Jenkins提供的，密码xxxxxxx）
