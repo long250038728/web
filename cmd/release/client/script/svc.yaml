@@ -9,6 +9,9 @@ kobe:
 #  - kobe-foundation
 #  - kobe-reportcenter
 #  - kobe-scheduler_history_stock
+#  - mq_history_stock_server
+#  - mq_message_server
+#  - mq_complex_task_server
 marx:
 #  - marx-http-prod
 #  - marx-sync_bill-prod

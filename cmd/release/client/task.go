@@ -175,7 +175,7 @@ func (o *Task) list(ctx context.Context, source, target string) ([]*requestInfo,
 			for _, svc := range o.services.Kobe {
 				address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.34"}}) //kobe
 
-				if !(strings.Contains(svc, "mq") || strings.Contains(svc, "scheduler")) {
+				if !strings.Contains(svc, "scheduler") {
 					address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.9"}})  //kobe-back
 					address = append(address, &requestInfo{Type: TaskTypeJenkins, Project: svc, Params: map[string]any{"BRANCH": "origin/master", "SYSTEM": "root@172.16.0.17"}}) //kobe-back-2
 				}
