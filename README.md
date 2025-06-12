@@ -105,7 +105,7 @@ kafka.bootstrap.servers = 159.75.1.200:9093
 1. 在配置kong时指定`KONG_DNS_RESOLVER`，可以通过consul的DNS使用到服务注册与发现，无需手动维护服务列表。注册到consul的服务名格式为`服务名.service.consul`。
 2. `consul + kong + 微服务`运行在同一个docker network中，以实现互相访问。
 3. 在docker中暴露端口是为了给宿主机使用，docker内部可以互相访问，无需暴露端口，微服务应用无需暴露docker端口到宿主机中。
-4. 可以通过 dig 172.40.0.2 -p 8600 user - HTTP.service.consul SRV 验证consul的SRV
+4. 可以通过 `dig 172.40.0.11 -p 8600 user-HTTP.service.consul SRV`   验证consul的SRV
 
 ## web服务应用启动实例
 ```bash
@@ -152,7 +152,7 @@ admin api: http://172.40.0.22:8001
     Paths: /                                # 指定某个路径调用那个服务(记得回车确认)
     Strip Path: false                       # 从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
 ```
-## admin api配置
+## admin api 配置
 ```bash
 创建service配置信息
 curl -X POST http://192.168.0.74:8001/services \
