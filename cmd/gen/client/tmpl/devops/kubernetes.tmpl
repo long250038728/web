@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: {{.Server}}-container
-          image: {{.Server}}
+          image: ubuntu:latest
           ports:
             - containerPort: {{.Http}}
             - containerPort: {{.Grpc}}

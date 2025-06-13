@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: auth-container
-          image: auth
+          image: ubuntu:latest
           ports:
             - containerPort: 18003
             - containerPort: 19003

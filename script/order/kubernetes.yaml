@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: order-container
-          image: order
+          image: ubuntu:latest
           ports:
             - containerPort: 18002
             - containerPort: 19002
