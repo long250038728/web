@@ -32,7 +32,11 @@ cp -R "${SCRIPT_DIR}/../go.sum"                       "${BASE_DIR}/"
 cp -R "${SCRIPT_DIR}/${SERVER_NAME}/"                 "${BASE_DIR}/"
 
 # 构建项目
-docker build -f ./app/dockerfile  -t  $IMAGE_NAME .
+if ! docker build -f ./app/dockerfile  -t  $IMAGE_NAME . ; then
+  echo "Docker 构建失败，终止执行"
+  rm -rf "$BASE_DIR"
+  exit 2
+fi
 
 # 删除临时文件
 rm -rf  $BASE_DIR
@@ -46,7 +50,11 @@ new_container_name="${SERVER_NAME}-$(((RANDOM % 1000) + 1))"
 while grep -q "^${new_container_name}$" <<< "$existing_names"; do
     new_container_name="${SERVER_NAME}-$(((RANDOM % 1000) + 1))"
 done
-docker run --rm -itd --name "${new_container_name}" --network="$DOCKER_NETWORK" "$IMAGE_NAME"
+if ! docker run --rm -itd --name "${new_container_name}" --network="$DOCKER_NETWORK" "$IMAGE_NAME" ; then
+  echo "Docker 运行失败，终止执行"
+  rm -rf "$BASE_DIR"
+  exit 2
+fi
 
 
 #### 关闭旧的容器
@@ -54,3 +62,4 @@ if [ -n "$container_ids" ]; then
     docker stop $container_ids
 fi
 
+exit 0
