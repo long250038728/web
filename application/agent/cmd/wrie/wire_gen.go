@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package main
+package wrie
 
 import (
 	"github.com/long250038728/web/application/agent/internal/domain"

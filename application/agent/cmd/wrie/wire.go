@@ -3,7 +3,7 @@
 
 // 仅当编译时启用 wireinject 标签时，该文件才会被编译。
 // 旧版本语法（Go 1.17 之前），功能与 //go:build 相同。
-package main
+package wrie
 
 // go get github.com/google/wire/cmd/wire@v0.6.0
 // go install github.com/google/wire/cmd/wire

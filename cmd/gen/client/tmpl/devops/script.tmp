@@ -7,7 +7,7 @@
 ## bash script.sh user /app/config user:v1 web_my-service-network
 if [ $# -lt 4 ]; then
     echo "错误：至少需要4个参数"
-    echo  echo "用法: $0 服务名 config路径 镜像名 命名空间(docker是network、k8s是namespace)"
+    echo "用法: $0 服务名 config路径 镜像名 命名空间(docker是network、k8s是namespace)"
     exit 1
 fi
 
@@ -51,7 +51,6 @@ docker run --rm -itd --name "${new_container_name}" --network="$DOCKER_NETWORK" 
 
 #### 关闭旧的容器
 if [ -n "$container_ids" ]; then
-    docker stop $container_ids 2>/dev/null
-    docker rm $container_ids 2>/dev/null
+    docker stop $container_ids
 fi
 

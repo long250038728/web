@@ -10,12 +10,20 @@ import (
 )
 
 type Impl struct {
-	Name     string
-	TmplPath string
-	Tmpl     string
-	Func     template.FuncMap
-	Data     any
-	IsFormat bool
+	Name        string
+	TmplPath    string
+	Tmpl        string
+	Func        template.FuncMap
+	Data        any
+	IsFormat    bool
+	delimsLeft  string
+	delimsRight string
+}
+
+func (g *Impl) SetDelims(delimsLeft, delimsRight string) *Impl {
+	g.delimsLeft = delimsLeft
+	g.delimsRight = delimsRight
+	return g
 }
 
 func (g *Impl) Gen() ([]byte, error) {
@@ -41,7 +49,14 @@ func (g *Impl) Gen() ([]byte, error) {
 	//生成tmpl
 	buffer := new(bytes.Buffer)
 	writer := bufio.NewWriter(buffer)
-	if tmpl, err = template.New(g.Name).Funcs(g.Func).Parse(string(contents)); err != nil {
+
+	tmpl = template.New(g.Name)
+
+	if len(g.delimsLeft) > 0 && len(g.delimsRight) > 0 {
+		tmpl = tmpl.Delims(g.delimsLeft, g.delimsRight)
+	}
+
+	if tmpl, err = tmpl.Funcs(g.Func).Parse(string(contents)); err != nil {
 		return nil, err
 	}
 	if err := tmpl.Execute(writer, g.Data); err != nil {

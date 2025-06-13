@@ -14,9 +14,6 @@ type devopsValue struct {
 	Http   string `json:"http" yaml:"http"`
 	Grpc   string `json:"grpc" yaml:"grpc"`
 }
-type kubernetesValue struct {
-	*devopsValue
-}
 
 type devops struct {
 }
@@ -42,7 +39,7 @@ func (g *devops) genDockerfile(data *devopsValue) ([]byte, error) {
 		Data: data,
 	}).Gen()
 }
-func (g *devops) genKubernetes(data *kubernetesValue) ([]byte, error) {
+func (g *devops) genKubernetes(data *devopsValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name: "gen kubernetes",
 		Tmpl: kubernetesTmpl,
@@ -55,21 +52,13 @@ func (g *devops) genBashFile() ([]byte, error) {
 	return (&gen.Impl{
 		Name: "gen bashFile",
 		Tmpl: bashTmpl,
-	}).Gen()
+	}).SetDelims("[[", "]]").Gen()
 }
 
 type DevopsCorn struct {
-	//hub  string
-	//path string
 }
 
 func NewDevopsCorn() *DevopsCorn {
-	//if len(hub) == 0 {
-	//	hub = "ccr.ccs.tencentyun.com/linl"
-	//}
-	//if len(path) == 0 {
-	//	path = "./devops"
-	//}
 	return &DevopsCorn{}
 }
 
@@ -105,7 +94,7 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 				if dockerfileBytes, err = g.genDockerfile(&devopsValue{Server: server, Http: http, Grpc: grpc}); err != nil {
 					return err
 				}
-				if kubernetesBytes, err = g.genKubernetes(&kubernetesValue{devopsValue: &devopsValue{Server: server, Http: http, Grpc: grpc}}); err != nil {
+				if kubernetesBytes, err = g.genKubernetes(&devopsValue{Server: server, Http: http, Grpc: grpc}); err != nil {
 					return err
 				}
 				if bashBytes, err = g.genBashFile(); err != nil {
