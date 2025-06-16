@@ -24,7 +24,7 @@ pipeline {
             steps {
                 script {
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageWithCommit = "${params.DOCKER_IMAGE}:${commitId}"
+                    def imageWithCommit = "${params.IMAGE_NAME}:${commitId}"
                     dir('script') {
                         sh """bash build.sh ${params.SERVER} ${params.CONFIG_PATH} ${imageWithCommit} ${params.NAMESPACE}"""
                     }
