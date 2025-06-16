@@ -13,7 +13,7 @@ spec:
         app: {{.Server}}
     spec:
       containers:
-        - name: {{.Server}}-container
+        - name: container
           image: ubuntu:latest
           ports:
             - containerPort: {{.Http}}

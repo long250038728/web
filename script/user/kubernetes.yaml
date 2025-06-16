@@ -13,7 +13,7 @@ spec:
         app: user
     spec:
       containers:
-        - name: user-container
+        - name: container
           image: ubuntu:latest
           ports:
             - containerPort: 18001

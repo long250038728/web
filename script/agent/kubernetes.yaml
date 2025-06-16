@@ -13,7 +13,7 @@ spec:
         app: agent
     spec:
       containers:
-        - name: agent-container
+        - name: container
           image: ubuntu:latest
           ports:
             - containerPort: 18011

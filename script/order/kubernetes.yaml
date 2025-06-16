@@ -13,7 +13,7 @@ spec:
         app: order
     spec:
       containers:
-        - name: order-container
+        - name: container
           image: ubuntu:latest
           ports:
             - containerPort: 18002

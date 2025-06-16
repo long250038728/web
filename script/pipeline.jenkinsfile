@@ -1,28 +1,34 @@
 pipeline {
-    agent {label 'mac'}
 
     environment {
         PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
     }
 
     stages {
+        agent none
+
         stage('Checkout') {
+            agent { label 'mac' }
             steps {
-                dir('/Users/linlong/Desktop/web') {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "refs/heads/master"]],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/long250038728/web',
-                        ]]
-                    ])
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "refs/heads/master"]],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/long250038728/web',
+                    ]]
+                ])
             }
         }
-        stage('Run') {
+
+        stage('Build') {
+            agent { label 'mac' }
             steps {
-                dir('/Users/linlong/Desktop/web/script') {
-                    sh "bash script.sh ${params.SERVER}  ${params.CONFIG_PATH} ${params.DOCKER_IMAGE} ${params.NETWORK} "
+                script {
+                    def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def imageWithCommit = "${params.DOCKER_IMAGE}:${commitId}"
+                    dir('script') {
+                        sh "bash build.sh ${params.SERVER} ${params.CONFIG_PATH} ${imageWithCommit} ${params.NAMESPACE}"
+                    }
                 }
             }
         }

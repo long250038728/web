@@ -28,7 +28,7 @@ var dockerfileTmpl string
 //go:embed tmpl/devops/kubernetes.tmpl
 var kubernetesTmpl string
 
-//go:embed tmpl/devops/script.tmp
+//go:embed tmpl/devops/build.tmp
 var bashTmpl string
 
 // genDockerfile 生成
@@ -108,7 +108,7 @@ func (c *DevopsCorn) Devops() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(path, server, "kubernetes.yaml"), kubernetesBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(path, "script.sh"), bashBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(path, "build.sh"), bashBytes, os.ModePerm); err != nil {
 					return err
 				}
 				return nil
