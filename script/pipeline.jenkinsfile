@@ -1,11 +1,7 @@
 pipeline {
-
-    environment {
-        PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
-    }
+    agent none
 
     stages {
-        agent none
 
         stage('Checkout') {
             agent { label 'mac' }
@@ -22,12 +18,15 @@ pipeline {
 
         stage('Build') {
             agent { label 'mac' }
+            environment {
+                PATH = "/usr/local/bin:/opt/homebrew/bin:$PATH"
+            }
             steps {
                 script {
                     def commitId = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def imageWithCommit = "${params.DOCKER_IMAGE}:${commitId}"
                     dir('script') {
-                        sh "bash build.sh ${params.SERVER} ${params.CONFIG_PATH} ${imageWithCommit} ${params.NAMESPACE}"
+                        sh """bash build.sh ${params.SERVER} ${params.CONFIG_PATH} ${imageWithCommit} ${params.NAMESPACE}"""
                     }
                 }
             }
