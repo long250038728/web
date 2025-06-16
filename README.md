@@ -11,9 +11,9 @@
 2. **DNS**：可通过不同运营商、不同区域获取最近的节点，提高响应速度，避免单点服务和负载均衡的压力。
 3. **CDN**：对于静态资源，如图片、CSS、JS等，可减少对服务的获取，利用缓存机制提高响应速度。
 4. **负载均衡**：将请求流量指向不同的服务器集群，实现负载均衡。可分为四层（根据IP等报文即可）及七层（读取所有的数据后再转发）。
-    - **避免单点故障**：引入`KeepAlived`，防止负载均衡成为单点故障。
-    - **调度算法**：包括轮训、加权轮训、最少连接、加权最少连接、IP hash等。
-    - **健康检测**：为避免把请求流量指向已经不可用的服务器，需要进行`健康检测`。
+   - **避免单点故障**：引入`KeepAlived`，防止负载均衡成为单点故障。
+   - **调度算法**：包括轮训、加权轮训、最少连接、加权最少连接、IP hash等。
+   - **健康检测**：为避免把请求流量指向已经不可用的服务器，需要进行`健康检测`。
 5. **服务器集群**：无状态服务可快速扩展，避免单台服务的计算压力。
 6. **参数校验**：检验参数的合理性，减少多余的查询和处理。
 7. **缓存**：由于数据库QPS较低，将频繁请求的数据缓存到内存中。如有全局概念，可使用分布式缓存。
@@ -41,7 +41,7 @@
 在本地运行时，一般不会把所有的服务启动运行，通常是针对少数的服务进行跨服务的调用。使用gRPC通过本地IP:port获取信息进行调用，无需注册中心。
 
 ### 对外服务（k8s）
-在Kubernetes环境中，每个服务都应该创建对应的server进行对外访问。gRPC可使用k8s DNS的机制（server - name:port）进行调用，无需注册中心。
+在Kubernetes环境中，每个服务都应该创建对应的server进行对外访问。gRPC可使用k8s DNS的机制（server-name:port）进行调用，无需注册中心。
 
 ### 对外服务（注册中心）
 程序启动时，需要把服务注册到注册中心，提供访问。可采用以下两种方式：
@@ -67,7 +67,7 @@
 | ---- |-------------|
 | consul | 172.40.0.11 |
 | etcd | 172.40.0.12 |
-| kong - database | 172.40.0.21 |
+| kong-database | 172.40.0.21 |
 | kong | 172.40.0.22 |
 | konga | 172.40.0.23 |
 | mysql | 172.40.0.31 |
@@ -75,10 +75,10 @@
 | zookeeper | 172.40.0.33 |
 | kafka | 172.40.0.34 |
 | canal | 172.40.0.41 |
-| kafka - ui | 172.40.0.42 |
+| kafka-ui | 172.40.0.42 |
 
-### docker - composer
-[基本环境搭建(consul + kong + mysql + redis + kafka + other)](docker - compose.yaml)
+### docker-composer
+[基本环境搭建(consul + kong + mysql + redis + kafka + other)](docker-compose.yaml)
 
 ### canal
 - [Docker快速启动](https://github.com/alibaba/canal/wiki/Docker-QuickStart)
@@ -161,7 +161,7 @@ curl -X POST http://192.168.0.74:8001/services \
   --data "protocol=http" 
 
 # 返回的json字段，设置也使用相同的字段 
-{"created_at":1733465542,"updated_at":1733465542,"path":null,"host":"test.zhubaoe.cn","retries":5,"write_timeout":60000,"enabled":true,"port":80,"tags":null,"ca_certificates":null,"client_certificate":null,"read_timeout":60000,"connect_timeout":60000,"name":"test_srv","protocol":"http","tls_verify":null,"id":"9d3f5b04 - d0de - 46f4 - 8c5d - 5e7238220658","tls_verify_depth":null}
+{"created_at":1733465542,"updated_at":1733465542,"path":null,"host":"test.zhubaoe.cn","retries":5,"write_timeout":60000,"enabled":true,"port":80,"tags":null,"ca_certificates":null,"client_certificate":null,"read_timeout":60000,"connect_timeout":60000,"name":"test_srv","protocol":"http","tls_verify":null,"id":"9d3f5b04-d0de-46f4-8c5d-5e7238220658","tls_verify_depth":null}
 
 创建router配置信息
 curl -X POST http://192.168.0.74:8001/routes \
@@ -171,5 +171,5 @@ curl -X POST http://192.168.0.74:8001/routes \
   --data "strip_path=false"
 
 # 返回的json字段，设置也使用相同的字段  
-{"created_at":1733465781,"updated_at":1733465781,"service":{"id":"9d3f5b04 - d0de - 46f4 - 8c5d - 5e7238220658"},"path_handling":"v0","methods":null,"hosts":["www.xx1.com"],"request_buffering":true,"response_buffering":true,"strip_path":true,"snis":null,"regex_priority":0,"tags":null,"paths":null,"protocols":["http","https"],"name":"test_routes","headers":null,"https_redirect_status_code":426,"id":"6af6e619 - fac8 - 4ec0 - 8908 - 751f64a75773","preserve_host":false,"sources":null,"destinations":null}
+{"created_at":1733465781,"updated_at":1733465781,"service":{"id":"9d3f5b04-d0de-46f4-8c5d-5e7238220658"},"path_handling":"v0","methods":null,"hosts":["www.xx1.com"],"request_buffering":true,"response_buffering":true,"strip_path":true,"snis":null,"regex_priority":0,"tags":null,"paths":null,"protocols":["http","https"],"name":"test_routes","headers":null,"https_redirect_status_code":426,"id":"6af6e619-fac8-4ec0-8908-751f64a75773","preserve_host":false,"sources":null,"destinations":null}
 ```
