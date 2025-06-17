@@ -30,12 +30,28 @@ type writer struct {
 	requestInfo map[string]any
 }
 
-func (w *writer) Context() context.Context {
-	return w.ctx
-}
+func (w *writer) Init() error {
+	w.ctx = w.ginContext.Request.Context()
 
-func (w *writer) Request() (request any, requestInfo map[string]any) {
-	return w.request, w.requestInfo
+	// 绑定request参数
+	if err := w.Bind(w.request); err != nil {
+		return err
+	}
+
+	// 把request转为 map[string]any 用于后续处理
+	requestInfo, err := w.structToMap(w.request)
+	if err != nil {
+		return err
+	}
+	w.requestInfo = requestInfo
+
+	// 日志
+	if b, err := json.Marshal(requestInfo); err == nil {
+		w.addLog(string(b))
+	}
+	w.addTags(requestInfo)
+
+	return nil
 }
 
 func (w *writer) Bind(request any) error {
@@ -44,6 +60,16 @@ func (w *writer) Bind(request any) error {
 	} else {
 		return w.ginContext.ShouldBind(request)
 	}
+}
+
+// ========================================================================
+
+func (w *writer) Context() context.Context {
+	return w.ctx
+}
+
+func (w *writer) Request() (request any, requestInfo map[string]any) {
+	return w.request, w.requestInfo
 }
 
 // ========================================================================
@@ -101,7 +127,7 @@ func (w *writer) addTags(tags map[string]any) {
 	}
 }
 
-//========================================================================
+// ========================================================================
 
 func (w *writer) structToMap(request any) (map[string]any, error) {
 	var requestInfo map[string]any
@@ -118,63 +144,80 @@ func (w *writer) structToMap(request any) (map[string]any, error) {
 	return requestInfo, err
 }
 
-//==========================================================================================================
+// ========================================================================
 
 func NewJson(ginContext *gin.Context, request any) (Writer, error) {
 	w := &jsonWriter{writer: writer{ginContext: ginContext, request: request}}
-
-	w.ctx = ginContext.Request.Context()
-	w.request = request
-
-	// 绑定request参数
-	if err := w.Bind(request); err != nil {
-		return w, err
+	if err := w.Init(); err != nil {
+		return nil, err
 	}
+	return w, nil
 
-	// 把request转为 map[string]any 用于后续处理
-	requestInfo, err := w.structToMap(request)
-	if err != nil {
-		return w, err
-	}
-	w.requestInfo = requestInfo
-
+	//w.ctx = ginContext.Request.Context()
+	//w.request = request
+	//
+	//// 绑定request参数
+	//if err := w.Bind(request); err != nil {
+	//	return w, err
+	//}
+	//
+	//// 把request转为 map[string]any 用于后续处理
+	//requestInfo, err := w.structToMap(request)
+	//if err != nil {
+	//	return w, err
+	//}
+	//w.requestInfo = requestInfo
+	//
+	//w.addRequestLogAndTags(requestInfo)
 	return w, nil
 }
 func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}
-	w.ctx = ginContext.Request.Context()
-	w.request = request
-
-	// 绑定request参数
-	if err := w.Bind(request); err != nil {
-		return w, err
+	if err := w.Init(); err != nil {
+		return nil, err
 	}
-
-	// 把request转为 map[string]any 用于后续处理
-	requestInfo, err := w.structToMap(request)
-	if err != nil {
-		return w, err
-	}
-	w.requestInfo = requestInfo
-
 	return w, nil
+
+	//w.ctx = ginContext.Request.Context()
+	//w.request = request
+	//
+	//// 绑定request参数
+	//if err := w.Bind(request); err != nil {
+	//	return w, err
+	//}
+	//
+	//// 把request转为 map[string]any 用于后续处理
+	//requestInfo, err := w.structToMap(request)
+	//if err != nil {
+	//	return w, err
+	//}
+	//w.requestInfo = requestInfo
+	//w.addRequestLogAndTags(requestInfo)
+	//
+	//return w, nil
 }
 func NewSSE(ginContext *gin.Context, request any) (Writer, error) {
 	w := &sseWriter{writer: writer{ginContext: ginContext, request: request}}
-	w.ctx = ginContext.Request.Context()
-	w.request = request
-
-	// 绑定request参数
-	if err := w.Bind(request); err != nil {
-		return w, err
+	if err := w.Init(); err != nil {
+		return nil, err
 	}
-
-	// 把request转为 map[string]any 用于后续处理
-	requestInfo, err := w.structToMap(request)
-	if err != nil {
-		return w, err
-	}
-	w.requestInfo = requestInfo
-
 	return w, nil
+
+	//w.ctx = ginContext.Request.Context()
+	//w.request = request
+	//
+	//// 绑定request参数
+	//if err := w.Bind(request); err != nil {
+	//	return w, err
+	//}
+	//
+	//// 把request转为 map[string]any 用于后续处理
+	//requestInfo, err := w.structToMap(request)
+	//if err != nil {
+	//	return w, err
+	//}
+	//w.requestInfo = requestInfo
+	//w.addRequestLogAndTags(requestInfo)
+	//
+	//return w, nil
 }

@@ -203,7 +203,7 @@ protoc --proto_path=./api \                                                     
 	$(API_PROTO_FILES)	
 ```
 
-
 ## 3.总结
 1. 项目中各个功能都使用的是interface方式，这样好处就是解耦，同时只要实现这些方法就可以（duck方法）
 2. 在初始化时都使用options的方法可以根据需求进行参数化的配置(创建是先指定默认参数，然后通过option方法赋值)
+3. 由于go语言的特性无法使用动态代理，所以会使用各种gen方法及Makefile方法

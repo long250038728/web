@@ -153,7 +153,10 @@ func beforeCallBack(db *gorm.DB) {
 func afterCallBack(db *gorm.DB) {
 	if s, ok := db.InstanceGet("span"); ok {
 		span := s.(*opentelemetry.Span)
-		span.AddEvent(fmt.Sprintf("RowsAffected:%d \nSQL: %s", db.RowsAffected, db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...)))
+		span.AddEvent(map[string]any{
+			"RowsAffected": db.RowsAffected,
+			"SQL":          db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...),
+		})
 		span.Close()
 	}
 }
