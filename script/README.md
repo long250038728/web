@@ -13,6 +13,8 @@ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
 #### 2.选择插件(Dashboard ->  系统管理  ->  插件管理 )
 安装gitee插件、other
+- Stage View Plugin (Stage可视化展示 pipeline 阶段执行状态)
+- Git Parameter Plugin (git选择分支号参数插件)
 
 #### 3.新建Credentials（Dashboard ->  系统管理  ->  凭证）
 生成公钥及密钥

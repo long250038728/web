@@ -1,0 +1,39 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: User API
+    version: 0.0.1
+paths:
+    /user/user/say_hello:
+        get:
+            tags:
+                - User
+            operationId: User_SayHello
+            parameters:
+                - name: name
+                  in: query
+                  schema:
+                    type: string
+                - name: age
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/user.ResponseHello'
+components:
+    schemas:
+        user.ResponseHello:
+            type: object
+            properties:
+                str:
+                    type: string
+tags:
+    - name: User

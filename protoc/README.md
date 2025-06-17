@@ -12,9 +12,9 @@
 
 安装protoc及grpc插件
 ```
-go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
 export PATH="$PATH:$(go env GOPATH)/bin"
 ```
 
@@ -26,9 +26,9 @@ protoc \
 --go_opt=paths=source_relative \
 --go-grpc_out=. \
 --go-grpc_opt=paths=source_relative \
---openapiv2_out=. \
+--openapi_out=fq_schema_naming=true,default_response=false:. \
 -I=/Users/linlong/go/src/  -I=./ \
-userServer.proto
+*.proto
 ```
 
 

@@ -151,6 +151,7 @@ const Scheme = "svc"
 // 3. 调用Resolver中的ResolveNow方法更新ClientConn连接的地址列表
 
 type MyResolversBuild struct {
+	resolver.Builder
 	ctx      context.Context
 	register register.Register
 }
