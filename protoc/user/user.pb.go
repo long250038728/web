@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v5.27.1
-// source: user.proto
+// source: user/user.proto
 
 package user
 
@@ -32,7 +32,7 @@ type RequestHello struct {
 
 func (x *RequestHello) Reset() {
 	*x = RequestHello{}
-	mi := &file_user_proto_msgTypes[0]
+	mi := &file_user_user_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *RequestHello) String() string {
 func (*RequestHello) ProtoMessage() {}
 
 func (x *RequestHello) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[0]
+	mi := &file_user_user_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *RequestHello) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestHello.ProtoReflect.Descriptor instead.
 func (*RequestHello) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{0}
+	return file_user_user_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RequestHello) GetName() string {
@@ -83,7 +83,7 @@ type ResponseHello struct {
 
 func (x *ResponseHello) Reset() {
 	*x = ResponseHello{}
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_user_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +95,7 @@ func (x *ResponseHello) String() string {
 func (*ResponseHello) ProtoMessage() {}
 
 func (x *ResponseHello) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_user_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +108,7 @@ func (x *ResponseHello) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseHello.ProtoReflect.Descriptor instead.
 func (*ResponseHello) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{1}
+	return file_user_user_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ResponseHello) GetStr() string {
@@ -118,12 +118,11 @@ func (x *ResponseHello) GetStr() string {
 	return ""
 }
 
-var File_user_proto protoreflect.FileDescriptor
+var File_user_user_proto protoreflect.FileDescriptor
 
-const file_user_proto_rawDesc = "" +
+const file_user_user_proto_rawDesc = "" +
 	"\n" +
-	"\n" +
-	"user.proto\x12\x04user\x1a\x1cgoogle/api/annotations.proto\"4\n" +
+	"\x0fuser/user.proto\x12\x04user\x1a\x1cgoogle/api/annotations.proto\"4\n" +
 	"\fRequestHello\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
 	"\x03age\x18\x02 \x01(\x05R\x03age\"!\n" +
@@ -133,23 +132,23 @@ const file_user_proto_rawDesc = "" +
 	"\bSayHello\x12\x12.user.RequestHello\x1a\x13.user.ResponseHello\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/user/user/say_helloB\aZ\x05/userb\x06proto3"
 
 var (
-	file_user_proto_rawDescOnce sync.Once
-	file_user_proto_rawDescData []byte
+	file_user_user_proto_rawDescOnce sync.Once
+	file_user_user_proto_rawDescData []byte
 )
 
-func file_user_proto_rawDescGZIP() []byte {
-	file_user_proto_rawDescOnce.Do(func() {
-		file_user_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)))
+func file_user_user_proto_rawDescGZIP() []byte {
+	file_user_user_proto_rawDescOnce.Do(func() {
+		file_user_user_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)))
 	})
-	return file_user_proto_rawDescData
+	return file_user_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_user_proto_goTypes = []any{
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_user_user_proto_goTypes = []any{
 	(*RequestHello)(nil),  // 0: user.RequestHello
 	(*ResponseHello)(nil), // 1: user.ResponseHello
 }
-var file_user_proto_depIdxs = []int32{
+var file_user_user_proto_depIdxs = []int32{
 	0, // 0: user.User.SayHello:input_type -> user.RequestHello
 	1, // 1: user.User.SayHello:output_type -> user.ResponseHello
 	1, // [1:2] is the sub-list for method output_type
@@ -159,26 +158,26 @@ var file_user_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_user_proto_init() }
-func file_user_proto_init() {
-	if File_user_proto != nil {
+func init() { file_user_user_proto_init() }
+func file_user_user_proto_init() {
+	if File_user_user_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_user_proto_goTypes,
-		DependencyIndexes: file_user_proto_depIdxs,
-		MessageInfos:      file_user_proto_msgTypes,
+		GoTypes:           file_user_user_proto_goTypes,
+		DependencyIndexes: file_user_user_proto_depIdxs,
+		MessageInfos:      file_user_user_proto_msgTypes,
 	}.Build()
-	File_user_proto = out.File
-	file_user_proto_goTypes = nil
-	file_user_proto_depIdxs = nil
+	File_user_user_proto = out.File
+	file_user_user_proto_goTypes = nil
+	file_user_user_proto_depIdxs = nil
 }

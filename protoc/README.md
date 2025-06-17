@@ -27,7 +27,7 @@ protoc --proto_path=./ \
   --go-grpc_out=. \
   --go-grpc_opt=paths=source_relative \
   --openapi_out=fq_schema_naming=true,default_response=false:. \
-  *.proto	
+  ./*/*.proto	
 ```
 
 | 参数                                                      | 解释                - | 其他 |
