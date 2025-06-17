@@ -28,7 +28,7 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 
 		//写入链路
 		ctx = opentelemetry.ExtractMap(ctx, map[string]string{server.TraceParentKey: transparent[0]})
-		span := opentelemetry.NewSpan(ctx, "GRPC: "+info.FullMethod)
+		span := opentelemetry.NewSpan(ctx, "GRPC "+info.FullMethod)
 		defer span.Close()
 
 		span.AddEvent(req)

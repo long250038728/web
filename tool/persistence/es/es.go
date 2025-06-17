@@ -16,7 +16,7 @@ func NewEs(config *Config) (*ES, error) {
 		elastic.SetURL(config.Address),
 		elastic.SetBasicAuth(config.User, config.Password),
 		elastic.SetSniff(false),
-		elastic.SetHttpClient(http.NewCustomHttpClient()),
+		elastic.SetHttpClient(http.NewCustomHttpClient(http.Name("ES"))),
 	}
 	client, err := elastic.NewClient(options...)
 	if err != nil {

@@ -23,7 +23,7 @@ func NewConsulRegister(conf *Config) (*Register, error) {
 	//创建consul客户端
 	config := api.DefaultConfig()
 	config.Address = conf.Address
-	config.HttpClient = http.NewCustomHttpClient()
+	config.HttpClient = http.NewCustomHttpClient(http.Name("Register"))
 	client, err := api.NewClient(config)
 
 	status := client.Status()

@@ -14,6 +14,12 @@ import (
 
 type TransportOpt func(c *CustomTransport)
 
+func Name(name string) TransportOpt {
+	return func(c *CustomTransport) {
+		c.name = name
+	}
+}
+
 func Logger(logger io.Writer) TransportOpt {
 	return func(c *CustomTransport) {
 		c.logger = logger
@@ -69,6 +75,7 @@ func NewCustomTransport(opts ...TransportOpt) http.RoundTripper {
 			//ResponseHeaderTimeout: 5 * time.Second,
 		},
 		logger: os.Stdout,
+		name:   "HTTP",
 	}
 	for _, opt := range opts {
 		opt(transport)
@@ -78,6 +85,7 @@ func NewCustomTransport(opts ...TransportOpt) http.RoundTripper {
 
 type CustomTransport struct {
 	http.Transport
+	name   string
 	logger io.Writer
 	handle func(req *http.Request, requestBytes, responseBytes []byte, err error)
 }
@@ -97,7 +105,7 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var span *opentelemetry.Span
 	if req.Method != http.MethodHead {
 		if s, err := opentelemetry.SpanFromContext(req.Context()); s != nil && err == nil {
-			span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("HTTP %s", req.URL.Host))
+			span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("%s %s", c.name, req.URL.Host))
 		}
 	}
 
