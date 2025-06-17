@@ -187,7 +187,20 @@ echo:
 
 ### protoc
 ```
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest                  // protoc.go生成工具
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest                 // protoc_grpc.go生成工具
+go install github.com/go-kratos/kratos/cmd/kratos/v2@latest                     // kratos cmd生成工具
+go install github.com/go-kratos/kratos/cmd/protoc-gen-go-http/v2@latest         // protoc_http.go生成工具
+go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest              // openai 文档生成工具
+go install github.com/google/wire/cmd/wire@latest                               // wire 依赖注入生成工具
 
+protoc --proto_path=./api \                                                     //proto文件路径 （项目api）
+	--proto_path=./third_party \                                                //protoc文件路径（外部依赖）
+ 	--go_out=paths=source_relative:./api \                                      //go out 使用source_relative,生成路径在./api
+ 	--go-http_out=paths=source_relative:./api \                                 //http out 使用source_relative,生成路径在./api
+ 	--go-grpc_out=paths=source_relative:./api \                                 //grpc out 使用source_relative,生成路径在./api
+	--openapi_out=fq_schema_naming=true,default_response=false:. \              //openai文档生成 ,生成路径在.
+	$(API_PROTO_FILES)	
 ```
 
 
