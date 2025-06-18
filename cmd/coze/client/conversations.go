@@ -67,7 +67,7 @@ func (c *Client) ConversationsList(ctx context.Context, request *ConversationsLi
 		return nil, err
 	}
 
-	items := make([]*Conversation, 0, request.PageSize)
+	items := make([]*Conversation, 0, len(resp.Items()))
 	for _, item := range resp.Items() {
 		items = append(items, &Conversation{
 			ID:            item.ID,

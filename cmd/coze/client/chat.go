@@ -56,7 +56,7 @@ func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse,
 		return nil, err
 	}
 
-	items := make([]*Message, 0, 0)
+	items := make([]*Message, 0, len(resp.Messages))
 	for _, item := range resp.Messages {
 		items = append(items, &Message{
 			Role: string(item.Role), Type: string(item.Type), Content: item.Content, ReasoningContent: item.ReasoningContent, ContentType: string(item.ContentType), MetaData: item.MetaData, ID: item.ID, ConversationID: item.ConversationID, SectionID: item.SectionID, BotID: item.BotID, ChatID: item.ChatID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
@@ -151,7 +151,7 @@ func (c *Client) List(ctx context.Context, request *ListRequest) (*ListResponse,
 		return nil, err
 	}
 
-	items := make([]*Message, 0, 0)
+	items := make([]*Message, 0, len(resp.Messages))
 	for _, item := range resp.Messages {
 		items = append(items, &Message{
 			Role: string(item.Role), Type: string(item.Type), Content: item.Content, ReasoningContent: item.ReasoningContent, ContentType: string(item.ContentType), MetaData: item.MetaData, ID: item.ID, ConversationID: item.ConversationID, SectionID: item.SectionID, BotID: item.BotID, ChatID: item.ChatID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,

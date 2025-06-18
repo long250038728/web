@@ -59,7 +59,7 @@ func (c *Client) ConversationsMessageList(ctx context.Context, request *Conversa
 		return nil, err
 	}
 
-	items := make([]*Message, 0, 0)
+	items := make([]*Message, 0, len(resp.Items()))
 	for _, item := range resp.Items() {
 		items = append(items, &Message{
 			Role: string(item.Role), Type: string(item.Type), Content: item.Content, ReasoningContent: item.ReasoningContent, ContentType: string(item.ContentType), MetaData: item.MetaData, ID: item.ID, ConversationID: item.ConversationID, SectionID: item.SectionID, BotID: item.BotID, ChatID: item.ChatID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
