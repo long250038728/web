@@ -6,6 +6,5 @@ import (
 )
 
 func TestClient_GetAccessToken(t *testing.T) {
-	cli := &Client{}
 	t.Log(cli.GetAccessToken(context.Background()))
 }

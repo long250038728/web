@@ -36,11 +36,6 @@ type ListResponse struct {
 
 // Chat 创建会话
 func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.CreateChatsReq{
 		ConversationID: request.ConversationID,
 		BotID:          request.BotID,
@@ -51,7 +46,7 @@ func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse,
 	}
 
 	timeout := int(time.Second) * 20
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Chat.CreateAndPoll(ctx, req, &timeout)
+	resp, err := c.GetApi().Chat.CreateAndPoll(ctx, req, &timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -67,11 +62,6 @@ func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse,
 
 // StreamChat 创建会话流式返回
 func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan StreamChat, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.CreateChatsReq{
 		ConversationID: request.ConversationID,
 		BotID:          request.BotID,
@@ -81,7 +71,7 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 		},
 	}
 
-	reader, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL), coze.WithHttpClient(&http.Client{Timeout: time.Minute})).Chat.Stream(ctx, req)
+	reader, err := c.GetApi(coze.WithHttpClient(&http.Client{Timeout: time.Minute})).Chat.Stream(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -137,15 +127,11 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 
 // Retrieve 查看对话详情
 func (c *Client) Retrieve(ctx context.Context, request *RetrieveRequest) (*Chat, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
 	req := &coze.RetrieveChatsReq{
 		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Chat.Retrieve(ctx, req)
+	resp, err := c.GetApi().Chat.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -168,16 +154,11 @@ func (c *Client) Retrieve(ctx context.Context, request *RetrieveRequest) (*Chat,
 
 // List 查看对话列表
 func (c *Client) List(ctx context.Context, request *ListRequest) (*ListResponse, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.ListChatsMessagesReq{
 		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Chat.Messages.List(ctx, req)
+	resp, err := c.GetApi().Chat.Messages.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}

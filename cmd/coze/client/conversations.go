@@ -32,18 +32,13 @@ type ConversationsClearRequest struct {
 
 // ConversationsCreate 创建会话
 func (c *Client) ConversationsCreate(ctx context.Context, request *ConversationsCreateRequest) (*Conversation, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.CreateConversationsReq{
 		BotID: request.BotID,
 		Messages: []*coze.Message{
 			{Role: coze.MessageRoleUser, Content: request.Content},
 		},
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Conversations.Create(ctx, req)
+	resp, err := c.GetApi().Conversations.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -52,17 +47,12 @@ func (c *Client) ConversationsCreate(ctx context.Context, request *Conversations
 
 // ConversationsList 查看会话列表
 func (c *Client) ConversationsList(ctx context.Context, request *ConversationsListRequest) (*ConversationsListResponse, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.ListConversationsReq{
 		BotID:    request.BotID,
 		PageNum:  request.PageNum,
 		PageSize: request.PageSize,
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Conversations.List(ctx, req)
+	resp, err := c.GetApi().Conversations.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +71,10 @@ func (c *Client) ConversationsList(ctx context.Context, request *ConversationsLi
 
 // ConversationsRetrieve 查看会话
 func (c *Client) ConversationsRetrieve(ctx context.Context, request *ConversationsRetrieveRequest) (*Conversation, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return nil, err
-	}
-
 	req := &coze.RetrieveConversationsReq{
 		ConversationID: request.ConversationID,
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Conversations.Retrieve(ctx, req)
+	resp, err := c.GetApi().Conversations.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -98,15 +83,10 @@ func (c *Client) ConversationsRetrieve(ctx context.Context, request *Conversatio
 
 // ConversationsClear 会话清除
 func (c *Client) ConversationsClear(ctx context.Context, request *ConversationsClearRequest) (string, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return "", err
-	}
-
 	req := &coze.ClearConversationsReq{
 		ConversationID: request.ConversationID,
 	}
-	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Conversations.Clear(ctx, req)
+	resp, err := c.GetApi().Conversations.Clear(ctx, req)
 	if err != nil {
 		return "", err
 	}

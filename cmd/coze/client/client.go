@@ -4,8 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"github.com/coze-dev/coze-go"
-	"sync"
-	"time"
 )
 
 //go:embed config/private_key.pem
@@ -17,23 +15,12 @@ var jwtOauthClientID string
 //go:embed config/public_key.txt
 var jwtOauthPublicKeyID string
 
-var oauth *coze.JWTOAuthClient
-
 type Client struct {
-	time  time.Time
-	mutex sync.Mutex
+	oauth *coze.JWTOAuthClient
+	auth  coze.Auth
 }
 
-func (c *Client) GetOAuth() (*coze.JWTOAuthClient, error) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	////超过900ttl,需要重新申请
-	//if c.time.Add(time.Second*900).Unix() >= time.Now().Unix() {
-	//	return oauth, nil
-	//}
-
-	// Default 15 minutes
+func NewCozeClient() (*Client, error) {
 	param := coze.NewJWTOAuthClientParam{
 		ClientID:      jwtOauthClientID,
 		PublicKey:     jwtOauthPublicKeyID,
@@ -43,17 +30,16 @@ func (c *Client) GetOAuth() (*coze.JWTOAuthClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.time = time.Now()
-	return oauth, nil
+	return &Client{oauth: oauth, auth: coze.NewJWTAuth(oauth, nil)}, nil
+}
+
+func (c *Client) GetApi(opts ...coze.CozeAPIOption) coze.CozeAPI {
+	opts = append(opts, coze.WithBaseURL(coze.CnBaseURL))
+	return coze.NewCozeAPI(c.auth, opts...)
 }
 
 func (c *Client) GetAccessToken(ctx context.Context) (string, error) {
-	oauth, err := c.GetOAuth()
-	if err != nil {
-		return "", err
-	}
-
 	req := &coze.GetJWTAccessTokenReq{}
-	resp, err := oauth.GetAccessToken(ctx, req)
+	resp, err := c.oauth.GetAccessToken(ctx, req)
 	return resp.AccessToken, err
 }

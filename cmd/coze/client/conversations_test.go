@@ -6,8 +6,6 @@ import (
 )
 
 func TestClient_ConversationsCreate(t *testing.T) {
-	cli := Client{}
-
 	requests := make([]*ConversationsCreateRequest, 0, 2)
 	requests = append(requests, &ConversationsCreateRequest{
 		BotID:   BotID,
@@ -30,7 +28,6 @@ func TestClient_ConversationsCreate(t *testing.T) {
 }
 
 func TestClient_ConversationsList(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsListRequest{
 		BotID: BotID,
 	}
@@ -46,7 +43,6 @@ func TestClient_ConversationsList(t *testing.T) {
 }
 
 func TestClient_ConversationsRetrieve(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsRetrieveRequest{
 		ConversationID: ConversationID,
 	}
@@ -59,7 +55,6 @@ func TestClient_ConversationsRetrieve(t *testing.T) {
 }
 
 func TestClient_ConversationsClear(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsClearRequest{
 		ConversationID: ConversationID,
 	}

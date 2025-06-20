@@ -6,7 +6,6 @@ import (
 )
 
 func TestClient_ConversationsMessageCreate(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsMessageCreateRequest{
 		ConversationID: ConversationID,
 		Content:        "今天天气怎么样",
@@ -20,7 +19,6 @@ func TestClient_ConversationsMessageCreate(t *testing.T) {
 }
 
 func TestClient_ConversationsMessageList(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsMessageListRequest{
 		ConversationID: ConversationID,
 	}
@@ -35,7 +33,6 @@ func TestClient_ConversationsMessageList(t *testing.T) {
 }
 
 func TestClient_ConversationsMessageRetrieve(t *testing.T) {
-	cli := Client{}
 	request := &ConversationsMessageRetrieveRequest{
 		ConversationID: ConversationID,
 		MessageID:      MessageID,

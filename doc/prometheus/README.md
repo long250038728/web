@@ -179,34 +179,116 @@ annotations:
 ### Counter（只增不减）
 
 - 示例：请求总数、错误数
-- PromQL: `rate(http_requests_total[5m])`
+- 特点：只能递增，适用于速率、累计分析
+- PromQL:
+
+```promql
+http_requests_total{method="POST", handler="/login"} 
+# 查看 POST /login 请求总数
+
+rate(http_requests_total[5m])                         
+# 每秒请求速率（增长速率）
+
+rate(http_requests_total{method="POST"}[5m])          
+# 每秒 POST 请求速率（带条件）
+
+sum by (handler) (rate(http_requests_total[5m]))      
+# 请求速率按 handler 分组统计
+```
+
+---
 
 ### Gauge（可增可减）
 
-- 示例：当前连接数、温度
-- PromQL: `avg_over_time(cpu_usage[5m])`
+- 示例：当前连接数、温度、内存使用率
+- 特点：表示当前状态，可增可减
+- PromQL:
+
+```promql
+avg_over_time(cpu_usage[5m])                
+# CPU 5 分钟平均使用率
+
+max_over_time(go_memstats_alloc_bytes[5m])  
+# 5 分钟内内存最大使用量
+```
+
+---
 
 ### Histogram（桶统计，适合延迟分析）
 
-- 示例：请求延迟
-- 使用：`Observe(value)` 上报
-- PromQL: `histogram_quantile(0.9, your_histogram_bucket)`
+- 示例：请求延迟、响应时间分布
+- 特点：
+    - 写入时通过 `Observe(value)` 将值分类到桶中
+    - 自动生成以下三个指标：
+        - `your_histogram_bucket{le="0.5"}`：小于等于该值的请求数
+        - `your_histogram_sum`：总耗时
+        - `your_histogram_count`：总请求数
+- PromQL:
+
+```promql
+histogram_quantile(0.9, rate(http_request_duration_seconds_bucket[5m]))  
+# 过去 5 分钟估算 P90 响应时间
+
+histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) 
+# 过去 5 分钟估算 P99 响应时间
+```
+
+---
 
 ### Summary（百分位统计）
 
-- 示例：请求延迟百分位（不适合多实例聚合）
-- 使用：`Observe(value)` 上报
-- 定义：`Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01}`
+- 示例：客户端估算的请求延迟（不适用于跨实例聚合）
+- 特点：
+    - 使用 `Observe(value)` 上报
+    - 自动生成：
+        - `your_summary{quantile="0.99"}`：客户端 P99
+        - `your_summary_sum`：总值
+        - `your_summary_count`：次数
+    - 示例定义方式：
 
-### Vec（向量）
-
-- 示例：按接口名统计请求数
-
-```go
-countVec := prometheus.NewCounterVec(opts, []string{"method", "status"})
-countVec.WithLabelValues("GET", "200").Inc()
+```
+Objectives: map[float64]float64{
+  0.5:  0.05,  # P50，误差容忍 ±5%
+  0.9:  0.01,  # P90，误差容忍 ±1%
+}
 ```
 
+- PromQL:
+
+```promql
+http_request_duration_seconds{quantile="0.99"}  
+# 客户端上报的 P99
+
+http_request_duration_seconds_sum / http_request_duration_seconds_count  
+# 平均响应时间
+```
+
+---
+
+### Alertmanager 报警规则示例
+
+将 PromQL 表达式封装为报警规则：
+
+```yaml
+groups:
+- name: example.rules
+  rules:
+  - alert: HighCpuUsage
+    expr: 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "CPU usage high on {{ $labels.instance }}"
+      description: "CPU 使用率高于 90%，已持续 5 分钟。"
+```
+
+- `expr`：报警表达式
+- `for`：持续触发多久才报警
+- `labels`：报警等级标签
+- `annotations`：报警内容，支持模板变量
+
+---
 ---
 
 ## 6. 集群与微服务监控实践

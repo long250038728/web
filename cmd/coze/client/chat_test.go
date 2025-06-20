@@ -6,7 +6,6 @@ import (
 )
 
 func TestClient_Chat(t *testing.T) {
-	cli := &Client{}
 	req := &ChatRequest{
 		ConversationID: ConversationID,
 		BotID:          BotID,
@@ -29,7 +28,6 @@ func TestClient_Chat(t *testing.T) {
 }
 
 func TestClient_StreamChat(t *testing.T) {
-	cli := &Client{}
 	req := &ChatRequest{
 		ConversationID: ConversationID,
 		BotID:          BotID,
@@ -51,7 +49,6 @@ func TestClient_StreamChat(t *testing.T) {
 
 // 当前对话的响应数据
 func TestClient_List(t *testing.T) {
-	cli := &Client{}
 	req := &ListRequest{
 		ConversationID: ConversationID,
 		ChatID:         ChatID,
@@ -73,7 +70,6 @@ func TestClient_List(t *testing.T) {
 
 // 当前对话的数据
 func TestClient_Retrieve(t *testing.T) {
-	cli := &Client{}
 	req := &RetrieveRequest{
 		ConversationID: ConversationID,
 		ChatID:         ChatID,
