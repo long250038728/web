@@ -20,14 +20,10 @@ import (
 	"time"
 )
 
-const ConfigPath = 0
-const ConfigCenter = 1
-
 var once sync.Once
 var u *Util
 
 var path = ""
-var configType int32 = ConfigPath
 
 type Util struct {
 	Info   *Config
@@ -55,14 +51,12 @@ func InitPathInfo(configPath *string) {
 	if configPath != nil {
 		path = *configPath
 	}
-	configType = ConfigPath
 }
 
 func InitCenterInfo(configPath *string) {
 	if configPath != nil {
 		path = *configPath
 	}
-	configType = ConfigCenter
 }
 
 func NewUtil() *Util {
@@ -72,7 +66,7 @@ func NewUtil() *Util {
 			panic(err)
 		}
 
-		util, err := NewUtilPath(root, configType)
+		util, err := NewUtilPath(root)
 		if err != nil {
 			panic("util init error " + err.Error())
 		}
@@ -82,8 +76,8 @@ func NewUtil() *Util {
 }
 
 // NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root string, configType int32, yaml ...string) (*Util, error) {
-	conf, err := NewAppConfig(root, configType, yaml...)
+func NewUtilPath(root string, yaml ...string) (*Util, error) {
+	conf, err := NewAppConfig(root, yaml...)
 	if err != nil {
 		return nil, err
 	}

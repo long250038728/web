@@ -1,6 +1,7 @@
 ip: 
 env: dev    # 可用于环境的区分
 rpc_type: register # 支持local,kubernetes,register
+config_init_type: file # file:读本地配置  center:读取配置中心
 servers:
   user:
     http_port: 18001

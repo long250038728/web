@@ -21,7 +21,7 @@ func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
 }
 
 // NewAppConfig 获取app配置
-func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Config, err error) {
+func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	ctx := context.Background()
 
 	//获取服务器配置列表
@@ -51,8 +51,22 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 		}
 	}
 
+	//默认值
+	if conf.ConfigInitType == "" {
+		conf.ConfigInitType = app_const.ConfigInitFile
+	}
+	if conf.RpcType == "" {
+		conf.RpcType = app_const.RpcLocal
+	}
+	if conf.Env == "" {
+		conf.Env = app_const.EnvDev
+	}
+	if conf.IP == "" {
+		conf.IP = loadIP()
+	}
+
 	//配置文件
-	if configType == ConfigPath {
+	if conf.ConfigInitType == app_const.ConfigInitFile {
 		for _, fileName := range yaml {
 			val, ok := configs[fileName]
 			if !ok {
@@ -66,7 +80,7 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 	}
 
 	//配置中心
-	if configType == ConfigCenter {
+	if conf.ConfigInitType == app_const.ConfigInitCenter {
 		client, err := initConfigCenter(rootPath)
 		if err != nil {
 			return nil, err
@@ -91,8 +105,5 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 		}
 	}
 
-	if len(conf.IP) == 0 {
-		conf.IP = loadIP()
-	}
 	return conf, nil
 }
