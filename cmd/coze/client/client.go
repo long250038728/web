@@ -33,13 +33,13 @@ func NewCozeClient() (*Client, error) {
 	return &Client{oauth: oauth, auth: coze.NewJWTAuth(oauth, nil)}, nil
 }
 
-func (c *Client) GetApi(opts ...coze.CozeAPIOption) coze.CozeAPI {
-	opts = append(opts, coze.WithBaseURL(coze.CnBaseURL))
-	return coze.NewCozeAPI(c.auth, opts...)
-}
-
 func (c *Client) GetAccessToken(ctx context.Context) (string, error) {
 	req := &coze.GetJWTAccessTokenReq{}
 	resp, err := c.oauth.GetAccessToken(ctx, req)
 	return resp.AccessToken, err
+}
+
+func (c *Client) getApi(opts ...coze.CozeAPIOption) coze.CozeAPI {
+	opts = append(opts, coze.WithBaseURL(coze.CnBaseURL))
+	return coze.NewCozeAPI(c.auth, opts...)
 }

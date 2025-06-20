@@ -9,31 +9,6 @@ import (
 	"time"
 )
 
-type ChatRequest struct {
-	ConversationID string `json:"conversation_id"`
-	BotID          string `json:"bot_id"`
-	UserID         string `json:"user_id"`
-
-	Content  string            `json:"content"`
-	MetaData map[string]string `json:"meta_data"`
-}
-type ChatResponse struct {
-	Items []*Message
-}
-
-type RetrieveRequest struct {
-	ConversationID string `json:"conversation_id"`
-	ChatID         string `json:"chat_id"`
-}
-
-type ListRequest struct {
-	ConversationID string `json:"conversation_id"`
-	ChatID         string `json:"chat_id"`
-}
-type ListResponse struct {
-	Items []*Message
-}
-
 // Chat 创建会话
 func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse, error) {
 	req := &coze.CreateChatsReq{
@@ -46,7 +21,7 @@ func (c *Client) Chat(ctx context.Context, request *ChatRequest) (*ListResponse,
 	}
 
 	timeout := int(time.Second) * 20
-	resp, err := c.GetApi().Chat.CreateAndPoll(ctx, req, &timeout)
+	resp, err := c.getApi().Chat.CreateAndPoll(ctx, req, &timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +45,7 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 			coze.BuildUserQuestionText(request.Content, nil),
 		},
 	}
-
-	reader, err := c.GetApi(coze.WithHttpClient(&http.Client{Timeout: time.Minute})).Chat.Stream(ctx, req)
+	reader, err := c.getApi(coze.WithHttpClient(&http.Client{Timeout: time.Minute})).Chat.Stream(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -126,16 +100,16 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 }
 
 // Retrieve 查看对话详情
-func (c *Client) Retrieve(ctx context.Context, request *RetrieveRequest) (*Chat, error) {
+func (c *Client) Retrieve(ctx context.Context, request *RetrieveRequest) (*ChatItem, error) {
 	req := &coze.RetrieveChatsReq{
 		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
-	resp, err := c.GetApi().Chat.Retrieve(ctx, req)
+	resp, err := c.getApi().Chat.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	chat := &Chat{
+	chat := &ChatItem{
 		ID:             resp.ID,
 		ConversationID: resp.ConversationID,
 		BotID:          resp.BotID,
@@ -158,7 +132,7 @@ func (c *Client) List(ctx context.Context, request *ListRequest) (*ListResponse,
 		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
-	resp, err := c.GetApi().Chat.Messages.List(ctx, req)
+	resp, err := c.getApi().Chat.Messages.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}

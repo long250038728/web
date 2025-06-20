@@ -5,31 +5,6 @@ import (
 	"github.com/coze-dev/coze-go"
 )
 
-type ConversationsCreateRequest struct {
-	BotID    string            `json:"bot_id"`
-	Content  string            `json:"content"`
-	MetaData map[string]string `json:"meta_data,omitempty"`
-}
-
-type ConversationsListRequest struct {
-	BotID    string `json:"bot_id"`
-	PageNum  int    `json:"page_num,omitempty"`
-	PageSize int    `json:"page_size,omitempty"`
-}
-
-type ConversationsListResponse struct {
-	Total int
-	Items []*Conversation
-}
-
-type ConversationsRetrieveRequest struct {
-	ConversationID string `json:"conversation_id"`
-}
-
-type ConversationsClearRequest struct {
-	ConversationID string `json:"conversation_id"`
-}
-
 // ConversationsCreate 创建会话
 func (c *Client) ConversationsCreate(ctx context.Context, request *ConversationsCreateRequest) (*Conversation, error) {
 	req := &coze.CreateConversationsReq{
@@ -38,7 +13,7 @@ func (c *Client) ConversationsCreate(ctx context.Context, request *Conversations
 			{Role: coze.MessageRoleUser, Content: request.Content},
 		},
 	}
-	resp, err := c.GetApi().Conversations.Create(ctx, req)
+	resp, err := c.getApi().Conversations.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +27,7 @@ func (c *Client) ConversationsList(ctx context.Context, request *ConversationsLi
 		PageNum:  request.PageNum,
 		PageSize: request.PageSize,
 	}
-	resp, err := c.GetApi().Conversations.List(ctx, req)
+	resp, err := c.getApi().Conversations.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +49,7 @@ func (c *Client) ConversationsRetrieve(ctx context.Context, request *Conversatio
 	req := &coze.RetrieveConversationsReq{
 		ConversationID: request.ConversationID,
 	}
-	resp, err := c.GetApi().Conversations.Retrieve(ctx, req)
+	resp, err := c.getApi().Conversations.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +61,7 @@ func (c *Client) ConversationsClear(ctx context.Context, request *ConversationsC
 	req := &coze.ClearConversationsReq{
 		ConversationID: request.ConversationID,
 	}
-	resp, err := c.GetApi().Conversations.Clear(ctx, req)
+	resp, err := c.getApi().Conversations.Clear(ctx, req)
 	if err != nil {
 		return "", err
 	}

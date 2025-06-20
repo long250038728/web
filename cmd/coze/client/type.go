@@ -1,70 +1,135 @@
 package client
 
+import (
+	"context"
+	"github.com/coze-dev/coze-go"
+)
+
+type CozeClientInterface interface {
+	GetAccessToken(ctx context.Context) (string, error)
+	ConversationsInterface
+	ConversationsMessageInterface
+	ChatInterface
+}
+
+type ConversationsInterface interface {
+	ConversationsCreate(ctx context.Context, request *ConversationsCreateRequest) (*Conversation, error)
+	ConversationsList(ctx context.Context, request *ConversationsListRequest) (*ConversationsListResponse, error)
+	ConversationsRetrieve(ctx context.Context, request *ConversationsRetrieveRequest) (*Conversation, error)
+	ConversationsClear(ctx context.Context, request *ConversationsClearRequest) (string, error)
+}
+type ConversationsMessageInterface interface {
+	ConversationsMessageCreate(ctx context.Context, request *ConversationsMessageCreateRequest) (*Message, error)
+	ConversationsMessageList(ctx context.Context, request *ConversationsMessageListRequest) (*ConversationsMessageListResponse, error)
+	ConversationsMessageRetrieve(ctx context.Context, request *ConversationsMessageRetrieveRequest) (*coze.RetrieveConversationsMessagesResp, error)
+}
+type ChatInterface interface {
+	Chat(ctx context.Context, request *ChatRequest) (*ListResponse, error)
+	StreamChat(ctx context.Context, request *ChatRequest) (chan StreamChat, error)
+	Retrieve(ctx context.Context, request *RetrieveRequest) (*ChatItem, error)
+	List(ctx context.Context, request *ListRequest) (*ListResponse, error)
+}
+
+// ====================================================================
+
 type Conversation struct {
 	ID            string            `json:"id"`
 	CreatedAt     int               `json:"created_at"`
-	MetaData      map[string]string `json:"meta_data,omitempty"`
+	MetaData      map[string]string `json:"meta_data"`
 	LastSectionID string            `json:"last_section_id"`
 }
-
-type Chat struct {
-	// The ID of the chat.
-	ID string `json:"id"`
-	// The ID of the conversation.
-	ConversationID string `json:"conversation_id"`
-	// The ID of the bot.
-	BotID string `json:"bot_id"`
-	// Indicates the create time of the chat. The value format is Unix timestamp in seconds.
-	CreatedAt int `json:"created_at"`
-	// Indicates the end time of the chat. The value format is Unix timestamp in seconds.
-	CompletedAt int `json:"completed_at,omitempty"`
-	// Indicates the failure time of the chat. The value format is Unix timestamp in seconds.
-	FailedAt int `json:"failed_at,omitempty"`
-	// Additional information when creating a message, and this additional information will also be
-	// returned when retrieving messages.
-	MetaData map[string]string `json:"meta_data,omitempty"`
-	// When the chat encounters an auth_error, this field returns detailed error information.
-	LastError string `json:"last_error,omitempty"`
-	// The running status of the session.
-	Status string `json:"status"`
+type ChatItem struct {
+	ID             string            `json:"id"`
+	ConversationID string            `json:"conversation_id"`
+	BotID          string            `json:"bot_id"`
+	CreatedAt      int               `json:"created_at"`
+	CompletedAt    int               `json:"completed_at"`
+	FailedAt       int               `json:"failed_at"`
+	MetaData       map[string]string `json:"meta_data"`
+	LastError      string            `json:"last_error"`
+	Status         string            `json:"status"`
 }
-
+type Message struct {
+	Role             string            `json:"role"`
+	Type             string            `json:"type"`
+	Content          string            `json:"content"`
+	ReasoningContent string            `json:"reasoning_content"`
+	ContentType      string            `json:"content_type"`
+	MetaData         map[string]string `json:"meta_data"`
+	ID               string            `json:"id"`
+	ConversationID   string            `json:"conversation_id"`
+	SectionID        string            `json:"section_id"`
+	BotID            string            `json:"bot_id"`
+	ChatID           string            `json:"chat_id"`
+	CreatedAt        int64             `json:"created_at"`
+	UpdatedAt        int64             `json:"updated_at"`
+}
 type StreamChat struct {
 	Content string
 	Err     error
 }
 
-type Message struct {
-	// The entity that sent this message.
-	Role string `json:"role"`
+//====================================================================
 
-	// The type of message.
-	Type string `json:"type"`
-
-	// The content of the message. It supports various types of content, including plain text,
-	// multimodal (a mix of text, images, and files), message cards, and more.
-	Content string `json:"content"`
-
-	// The reasoning_content of the thought process message
-	ReasoningContent string `json:"reasoning_content"`
-
-	// The type of message content.
-	ContentType string `json:"content_type"`
-
-	// Additional information when creating a message, and this additional information will also be
-	// returned when retrieving messages. Custom key-value pairs should be specified in Map object
-	// format, with a length of 16 key-value pairs. The length of the key should be between 1 and 64
-	// characters, and the length of the value should be between 1 and 512 characters.
-	MetaData map[string]string `json:"meta_data,omitempty"`
-
-	ID             string `json:"id"`
+type ConversationsListRequest struct {
+	BotID    string `json:"bot_id"`
+	PageNum  int    `json:"page_num"`
+	PageSize int    `json:"page_size"`
+}
+type ConversationsRetrieveRequest struct {
 	ConversationID string `json:"conversation_id"`
+}
+type ConversationsClearRequest struct {
+	ConversationID string `json:"conversation_id"`
+}
+type ConversationsListResponse struct {
+	Total int
+	Items []*Conversation
+}
+type ConversationsCreateRequest struct {
+	BotID    string            `json:"bot_id"`
+	Content  string            `json:"content"`
+	MetaData map[string]string `json:"meta_data"`
+}
 
-	// section_id is used to distinguish the context sections of the session history. The same section
-	// is one context.
-	SectionID string `json:"section_id"`
-	BotID     string `json:"bot_id"`
-	ChatID    string `json:"chat_id"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+//====================================================================
+
+type ConversationsMessageCreateRequest struct {
+	ConversationID string
+	Content        string
+}
+type ConversationsMessageListRequest struct {
+	ConversationID string
+}
+type ConversationsMessageRetrieveRequest struct {
+	ConversationID string
+	MessageID      string
+}
+type ConversationsMessageListResponse struct {
+	Items []*Message
+}
+
+// ====================================================================
+
+type ChatRequest struct {
+	ConversationID string `json:"conversation_id"`
+	BotID          string `json:"bot_id"`
+	UserID         string `json:"user_id"`
+
+	Content  string            `json:"content"`
+	MetaData map[string]string `json:"meta_data"`
+}
+type RetrieveRequest struct {
+	ConversationID string `json:"conversation_id"`
+	ChatID         string `json:"chat_id"`
+}
+type ListRequest struct {
+	ConversationID string `json:"conversation_id"`
+	ChatID         string `json:"chat_id"`
+}
+type ListResponse struct {
+	Items []*Message
+}
+type ChatResponse struct {
+	Items []*Message
 }

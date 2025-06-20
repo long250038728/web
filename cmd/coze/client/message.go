@@ -5,22 +5,6 @@ import (
 	"github.com/coze-dev/coze-go"
 )
 
-type ConversationsMessageCreateRequest struct {
-	ConversationID string
-	Content        string
-}
-type ConversationsMessageListRequest struct {
-	ConversationID string
-}
-
-type ConversationsMessageListResponse struct {
-	Items []*Message
-}
-type ConversationsMessageRetrieveRequest struct {
-	ConversationID string
-	MessageID      string
-}
-
 // ConversationsMessageCreate 创建消息
 func (c *Client) ConversationsMessageCreate(ctx context.Context, request *ConversationsMessageCreateRequest) (*Message, error) {
 	Role := coze.MessageRoleUser
@@ -31,7 +15,7 @@ func (c *Client) ConversationsMessageCreate(ctx context.Context, request *Conver
 		Role:           Role,
 		ContentType:    ContentType,
 	}
-	resp, err := c.GetApi().Conversations.Messages.Create(ctx, req)
+	resp, err := c.getApi().Conversations.Messages.Create(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +27,7 @@ func (c *Client) ConversationsMessageList(ctx context.Context, request *Conversa
 	req := &coze.ListConversationsMessagesReq{
 		ConversationID: request.ConversationID,
 	}
-	resp, err := c.GetApi().Conversations.Messages.List(ctx, req)
+	resp, err := c.getApi().Conversations.Messages.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +47,7 @@ func (c *Client) ConversationsMessageRetrieve(ctx context.Context, request *Conv
 		ConversationID: request.ConversationID,
 		MessageID:      request.MessageID,
 	}
-	resp, err := c.GetApi().Conversations.Messages.Retrieve(ctx, req)
+	resp, err := c.getApi().Conversations.Messages.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
