@@ -49,6 +49,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Name:    serviceInstance.Name,
 		Address: serviceInstance.Address,
 		Port:    serviceInstance.Port,
+		Tags:    []string{serviceInstance.Type},
 	}
 
 	if serviceInstance.Type == register.InstanceTypeHttp {
@@ -58,6 +59,9 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		check.DeregisterCriticalServiceAfter = "30s"
 		check.HTTP = fmt.Sprintf("http://%s:%d/health", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check
+		registration.Meta = map[string]string{
+			"metrics_path": fmt.Sprintf("/%s/metrics/metrics", serviceInstance.Name),
+		}
 	}
 
 	if serviceInstance.Type == register.InstanceTypeGRPC {
