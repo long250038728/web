@@ -48,3 +48,42 @@ func TestClient_StreamChat(t *testing.T) {
 		t.Log(chat.Content)
 	}
 }
+
+// 当前对话的响应数据
+func TestClient_List(t *testing.T) {
+	cli := &Client{}
+	req := &ListRequest{
+		ConversationID: ConversationID,
+		ChatID:         ChatID,
+	}
+
+	resp, err := cli.List(context.Background(), req)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	for _, msg := range resp.Items {
+		t.Log(msg.Type)
+		t.Log(msg.ContentType)
+		t.Log(msg.Content)
+		t.Log("================")
+	}
+}
+
+// 当前对话的数据
+func TestClient_Retrieve(t *testing.T) {
+	cli := &Client{}
+	req := &RetrieveRequest{
+		ConversationID: ConversationID,
+		ChatID:         ChatID,
+	}
+
+	resp, err := cli.Retrieve(context.Background(), req)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	t.Log(resp)
+}

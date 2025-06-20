@@ -38,6 +38,7 @@ func TestClient_ConversationsMessageRetrieve(t *testing.T) {
 	cli := Client{}
 	request := &ConversationsMessageRetrieveRequest{
 		ConversationID: ConversationID,
+		MessageID:      MessageID,
 	}
 	response, err := cli.ConversationsMessageRetrieve(context.Background(), request)
 	if err != nil {

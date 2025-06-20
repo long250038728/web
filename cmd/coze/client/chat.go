@@ -22,12 +22,12 @@ type ChatResponse struct {
 }
 
 type RetrieveRequest struct {
-	ConversationId string `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 	ChatID         string `json:"chat_id"`
 }
 
 type ListRequest struct {
-	ConversationId string `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 	ChatID         string `json:"chat_id"`
 }
 type ListResponse struct {
@@ -94,6 +94,8 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 			close(ch)
 		}()
 
+		isThinkStop := false
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -101,13 +103,28 @@ func (c *Client) StreamChat(ctx context.Context, request *ChatRequest) (chan Str
 			default:
 				event, err := reader.Recv()
 				if errors.Is(err, io.EOF) {
+					ch <- StreamChat{Content: "\n </body>"}
 					return
 				}
 				if err != nil {
 					ch <- StreamChat{Err: err}
 					return
 				}
+				if event.Event == coze.ChatEventConversationChatInProgress {
+					ch <- StreamChat{Content: "<think>"}
+				}
+
+				if event.Event == coze.ChatEventConversationMessageDelta && len(event.Message.ReasoningContent) > 0 {
+					ch <- StreamChat{Content: event.Message.ReasoningContent}
+				}
+
 				if event.Event == coze.ChatEventConversationMessageDelta && len(event.Message.Content) > 0 {
+					if isThinkStop == false {
+						isThinkStop = true
+						ch <- StreamChat{Content: "</think> \n"}
+						ch <- StreamChat{Content: "<body>"}
+					}
+
 					ch <- StreamChat{Content: event.Message.Content}
 				}
 			}
@@ -125,14 +142,28 @@ func (c *Client) Retrieve(ctx context.Context, request *RetrieveRequest) (*Chat,
 		return nil, err
 	}
 	req := &coze.RetrieveChatsReq{
-		ConversationID: request.ConversationId,
+		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
 	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Chat.Retrieve(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return &Chat{ID: resp.ID, ConversationID: resp.ConversationID, BotID: resp.BotID, CreatedAt: resp.CreatedAt, CompletedAt: resp.CompletedAt, FailedAt: resp.FailedAt, MetaData: resp.MetaData, LastError: resp.LastError.Msg, Status: string(resp.Status)}, nil
+	chat := &Chat{
+		ID:             resp.ID,
+		ConversationID: resp.ConversationID,
+		BotID:          resp.BotID,
+		CreatedAt:      resp.CreatedAt,
+		CompletedAt:    resp.CompletedAt,
+		FailedAt:       resp.FailedAt,
+		MetaData:       resp.MetaData,
+		Status:         string(resp.Status)}
+
+	if resp.LastError != nil {
+		chat.LastError = resp.LastError.Msg
+	}
+
+	return chat, nil
 }
 
 // List 查看对话列表
@@ -143,7 +174,7 @@ func (c *Client) List(ctx context.Context, request *ListRequest) (*ListResponse,
 	}
 
 	req := &coze.ListChatsMessagesReq{
-		ConversationID: request.ConversationId,
+		ConversationID: request.ConversationID,
 		ChatID:         request.ChatID,
 	}
 	resp, err := coze.NewCozeAPI(coze.NewJWTAuth(oauth, nil), coze.WithBaseURL(coze.CnBaseURL)).Chat.Messages.List(ctx, req)
