@@ -26,17 +26,18 @@ func (c *Client) ConversationsMessageCreate(ctx context.Context, request *Conver
 func (c *Client) ConversationsMessageList(ctx context.Context, request *ConversationsMessageListRequest) (*ConversationsMessageListResponse, error) {
 	req := &coze.ListConversationsMessagesReq{
 		ConversationID: request.ConversationID,
+		Limit:          100,
 	}
 	resp, err := c.getApi().Conversations.Messages.List(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]*Message, 0, len(resp.Items()))
-	for _, item := range resp.Items() {
-		items = append(items, &Message{
+	items := make([]*Message, len(resp.Items()), len(resp.Items()))
+	for index, item := range resp.Items() {
+		items[len(resp.Items())-index-1] = &Message{
 			Role: string(item.Role), Type: string(item.Type), Content: item.Content, ReasoningContent: item.ReasoningContent, ContentType: string(item.ContentType), MetaData: item.MetaData, ID: item.ID, ConversationID: item.ConversationID, SectionID: item.SectionID, BotID: item.BotID, ChatID: item.ChatID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
-		})
+		}
 	}
 	return &ConversationsMessageListResponse{Items: items}, nil
 }

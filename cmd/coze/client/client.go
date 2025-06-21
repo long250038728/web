@@ -20,7 +20,7 @@ type Client struct {
 	auth  coze.Auth
 }
 
-func NewCozeClient() (*Client, error) {
+func NewCozeClient() (CozeClientInterface, error) {
 	param := coze.NewJWTOAuthClientParam{
 		ClientID:      jwtOauthClientID,
 		PublicKey:     jwtOauthPublicKeyID,
