@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func main() {
+func serverStido() {
 	// 创建 MCP 服务器
 	s := server.NewMCPServer("mcp", "1.0.0")
 

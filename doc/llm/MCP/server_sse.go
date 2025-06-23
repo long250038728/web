@@ -8,7 +8,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-func main() {
+func serverSSE() {
 	// 创建 MCP 服务器
 	s := server.NewMCPServer("mcp", "1.0.0")
 
@@ -27,6 +27,6 @@ func main() {
 		result := fmt.Sprintf("The score of %s is 95", name)
 		return mcp.NewToolResultText(result), nil
 	})
-	
+
 	fmt.Println(server.NewSSEServer(s).Start("192.168.1.4:8080"))
 }
