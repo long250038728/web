@@ -24,8 +24,8 @@ const (
 
 type RequestHello struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Age           int32                  `protobuf:"varint,2,opt,name=age,proto3" json:"age,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name" form:"name"`  
+	Age           int32                  `protobuf:"varint,2,opt,name=age,proto3" json:"age" form:"age"`   
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -76,7 +76,7 @@ func (x *RequestHello) GetAge() int32 {
 
 type ResponseHello struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Str           string                 `protobuf:"bytes,1,opt,name=str,proto3" json:"str,omitempty"`
+	Str           string                 `protobuf:"bytes,1,opt,name=str,proto3" json:"str" form:"str"`  
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
