@@ -326,7 +326,7 @@ go get github.com/prometheus/client_golang
 
 在业务中暴露 `/metrics`：
 
-```go
+```
 http.Handle("/metrics", promhttp.Handler())
 http.ListenAndServe(":8080", nil)
 ```

@@ -23,7 +23,7 @@ func serverSSE() {
 
 	// 添加工具处理函数
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		name := request.Params.Arguments["name"].(string)
+		name := request.GetArguments()["name"].(string)
 		result := fmt.Sprintf("The score of %s is 95", name)
 		return mcp.NewToolResultText(result), nil
 	})
