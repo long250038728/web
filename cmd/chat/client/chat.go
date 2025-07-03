@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"github.com/long250038728/web/tool/llm"
+	llm2 "github.com/long250038728/web/cmd/chat/llm"
 	"github.com/spf13/cobra"
 	"os"
 	"strings"
@@ -33,7 +33,7 @@ func chat() {
 	prompt := "你是一个go开发高手,对于用户的问题你都可以精准回答。返回格式为json, json格式如下{\"think\":\"xxxxxx\" ,\"message\":\"xxxx\",\"run\":[\"xxxxx\"]}, json字段解释think返回的是字符串为思考内容,message返回的是字符串为返回的文字信息，run字段返回的是linux的命令数组字符串，可用于linux系统调用"
 
 	assistant := newAssistant()
-	chat, err := llm.NewChat(&llm.Config{Model: "deepseek-r1:32b", BaseURL: "http://159.75.100.193:6399/v1"}, llm.NewConversationMemoryLocal(prompt))
+	chat, err := llm2.NewChat(&llm2.Config{Model: "deepseek-r1:32b", BaseURL: "http://159.75.100.193:6399/v1"}, llm2.NewConversationMemoryLocal(prompt))
 	if err != nil {
 		assistant.echo(err.Error())
 		return
