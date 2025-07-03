@@ -23,7 +23,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/google/wire v0.6.0
-	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.28.3
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/prometheus/client_golang v1.14.0
