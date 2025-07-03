@@ -180,7 +180,6 @@ type Logger interface {
 ### MakeFile
 ```
 .PHONY: echo
-# 这里是注释
 echo:
    echo "hello world" 
 ```

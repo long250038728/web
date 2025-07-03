@@ -25,7 +25,6 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.28.3
-	github.com/mark3labs/mcp-go v0.20.1
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/prometheus/client_golang v1.14.0
 	github.com/qiniu/go-sdk/v7 v7.18.2
@@ -72,7 +71,6 @@ require (
 	github.com/cncf/xds/go v0.0.0-20240423153145-555b57ec207b // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/coze-dev/coze-go v0.0.0-20250604025746-0d3b62f445d2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -95,7 +93,6 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
@@ -153,7 +150,6 @@ require (
 	github.com/valyala/fastrand v1.1.0 // indirect
 	github.com/xuri/efp v0.0.0-20230802181842-ad255f2331ca // indirect
 	github.com/xuri/nfp v0.0.0-20230819163627-dc951e3ffe1a // indirect
-	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.13 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.13 // indirect
 	go.opencensus.io v0.24.0 // indirect
