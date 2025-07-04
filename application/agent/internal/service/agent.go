@@ -7,17 +7,17 @@ import (
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
-var _ agent.AgentServer = &AgentService{}
+var _ agent.AgentServer = &Agent{}
 
 var ProviderSet = wire.NewSet(NewService)
 
-type AgentService struct {
+type Agent struct {
 	agent.UnimplementedAgentServer
 	tool.GrpcHealth
-	domain *domain.AgentDomain
+	domain *domain.Agent
 }
 
-func NewService(domain *domain.AgentDomain) *AgentService {
-	s := &AgentService{domain: domain}
+func NewService(domain *domain.Agent) *Agent {
+	s := &Agent{domain: domain}
 	return s
 }

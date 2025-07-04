@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/order/internal/domain"
+	"github.com/long250038728/web/application/order/internal/handles"
 	"github.com/long250038728/web/application/order/internal/repository"
-	"github.com/long250038728/web/application/order/internal/router"
 	"github.com/long250038728/web/application/order/internal/service"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
@@ -32,18 +32,18 @@ func Run(serverName string) error {
 
 	// 定义服务
 	svc := service.NewService(
-		service.SetDomain(domain.NewOrderDomain(repository.NewRepository(util))),
+		service.SetDomain(domain.NewOrderDomain(repository.NewOrderRepository(util))),
 	)
 
-	r := router.NewRouter(util)
+	handle := handles.NewHandles(util)
 
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(serverName, util.Info.IP, util.Port(serverName).HttpPort, func(engine *gin.Engine) {
-				r.RegisterHTTPServer(engine, svc)
+				handle.RegisterHTTPServer(engine, svc)
 			}),
 			rpc.NewGrpc(serverName, util.Info.IP, util.Port(serverName).GrpcPort, func(engine *grpc.Server) {
-				r.RegisterGRPCServer(engine, svc)
+				handle.RegisterGRPCServer(engine, svc)
 			}),
 		),
 	}

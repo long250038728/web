@@ -15,7 +15,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitServer(util *app.Util) *service.AgentService {
+func InitServer(util *app.Util) *service.Agent {
 	agentRepository := repository.NewAgentRepository(util)
 	agentDomain := domain.NewAgentDomain(agentRepository)
 	agentService := service.NewService(agentDomain)

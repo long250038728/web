@@ -7,32 +7,32 @@ import (
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
-type AuthService struct {
+type Auth struct {
 	auth.UnimplementedAuthServer
 	tool.GrpcHealth
-	domain *domain.AuthDomain
+	domain *domain.Auth
 }
 
-type AuthServerOpt func(s *AuthService)
+type AuthServerOpt func(s *Auth)
 
-func SetDomain(domain *domain.AuthDomain) AuthServerOpt {
-	return func(s *AuthService) {
+func SetDomain(domain *domain.Auth) AuthServerOpt {
+	return func(s *Auth) {
 		s.domain = domain
 	}
 }
 
-func NewService(opts ...AuthServerOpt) *AuthService {
-	s := &AuthService{}
+func NewService(opts ...AuthServerOpt) *Auth {
+	s := &Auth{}
 	for _, opt := range opts {
 		opt(s)
 	}
 	return s
 }
 
-func (s *AuthService) Login(ctx context.Context, request *auth.LoginRequest) (*auth.UserResponse, error) {
+func (s *Auth) Login(ctx context.Context, request *auth.LoginRequest) (*auth.UserResponse, error) {
 	return s.domain.Login(ctx, request)
 }
 
-func (s *AuthService) Refresh(ctx context.Context, request *auth.RefreshRequest) (*auth.UserResponse, error) {
+func (s *Auth) Refresh(ctx context.Context, request *auth.RefreshRequest) (*auth.UserResponse, error) {
 	return s.domain.Refresh(ctx, request)
 }

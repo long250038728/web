@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/agent/cmd/wrie"
-	"github.com/long250038728/web/application/agent/internal/router"
+	"github.com/long250038728/web/application/agent/internal/handles"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
@@ -30,7 +30,7 @@ func Run(serverName string) error {
 
 	// 定义服务
 	svc := wrie.InitServer(util)
-	r := router.NewRouter(util)
+	r := handles.NewHandles(util)
 
 	opts := []app.Option{
 		app.Servers( // 服务

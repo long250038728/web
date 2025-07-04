@@ -9,15 +9,15 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-type UserRepository struct {
+type User struct {
 	util *app.Util
 }
 
-func NewUserRepository(util *app.Util) *UserRepository {
-	return &UserRepository{util: util}
+func NewUserRepository(util *app.Util) *User {
+	return &User{util: util}
 }
 
-func (r *UserRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+func (r *User) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	db, err := r.util.Db(ctx)
 	if err != nil {
 		return "", err

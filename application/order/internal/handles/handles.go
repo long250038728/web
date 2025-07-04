@@ -1,4 +1,4 @@
-package router
+package handles
 
 import (
 	"context"
@@ -12,17 +12,15 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
-type Router struct {
+type Handles struct {
 	util *app.Util
 }
 
-func NewRouter(util *app.Util) *Router {
-	return &Router{
-		util: util,
-	}
+func NewHandles(util *app.Util) *Handles {
+	return &Handles{util: util}
 }
 
-func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.OrderService) {
+func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.Order) {
 	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
@@ -39,7 +37,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.OrderServic
 	}
 }
 
-func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.OrderService) {
+func (r *Handles) RegisterGRPCServer(engine *grpc.Server, srv *service.Order) {
 	order.RegisterOrderServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/application/auth/internal/domain"
+	"github.com/long250038728/web/application/auth/internal/handles"
 	"github.com/long250038728/web/application/auth/internal/repository"
-	"github.com/long250038728/web/application/auth/internal/router"
 	"github.com/long250038728/web/application/auth/internal/service"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
@@ -35,7 +35,7 @@ func Run(serverName string) error {
 		service.SetDomain(domain.NewAuthDomain(repository.NewAuthRepository(util))),
 	)
 
-	r := router.NewRouter(util)
+	r := handles.NewHandles(util)
 
 	opts := []app.Option{
 		app.Servers( // 服务

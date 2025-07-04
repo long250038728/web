@@ -27,8 +27,8 @@ func newServerGen() *server {
 //go:embed tmpl/server/main.tmpl
 var main string
 
-//go:embed tmpl/server/router.tmpl
-var router string
+//go:embed tmpl/server/handles.tmpl
+var handles string
 
 //go:embed tmpl/server/service.tmpl
 var service string
@@ -51,10 +51,10 @@ func (g *server) genMain(data *serverValue) ([]byte, error) {
 		},
 	}).Gen()
 }
-func (g *server) genRouter(data *serverValue) ([]byte, error) {
+func (g *server) genHandles(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
-		Name:     "gen router",
-		Tmpl:     router,
+		Name:     "gen handles",
+		Tmpl:     handles,
 		Data:     data,
 		IsFormat: true,
 		Func: template.FuncMap{
@@ -154,8 +154,9 @@ func (c *ServerCorn) Server() *cobra.Command {
 					filepath.Join(c.path, server, "internal", "domain"),
 					filepath.Join(c.path, server, "internal", "model"),
 					filepath.Join(c.path, server, "internal", "repository"),
-					filepath.Join(c.path, server, "internal", "router"),
+					filepath.Join(c.path, server, "internal", "handles"),
 					filepath.Join(c.path, server, "internal", "service"),
+					filepath.Join(c.path, server, "internal", "validate"),
 				}
 				for _, path := range paths {
 					_, err = os.Stat(path)
@@ -168,7 +169,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 
 				g := newServerGen()
 				var mainBytes []byte
-				var routerBytes []byte
+				var handlesBytes []byte
 
 				var serverBytes []byte
 				var domainBytes []byte
@@ -179,7 +180,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if mainBytes, err = g.genMain(v); err != nil {
 					return err
 				}
-				if routerBytes, err = g.genRouter(v); err != nil {
+				if handlesBytes, err = g.genHandles(v); err != nil {
 					return err
 				}
 
@@ -197,16 +198,16 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(c.path, server, "cmd", "main.go"), mainBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "router", "router.go"), routerBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "handles", "handles.go"), handlesBytes, os.ModePerm); err != nil {
 					return err
 				}
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", server+".go"), serverBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+"_domain.go"), domainBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+".go"), domainBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "repository", server+"_repository.go"), repositoryBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "repository", server+".go"), repositoryBytes, os.ModePerm); err != nil {
 					return err
 				}
 

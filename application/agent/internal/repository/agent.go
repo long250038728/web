@@ -7,10 +7,10 @@ import (
 
 var ProviderSet = wire.NewSet(NewAgentRepository)
 
-type AgentRepository struct {
+type Agent struct {
 	util *app.Util
 }
 
-func NewAgentRepository(util *app.Util) *AgentRepository {
-	return &AgentRepository{util: util}
+func NewAgentRepository(util *app.Util) *Agent {
+	return &Agent{util: util}
 }

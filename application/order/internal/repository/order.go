@@ -11,15 +11,15 @@ import (
 	"github.com/long250038728/web/tool/server/http"
 )
 
-type OrderRepository struct {
+type Order struct {
 	util *app.Util
 }
 
-func NewRepository(util *app.Util) *OrderRepository {
-	return &OrderRepository{util: util}
+func NewOrderRepository(util *app.Util) *Order {
+	return &Order{util: util}
 }
 
-func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
+func (r *Order) GetName(ctx context.Context, request *user.RequestHello) (string, error) {
 	//orm
 	db, err := r.util.Db(ctx)
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *OrderRepository) GetName(ctx context.Context, request *user.RequestHell
 	return "hello:" + request.Name + " " + c.Name, nil
 }
 
-func (r *OrderRepository) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (string, error) {
+func (r *Order) OrderDetail(ctx context.Context, request *order.OrderDetailRequest) (string, error) {
 	// 创建rpc客户端
 	conn, err := r.util.Rpc(ctx, protoc.UserService)
 	if err != nil {

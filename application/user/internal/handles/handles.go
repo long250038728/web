@@ -1,4 +1,4 @@
-package router
+package handles
 
 import (
 	"context"
@@ -13,17 +13,15 @@ import (
 	"time"
 )
 
-type Router struct {
+type Handles struct {
 	util *app.Util
 }
 
-func NewRouter(util *app.Util) *Router {
-	return &Router{
-		util: util,
-	}
+func NewHandles(util *app.Util) *Handles {
+	return &Handles{util: util}
 }
 
-func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.UserService) {
+func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.User) {
 	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
@@ -62,7 +60,7 @@ func (r *Router) RegisterHTTPServer(engine *gin.Engine, srv *service.UserService
 	}
 }
 
-func (r *Router) RegisterGRPCServer(engine *grpc.Server, srv *service.UserService) {
+func (r *Handles) RegisterGRPCServer(engine *grpc.Server, srv *service.User) {
 	user.RegisterUserServer(engine, srv)
 	grpc_health_v1.RegisterHealthServer(engine, srv)
 }

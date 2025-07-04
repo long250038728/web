@@ -21,6 +21,6 @@ import (
 // 在xxxNew中如果有参数是无法直接初始化而需要通过传递的方式，那么传入到该方法中（如InitServer方法）
 // 如果某个xxxNew() 返回了error或其他的即没有其他的xxxNew()能接收，那么就在init方法返回（如InitServer方法）
 
-func InitServer(util *app.Util) *service.AgentService {
+func InitServer(util *app.Util) *service.Agent {
 	panic(wire.Build(service.ProviderSet, domain.ProviderSet, repository.ProviderSet))
 }
