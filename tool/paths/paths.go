@@ -13,12 +13,12 @@ func RootConfigPath(path string) (string, error) {
 			return path
 		},
 		func() string {
-			rootPath := os.Getenv("CONFIG")
-			return rootPath
-		},
-		func() string {
 			wd, _ := os.Getwd()
 			return filepath.Join(wd, "config") //获取当前路径下的config文件夹
+		},
+		func() string {
+			rootPath := os.Getenv("CONFIG")
+			return rootPath
 		},
 	}
 
@@ -32,5 +32,5 @@ func RootConfigPath(path string) (string, error) {
 			return root, nil
 		}
 	}
-	return "", errors.New("config path is empty, You can  1.INPUT CONFIG  2.SET ENV CONFIG  3.CURR PATH has config dir")
+	return "", errors.New("config path is empty, You can  1.INPUT CONFIG   2.CURR PATH has config dir  3.SET ENV CONFIG ")
 }
