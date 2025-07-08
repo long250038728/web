@@ -3,6 +3,7 @@ package handles
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
 	"github.com/long250038728/web/application/agent/internal/service"
 	"github.com/long250038728/web/protoc/agent"
 	"github.com/long250038728/web/tool/app"
@@ -12,15 +13,18 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
+var ProviderSet = wire.NewSet(NewHandles)
+
 type Handles struct {
+	srv  *service.Agent
 	util *app.Util
 }
 
-func NewHandles(util *app.Util) *Handles {
-	return &Handles{util: util}
+func NewHandles(srv *service.Agent, util *app.Util) *Handles {
+	return &Handles{srv: srv, util: util}
 }
 
-func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.Agent) {
+func (r *Handles) RegisterHTTPServer(engine *gin.Engine) {
 	authorized, err := r.util.Auth()
 	if err != nil {
 		panic(err)
@@ -31,25 +35,25 @@ func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.Agent) {
 	{
 		infoGroup.GET("logs", func(c *gin.Context) {
 			gateway.Json(c, &agent.LogsRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
-				return srv.Logs(ctx, req.(*agent.LogsRequest))
+				return r.srv.Logs(ctx, req.(*agent.LogsRequest))
 			})
 		})
 
 		infoGroup.GET("events", func(c *gin.Context) {
 			gateway.Json(c, &agent.EventsRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
-				return srv.Events(ctx, req.(*agent.EventsRequest))
+				return r.srv.Events(ctx, req.(*agent.EventsRequest))
 			})
 		})
 
 		infoGroup.GET("resources", func(c *gin.Context) {
 			gateway.Json(c, &agent.ResourcesRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
-				return srv.Resources(ctx, req.(*agent.ResourcesRequest))
+				return r.srv.Resources(ctx, req.(*agent.ResourcesRequest))
 			})
 		})
 	}
 }
 
-func (r *Handles) RegisterGRPCServer(engine *grpc.Server, srv *service.Agent) {
-	agent.RegisterAgentServer(engine, srv)
-	grpc_health_v1.RegisterHealthServer(engine, srv)
+func (r *Handles) RegisterGRPCServer(engine *grpc.Server) {
+	agent.RegisterAgentServer(engine, r.srv)
+	grpc_health_v1.RegisterHealthServer(engine, r.srv)
 }

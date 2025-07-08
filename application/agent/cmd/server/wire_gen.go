@@ -4,10 +4,11 @@
 //go:build !wireinject
 // +build !wireinject
 
-package wrie
+package server
 
 import (
 	"github.com/long250038728/web/application/agent/internal/domain"
+	"github.com/long250038728/web/application/agent/internal/handles"
 	"github.com/long250038728/web/application/agent/internal/repository"
 	"github.com/long250038728/web/application/agent/internal/service"
 	"github.com/long250038728/web/tool/app"
@@ -15,9 +16,10 @@ import (
 
 // Injectors from wire.go:
 
-func InitServer(util *app.Util) *service.Agent {
-	agentRepository := repository.NewAgentRepository(util)
-	agentDomain := domain.NewAgentDomain(agentRepository)
-	agentService := service.NewService(agentDomain)
-	return agentService
+func InitHandles(util *app.Util) *handles.Handles {
+	agent := repository.NewAgentRepository(util)
+	domainAgent := domain.NewAgentDomain(agent)
+	serviceAgent := service.NewService(domainAgent)
+	handlesHandles := handles.NewHandles(serviceAgent, util)
+	return handlesHandles
 }
