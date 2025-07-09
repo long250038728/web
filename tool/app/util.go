@@ -59,33 +59,30 @@ func InitCenterInfo(configPath *string) {
 	}
 }
 
-func NewUtil() *Util {
+func NewUtil(yaml ...string) *Util {
 	once.Do(func() {
 		root, err := paths.RootConfigPath(path)
 		if err != nil {
 			panic(err)
 		}
 
-		util, err := NewUtilPath(root)
+		conf, err := NewAppConfig(root, yaml...)
+		if err != nil {
+			panic("util config error " + err.Error())
+		}
+
+		util, err := NewInitUtil(conf)
 		if err != nil {
 			panic("util init error " + err.Error())
 		}
+
 		u = util
 	})
 	return u
 }
 
-// NewUtilPath 根据根路径获取Util工具箱
-func NewUtilPath(root string, yaml ...string) (*Util, error) {
-	conf, err := NewAppConfig(root, yaml...)
-	if err != nil {
-		return nil, err
-	}
-	return NewUtilConfig(conf)
-}
-
-// NewUtilConfig 根据配置获取Util工具箱
-func NewUtilConfig(config *Config) (*Util, error) {
+// NewInitUtil 根据配置获取Util工具箱
+func NewInitUtil(config *Config) (*Util, error) {
 	util := &Util{
 		Info:  config,
 		Sf:    &singleflight.Group{},
@@ -169,6 +166,9 @@ func (u *Util) Port(svcName string) Port {
 func (u *Util) Close() {
 	if u.storeClient != nil {
 		u.storeClient.Close()
+	}
+	if u.exporter != nil {
+		_ = u.exporter.Shutdown(context.Background())
 	}
 }
 
