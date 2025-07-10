@@ -1,4 +1,4 @@
-package config_center
+package etcd
 
 import (
 	"context"
@@ -13,69 +13,31 @@ import (
 	"time"
 )
 
-var client ConfigCenter
-var eClient *EtcdCenter
-
-func init() {
-	var err error
+func TestEtcd(t *testing.T) {
+	ctx := context.Background()
 	var centerConfig Config
 	configurator.NewYaml().MustLoadConfigPath("center.yaml", &centerConfig)
-	if client, err = NewEtcdConfigCenter(&centerConfig); err != nil {
-		panic(err)
-	}
-	if eClient, err = NewEtcd(&centerConfig); err != nil {
-		panic(err)
-	}
-}
-
-func TestConfig(t *testing.T) {
-	ctx := context.Background()
-	t.Run("watch", func(t *testing.T) {
-		t.Log(client.Watch(ctx, "hello", func(changeKey, changeVal []byte) {
-			fmt.Println(string(changeKey), string(changeVal))
-		}))
+	client, err := etcdClient.New(etcdClient.Config{
+		Endpoints:   []string{centerConfig.Address},
+		DialTimeout: 5 * time.Second,
 	})
-	t.Run("set", func(t *testing.T) {
-		t.Log(client.Set(ctx, "hello", "123456"))
-	})
-	t.Run("set", func(t *testing.T) {
-		t.Log(client.Set(ctx, "hello", "4567"))
-	})
-	t.Run("get", func(t *testing.T) {
-		t.Log(client.Get(ctx, "hello"))
-	})
-	t.Run("del", func(t *testing.T) {
-		t.Log(client.Del(ctx, "hello"))
-	})
-
-	_ = client.Close()
-}
-
-func TestConfig_Upload(t *testing.T) {
-	t.Log(client.UpLoad(context.Background(), "/Users/linlong/Desktop/web/config"))
-}
-
-func TestEtcd(t *testing.T) {
-	defer func() {
-		_ = eClient.Close()
-	}()
-	client := eClient.client
-
-	session, err := concurrency.NewSession(client)
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
+		return
 	}
 	defer func() {
-		t.Log(session.Lease())
+		_ = client.Close()
+	}()
+
+	session, _ := concurrency.NewSession(client)
+	defer func() {
 		_ = session.Close() //当session close时Campaign就会取消成为leader（租约（lease）会被撤销）
 	}()
 
-	ctx := context.Background()
-
+	// 创建watch监听
 	t.Run("watch", func(t *testing.T) {
-		//监听key的变化(包括leader)
 		go func() {
-			ch := client.Watch(ctx, "/my-election", etcdClient.WithPrefix())
+			ch := client.Watch(ctx, "/my-election", etcdClient.WithPrefix()) //监听key的变化(包括leader)
 			for msg := range ch {
 				for _, even := range msg.Events {
 					t.Log(even)
@@ -85,68 +47,30 @@ func TestEtcd(t *testing.T) {
 	})
 
 	t.Run("Lease", func(t *testing.T) {
-		// 创建一个租约，有效期为1秒
-		lease, err := client.Grant(ctx, 1)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-
-		_, err = client.Put(ctx, "key", "val", etcdClient.WithLease(lease.ID))
-		if err != nil {
-			t.Error(err)
-			return
-		}
-
-		// 继续使用租约进行其他操作，例如保持租约活跃
-		resCh, err := client.KeepAlive(ctx, lease.ID)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		lease, _ := client.Grant(ctx, 1)                                     // 创建一个租约，有效期为1秒
+		_, _ = client.Put(ctx, "key", "val", etcdClient.WithLease(lease.ID)) //给这个key value设置一个续约
+		resCh, _ := client.KeepAlive(ctx, lease.ID)                          // 保持租约活跃 —————— 继续使用租约进行其他操作
 		go func() {
-			//阻塞监听
 			for chResp := range resCh {
 				t.Log(fmt.Sprintf("KeepAlive response: %v", chResp))
 			}
 		}()
-		time.Sleep(time.Second * 5)
-
-		//移除租约
-		t.Log(client.Revoke(ctx, lease.ID))
-
-		//获取值（如果租约已经失效，则获取不到）
-		val, err := client.Get(ctx, "key")
-		if err != nil {
-			log.Fatal(err)
-		}
-		t.Log(val.Kvs)
+		t.Log(client.Revoke(ctx, lease.ID)) //移除租约(此时key已经没有ttl了，key会被删除)
 	})
 
 	t.Run("election", func(t *testing.T) {
 		election := concurrency.NewElection(session, "/my-election")
 
-		//监听当前的election
-		//go func() {
-		//	for _ = range election.Observe(ctx){
-		//
-		//	}
-		//}()
-
-		//竞选leader
-		if err := election.Campaign(ctx, "candidate-1"); err != nil {
+		if err := election.Campaign(ctx, "candidate-1"); err != nil { //竞选leader （如果竞选不到则会阻塞等待）
 			t.Log(err)
 			return
 		}
-		t.Log(election.Leader(ctx))
-
-		//更新leader中的val（当前节点不是领导者，调用它会导致错误）
-		if err := election.Proclaim(ctx, "candidate-2"); err != nil {
+		if err := election.Proclaim(ctx, "candidate-2"); err != nil { //更新leader中的val（当前节点不是领导者，调用它会导致错误）
 			t.Log(err)
 			return
 		}
-		t.Log(election.Leader(ctx))
 
+		t.Log(election.Leader(ctx))
 		t.Log(election.Key(), election.Rev())
 
 		//放弃leader（当前节点不是领导者，调用它会导致错误）
@@ -157,12 +81,6 @@ func TestEtcd(t *testing.T) {
 	})
 
 	t.Run("lock", func(t *testing.T) {
-		t.Run("lock", func(t *testing.T) {
-			locker := concurrency.NewLocker(session, "/locker")
-			locker.Lock() //如果获取锁失败会进行锁等待
-			defer locker.Unlock()
-			t.Log("this is locker")
-		})
 		t.Run("mutex", func(t *testing.T) {
 			locker := concurrency.NewMutex(session, "/mutex")
 			//_ = locker.TryLock(context.Background()) //如果获取锁失败会返回err无阻塞等待
@@ -170,8 +88,15 @@ func TestEtcd(t *testing.T) {
 			_ = locker.Unlock(ctx)
 			t.Log("this is mutex", locker.Key())
 		})
+		t.Run("lock", func(t *testing.T) {
+			locker := concurrency.NewLocker(session, "/locker") //NewMutex 的一个包装,只提供Lock跟UnLock方法
+			locker.Lock()                                       //如果获取锁失败会进行锁等待
+			defer locker.Unlock()
+			t.Log("this is locker")
+		})
 	})
 
+	//分布式消息队列
 	t.Run("queue", func(t *testing.T) {
 		t.Run("queue", func(t *testing.T) {
 			queue := recipe.NewQueue(client, "/queue")
@@ -198,6 +123,8 @@ func TestEtcd(t *testing.T) {
 
 			wg.Wait()
 		})
+
+		//分布式优先消息队列 （当在消费队列中已经通过优先级排序然后消费）
 		t.Run("priority_query", func(t *testing.T) {
 			queue := recipe.NewPriorityQueue(client, "/priority_query")
 
@@ -225,6 +152,7 @@ func TestEtcd(t *testing.T) {
 		})
 	})
 
+	//事务 (原子性操作)
 	t.Run("tx", func(t *testing.T) {
 		t.Run("tx", func(t *testing.T) {
 			res, err := client.Txn(ctx).
@@ -246,6 +174,7 @@ func TestEtcd(t *testing.T) {
 		})
 	})
 
+	// 栅栏，目的多个消费者barrier.Wait此时阻塞，有一个发起barrier.Release则全部释放
 	t.Run("barrier", func(t *testing.T) {
 		t.Run("barrier", func(t *testing.T) {
 			barrier := recipe.NewBarrier(client, "/barrier")
@@ -256,6 +185,8 @@ func TestEtcd(t *testing.T) {
 			}()
 			t.Log(barrier.Wait())
 		})
+
+		//当count的数量到达时才会全部解除阻塞一起执行之后的内容
 		t.Run("double_barrier", func(t *testing.T) {
 			var wg sync.WaitGroup
 			wg.Add(3)

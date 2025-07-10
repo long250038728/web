@@ -5,19 +5,19 @@ import (
 	"errors"
 	"github.com/long250038728/web/tool/app_const"
 	"github.com/long250038728/web/tool/configurator"
-	"github.com/long250038728/web/tool/configurator/config_center"
+	"github.com/long250038728/web/tool/persistence/etcd"
 	"path/filepath"
 )
 
 var configLoad = configurator.NewYaml()
 var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
-func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
-	var centerConfig config_center.Config
+func initConfigCenter(rootPath string) (etcd.ConfigCenter, error) {
+	var centerConfig etcd.Config
 	if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
 		return nil, err
 	}
-	return config_center.NewEtcdConfigCenter(&centerConfig)
+	return etcd.NewEtcdConfigCenter(&centerConfig)
 }
 
 // NewAppConfig 获取app配置
@@ -92,7 +92,7 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 				return nil, errors.New(fileName + "is not bind object")
 			}
 
-			confStr, err := client.Get(ctx, "config-"+fileName)
+			confStr, err := client.Get(ctx, fileName)
 			if err != nil {
 				return nil, err
 			}

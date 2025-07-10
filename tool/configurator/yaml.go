@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+//go get -u gopkg.in/yaml.v3
+
 type yamlLoad struct {
 }
 
