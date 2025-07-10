@@ -2,6 +2,8 @@ package robfig
 
 import "github.com/robfig/cron/v3"
 
+//go get github.com/robfig/cron
+
 type CronJob struct {
 	cron *cron.Cron
 }
