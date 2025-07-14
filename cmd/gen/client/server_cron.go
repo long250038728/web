@@ -17,18 +17,18 @@ type serverValue struct {
 	Protoc string `json:"protoc" yaml:"protoc"`
 }
 
-type server struct {
+type serverGen struct {
 }
 
-func newServerGen() *server {
-	return &server{}
+func newServerGen() *serverGen {
+	return &serverGen{}
 }
 
 //go:embed tmpl/server/main.tmpl
 var main string
 
 //go:embed tmpl/server/server.tmpl
-var serv string
+var server string
 
 //go:embed tmpl/server/handles.tmpl
 var handles string
@@ -43,7 +43,7 @@ var domain string
 var repository string
 
 // genMain 生成
-func (g *server) genMain(data *serverValue) ([]byte, error) {
+func (g *serverGen) genMain(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen main",
 		Tmpl:     main,
@@ -55,10 +55,10 @@ func (g *server) genMain(data *serverValue) ([]byte, error) {
 	}).Gen()
 }
 
-func (g *server) genServer(data *serverValue) ([]byte, error) {
+func (g *serverGen) genServer(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen server",
-		Tmpl:     serv,
+		Tmpl:     server,
 		Data:     data,
 		IsFormat: true,
 		Func: template.FuncMap{
@@ -67,7 +67,7 @@ func (g *server) genServer(data *serverValue) ([]byte, error) {
 	}).Gen()
 }
 
-func (g *server) genHandles(data *serverValue) ([]byte, error) {
+func (g *serverGen) genHandles(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen handles",
 		Tmpl:     handles,
@@ -78,7 +78,7 @@ func (g *server) genHandles(data *serverValue) ([]byte, error) {
 		},
 	}).Gen()
 }
-func (g *server) genService(data *serverValue) ([]byte, error) {
+func (g *serverGen) genService(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen service",
 		Tmpl:     service,
@@ -89,7 +89,7 @@ func (g *server) genService(data *serverValue) ([]byte, error) {
 		},
 	}).Gen()
 }
-func (g *server) genDomain(data *serverValue) ([]byte, error) {
+func (g *serverGen) genDomain(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen domain",
 		Tmpl:     domain,
@@ -100,7 +100,7 @@ func (g *server) genDomain(data *serverValue) ([]byte, error) {
 		},
 	}).Gen()
 }
-func (g *server) genRepository(data *serverValue) ([]byte, error) {
+func (g *serverGen) genRepository(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen repository",
 		Tmpl:     repository,
@@ -112,7 +112,7 @@ func (g *server) genRepository(data *serverValue) ([]byte, error) {
 	}).Gen()
 }
 
-func (g *server) serverName(server string) string {
+func (g *serverGen) serverName(server string) string {
 	//对server字符串第一个转换为大写
 	return fmt.Sprintf("%s%s", strings.ToUpper(server[:1]), server[1:])
 }
@@ -128,8 +128,8 @@ func NewServerCornCorn() *ServerCorn {
 }
 
 func (c *ServerCorn) Server() *cobra.Command {
-	//go run main.go server test /Users/linlong/Desktop/web/application
-	//go run main.go server test /Users/linlong/Desktop/web/application github.com/long250038728/web application protoc
+	//go run main.go serverGen test /Users/linlong/Desktop/web/application
+	//go run main.go serverGen test /Users/linlong/Desktop/web/application github.com/long250038728/web application protoc
 	return &cobra.Command{
 		Use:   "server [服务名] [输出路径] [module-path:默认github.com/long250038728/web] [项目相对路径:默认application] [proto相对路径:默认protoc]",
 		Short: "创建server： 请输入 [服务名] [输出路径] [module-path:默认github.com/long250038728/web] [项目相对路径:默认application] [proto相对路径:默认protoc]",

@@ -40,7 +40,7 @@ func Run(serverName string) error {
 		opts = append(opts, app.Register(register)) //服务注册 && 发现
 	}
 	if exporter, err := util.Exporter(); err == nil {
-		opts = append(opts, app.Tracing(exporter, serverName)) //服务注册 && 发现
+		opts = append(opts, app.Tracing(exporter, serverName)) //链路
 	}
 
 	//启动服务
