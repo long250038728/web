@@ -49,5 +49,6 @@ func TestConfig_Upload(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	t.Log(client.UpLoad(ctx, "/Users/linlong/Desktop/web/config"))
+
+	t.Log(client.UpLoad(ctx, "/Users/linlong/Desktop/web/config/demo", "db.yaml", "db_read.yaml", "redis.yaml", "mq.yaml", "es.yaml", "register.yaml", "tracing.yaml"))
 }

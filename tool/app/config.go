@@ -12,14 +12,6 @@ import (
 var configLoad = configurator.NewYaml()
 var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
-func initConfigCenter(rootPath string) (etcd.ConfigCenter, error) {
-	var centerConfig etcd.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
-		return nil, err
-	}
-	return etcd.NewEtcdConfigCenter(&centerConfig)
-}
-
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	ctx := context.Background()
@@ -81,7 +73,11 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 
 	//配置中心
 	if conf.ConfigInitType == app_const.ConfigInitCenter {
-		client, err := initConfigCenter(rootPath)
+		var centerConfig etcd.Config
+		if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
+			return nil, err
+		}
+		client, err := etcd.NewEtcdConfigCenter(&centerConfig)
 		if err != nil {
 			return nil, err
 		}

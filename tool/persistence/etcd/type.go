@@ -11,6 +11,8 @@ const (
 
 type ConfigCenter interface {
 	KV
+	UpLoad
+	io.Closer
 }
 
 type KV interface {
@@ -18,6 +20,8 @@ type KV interface {
 	Set(ctx context.Context, key, value string) error
 	Del(ctx context.Context, key string) error
 	Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error
-	UpLoad(ctx context.Context, rootPath string, yaml ...string) error
-	io.Closer
+}
+
+type UpLoad interface {
+	UpLoad(ctx context.Context, rootPath string, files ...string) error
 }

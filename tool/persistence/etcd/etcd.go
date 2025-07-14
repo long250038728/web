@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -77,24 +78,30 @@ func (r *EtcdCenter) Watch(ctx context.Context, key string, callback func(change
 	}
 }
 
-func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, yaml ...string) error {
-	var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
-	if len(yaml) == 0 {
-		yaml = defaultConfigs
+func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, files ...string) error {
+	if len(files) == 0 {
+		return errors.New("file list is empty")
 	}
 
-	for _, fileName := range yaml {
+	for _, fileName := range files {
+		f := strings.Split(fileName, ",")
+		if len(f) != 2 {
+			return errors.New("files is error: " + fileName)
+		}
+
+		key := r.prefix + f[0]
+
 		// 先删除
-		_ = r.Del(ctx, fileName)
+		_ = r.Del(ctx, key)
 
 		// 获取
-		b, err := os.ReadFile(filepath.Join(rootPath, fileName+".yaml"))
+		b, err := os.ReadFile(filepath.Join(rootPath, fileName))
 		if err != nil {
 			return err
 		}
 
 		// 上传
-		err = r.Set(ctx, r.prefix+fileName, string(b))
+		err = r.Set(ctx, key, string(b))
 		if err != nil {
 			return err
 		}

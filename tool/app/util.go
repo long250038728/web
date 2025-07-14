@@ -61,7 +61,7 @@ func InitCenterInfo(configPath *string) {
 
 func NewUtil(yaml ...string) *Util {
 	once.Do(func() {
-		root, err := paths.RootConfigPath(path)
+		root, err := paths.RootConfigPath(paths.DefaultCfgPathsFunc(path)...)
 		if err != nil {
 			panic(err)
 		}
