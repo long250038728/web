@@ -4,10 +4,10 @@ import (
 	"github.com/long250038728/web/tool/app"
 )
 
-type {{serverNameFunc .Server}} struct {
+type {{serverNameFunc .Server}}Repository struct {
 	util *app.Util
 }
 
-func New{{serverNameFunc .Server}}Repository(util *app.Util) *{{serverNameFunc .Server}} {
-	return &{{serverNameFunc .Server}}{util: util}
+func New{{serverNameFunc .Server}}Repository(util *app.Util) *{{serverNameFunc .Server}}Repository {
+	return &{{serverNameFunc .Server}}Repository{util: util}
 }

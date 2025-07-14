@@ -27,6 +27,9 @@ func newServerGen() *server {
 //go:embed tmpl/server/main.tmpl
 var main string
 
+//go:embed tmpl/server/server.tmpl
+var serv string
+
 //go:embed tmpl/server/handles.tmpl
 var handles string
 
@@ -51,6 +54,19 @@ func (g *server) genMain(data *serverValue) ([]byte, error) {
 		},
 	}).Gen()
 }
+
+func (g *server) genServer(data *serverValue) ([]byte, error) {
+	return (&gen.Impl{
+		Name:     "gen server",
+		Tmpl:     serv,
+		Data:     data,
+		IsFormat: true,
+		Func: template.FuncMap{
+			"serverNameFunc": g.serverName,
+		},
+	}).Gen()
+}
+
 func (g *server) genHandles(data *serverValue) ([]byte, error) {
 	return (&gen.Impl{
 		Name:     "gen handles",
@@ -150,6 +166,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 					filepath.Join(c.path),
 					filepath.Join(c.path, server),
 					filepath.Join(c.path, server, "cmd"),
+					filepath.Join(c.path, server, "cmd", "server"),
 					filepath.Join(c.path, server, "internal"),
 					filepath.Join(c.path, server, "internal", "domain"),
 					filepath.Join(c.path, server, "internal", "model"),
@@ -169,9 +186,10 @@ func (c *ServerCorn) Server() *cobra.Command {
 
 				g := newServerGen()
 				var mainBytes []byte
-				var handlesBytes []byte
-
 				var serverBytes []byte
+
+				var handlesBytes []byte
+				var serviceBytes []byte
 				var domainBytes []byte
 				var repositoryBytes []byte
 
@@ -180,11 +198,13 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if mainBytes, err = g.genMain(v); err != nil {
 					return err
 				}
+				if serverBytes, err = g.genServer(v); err != nil {
+					return err
+				}
 				if handlesBytes, err = g.genHandles(v); err != nil {
 					return err
 				}
-
-				if serverBytes, err = g.genService(v); err != nil {
+				if serviceBytes, err = g.genService(v); err != nil {
 					return err
 				}
 				if domainBytes, err = g.genDomain(v); err != nil {
@@ -198,10 +218,13 @@ func (c *ServerCorn) Server() *cobra.Command {
 				if err := os.WriteFile(filepath.Join(c.path, server, "cmd", "main.go"), mainBytes, os.ModePerm); err != nil {
 					return err
 				}
+				if err := os.WriteFile(filepath.Join(c.path, server, "cmd", "server", "server.go"), serverBytes, os.ModePerm); err != nil {
+					return err
+				}
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "handles", "handles.go"), handlesBytes, os.ModePerm); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", server+".go"), serverBytes, os.ModePerm); err != nil {
+				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "service", server+".go"), serviceBytes, os.ModePerm); err != nil {
 					return err
 				}
 				if err := os.WriteFile(filepath.Join(c.path, server, "internal", "domain", server+".go"), domainBytes, os.ModePerm); err != nil {

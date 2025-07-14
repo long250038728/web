@@ -53,12 +53,6 @@ func InitPathInfo(configPath *string) {
 	}
 }
 
-func InitCenterInfo(configPath *string) {
-	if configPath != nil {
-		path = *configPath
-	}
-}
-
 func NewUtil(yaml ...string) *Util {
 	once.Do(func() {
 		root, err := paths.RootConfigPath(paths.DefaultCfgPathsFunc(path)...)
