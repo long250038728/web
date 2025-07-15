@@ -32,10 +32,6 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 		"tracing":  &conf.tracingConfig,
 	}
 
-	if conf.RpcType == "" {
-		conf.RpcType = app_const.RpcLocal
-	}
-
 	if len(yaml) == 0 {
 		yaml = defaultLocalConfigs
 		if conf.RpcType == app_const.RpcRegister {
@@ -55,6 +51,16 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	}
 	if conf.IP == "" {
 		conf.IP = loadIP()
+	}
+
+	if _, ok := app_const.RPC[conf.RpcType]; !ok {
+		return nil, errors.New("config RPC TYPE value is undefined")
+	}
+	if _, ok := app_const.ENV[conf.Env]; !ok {
+		return nil, errors.New("config Env value is undefined")
+	}
+	if _, ok := app_const.ConfigInit[conf.ConfigInitType]; !ok {
+		return nil, errors.New("config Config init value is undefined")
 	}
 
 	//配置文件

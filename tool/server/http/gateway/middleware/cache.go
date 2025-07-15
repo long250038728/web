@@ -133,3 +133,25 @@ func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gatew
 		return resp, err
 	}
 }
+
+// Limit 示例中间件：限流拦截器
+func Limit(c *gin.Context, client cache.Cache, keys []string, limitNum int64, opts ...Opt) gateway.ServerInterceptor {
+	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
+		setting := NewDefaultMiddlewareInfo()
+		for _, opt := range opts {
+			opt(setting)
+		}
+		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
+		if !dataIsAllMatch {
+			return nil, app_error.Vaildate
+		}
+		num, err := client.Incr(ctx, key)
+		defer func() {
+			_, _ = client.Decr(ctx, key)
+		}()
+		if err != nil || num > limitNum {
+			return nil, app_error.ApiTooManyRequests
+		}
+		return handler(ctx, request)
+	}
+}

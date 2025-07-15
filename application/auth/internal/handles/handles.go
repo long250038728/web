@@ -30,13 +30,13 @@ func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.Auth) {
 	userGroup := engine.Group("/auth/user/").Use(middleware.BaseHandle(authorized))
 	{
 		userGroup.POST("login", func(c *gin.Context) {
-			gateway.Json(c, &auth.LoginRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &auth.LoginRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.Login(ctx, req.(*auth.LoginRequest))
 			})
 		})
 
 		userGroup.POST("refresh", func(c *gin.Context) {
-			gateway.Json(c, &auth.RefreshRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &auth.RefreshRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.Refresh(ctx, req.(*auth.RefreshRequest))
 			})
 		})

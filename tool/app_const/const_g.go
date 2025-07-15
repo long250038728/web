@@ -9,3 +9,19 @@ const EnvRelease = "release"
 
 const ConfigInitFile = "file"
 const ConfigInitCenter = "center"
+
+var RPC = map[string]struct{}{
+	RpcLocal:      {},
+	RpcKubernetes: {},
+	RpcRegister:   {},
+}
+
+var ENV = map[string]struct{}{
+	EnvDev:     {},
+	EnvRelease: {},
+}
+
+var ConfigInit = map[string]struct{}{
+	ConfigInitFile:   {},
+	ConfigInitCenter: {},
+}

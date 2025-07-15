@@ -40,7 +40,10 @@ func NewEtcdConfigCenter(config *Config) (ConfigCenter, error) {
 }
 
 func (r *EtcdCenter) Get(ctx context.Context, key string) (string, error) {
-	res, err := r.client.Get(ctx, r.prefix+key)
+	// Linearized Read 线性读 () 把请求转发到leader节点中，此时还会通过readIndex心跳获取自己是不是依旧是leader节点 —— 默认
+	// Serializable Read 串行读 () 随机一个节点读取数据，该节点可能日志还未应用，所以会读到落后的数据
+	res, err := r.client.Get(ctx, r.prefix+key) //etcdClient.WithSerializable()
+
 	if err != nil {
 		return "", err
 	}
@@ -51,6 +54,14 @@ func (r *EtcdCenter) Get(ctx context.Context, key string) (string, error) {
 }
 
 func (r *EtcdCenter) Set(ctx context.Context, key, value string) error {
+	// etcd会检查当前的etcd db的大小，如果超过QUOTA配额会警告并拒绝写入，变成集群只读（调大后需要发生那个额外的命令）—— 默认2G
+	// etcd的MVCC跟mysql区别在于，这个是用于集群中各个节点的日志写入信息。如现在写版本号是100的信息，需要判断本地是不是上一个就是99（单调递增），如果不是则需要先补齐并应用前面的日志（状态机）
+	// 写入前判断:
+	// 		1.简单限速
+	// 		2.包最大1.5mb
+	// 写入数据时：
+	// 		1. leader发起提案（leader任期，投票信息，已提交索引，日志类型等），判断超时（默认7s）
+	// 		2. follower投票写入
 	_, err := r.client.Put(ctx, r.prefix+key, value)
 	return err
 }

@@ -34,19 +34,19 @@ func (r *Handles) RegisterHTTPServer(engine *gin.Engine) {
 	infoGroup := engine.Group("/agent/info/").Use(middleware.BaseHandle(authorized))
 	{
 		infoGroup.GET("logs", func(c *gin.Context) {
-			gateway.Json(c, &agent.LogsRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &agent.LogsRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return r.srv.Logs(ctx, req.(*agent.LogsRequest))
 			})
 		})
 
 		infoGroup.GET("events", func(c *gin.Context) {
-			gateway.Json(c, &agent.EventsRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &agent.EventsRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return r.srv.Events(ctx, req.(*agent.EventsRequest))
 			})
 		})
 
 		infoGroup.GET("resources", func(c *gin.Context) {
-			gateway.Json(c, &agent.ResourcesRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &agent.ResourcesRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return r.srv.Resources(ctx, req.(*agent.ResourcesRequest))
 			})
 		})

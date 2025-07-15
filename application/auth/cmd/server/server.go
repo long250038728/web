@@ -24,15 +24,15 @@ func Run(serverName string) error {
 		service.SetDomain(domain.NewAuthDomain(repository.NewAuthRepository(util))),
 	)
 
-	r := handles.NewHandles(util)
+	handle := handles.NewHandles(util)
 
 	opts := []app.Option{
 		app.Servers( // 服务
 			http.NewHttp(serverName, util.Info.IP, util.Port(serverName).HttpPort, func(engine *gin.Engine) {
-				r.RegisterHTTPServer(engine, svc)
+				handle.RegisterHTTPServer(engine, svc)
 			}),
 			rpc.NewGrpc(serverName, util.Info.IP, util.Port(serverName).GrpcPort, func(engine *grpc.Server) {
-				r.RegisterGRPCServer(engine, svc)
+				handle.RegisterGRPCServer(engine, svc)
 			}),
 		),
 	}

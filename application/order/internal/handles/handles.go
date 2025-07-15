@@ -30,7 +30,7 @@ func (r *Handles) RegisterHTTPServer(engine *gin.Engine, srv *service.Order) {
 	orderGroup := engine.Group("/order/order/").Use(middleware.BaseHandle(authorized))
 	{
 		orderGroup.GET("detail", func(c *gin.Context) {
-			gateway.Json(c, &order.OrderDetailRequest{}).Use(middleware.Limit()).Handle(func(ctx context.Context, req any) (any, error) {
+			gateway.Json(c, &order.OrderDetailRequest{}).Use().Handle(func(ctx context.Context, req any) (any, error) {
 				return srv.OrderDetail(ctx, req.(*order.OrderDetailRequest))
 			})
 		})

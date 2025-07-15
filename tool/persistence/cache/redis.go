@@ -76,3 +76,13 @@ func (r *redisClient) Subscribe(ctx context.Context, channel string, f func(mess
 		f(msg.Payload)
 	}
 }
+
+func (r *redisClient) Incr(ctx context.Context, key string) (int64, error) {
+	res, err := r.client.Incr(ctx, key).Result()
+	return res, err
+}
+
+func (r *redisClient) Decr(ctx context.Context, key string) (int64, error) {
+	res, err := r.client.Decr(ctx, key).Result()
+	return res, err
+}
