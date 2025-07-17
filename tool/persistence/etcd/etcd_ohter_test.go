@@ -29,11 +29,6 @@ func TestEtcd(t *testing.T) {
 		_ = client.Close()
 	}()
 
-	session, _ := concurrency.NewSession(client)
-	defer func() {
-		_ = session.Close() //当session close时Campaign就会取消成为leader（租约（lease）会被撤销）
-	}()
-
 	// 创建watch监听
 	t.Run("watch", func(t *testing.T) {
 		go func() {
@@ -47,24 +42,52 @@ func TestEtcd(t *testing.T) {
 	})
 
 	t.Run("Lease", func(t *testing.T) {
-		lease, _ := client.Grant(ctx, 1)                                     // 创建一个租约，有效期为1秒
-		_, _ = client.Put(ctx, "key", "val", etcdClient.WithLease(lease.ID)) //给这个key value设置一个续约
-		resCh, _ := client.KeepAlive(ctx, lease.ID)                          // 保持租约活跃 —————— 继续使用租约进行其他操作
+		// 创建一个租约，有效期为1秒
+		lease, _ := client.Grant(ctx, 1)
+
+		// 查看租约的ttl及过期时间
+		t.Log(client.TimeToLive(ctx, lease.ID))
+
+		// 修改key 并对这个key添加租约（ttl）如果无租约则代表永久有效
+		_, _ = client.Put(ctx, "key", "val", etcdClient.WithLease(lease.ID))
+
+		// 保持租约活跃 —————— 继续使用租约进行其他操作
+		resCh, _ := client.KeepAlive(ctx, lease.ID)
 		go func() {
 			for chResp := range resCh {
 				t.Log(fmt.Sprintf("KeepAlive response: %v", chResp))
 			}
 		}()
-		t.Log(client.Revoke(ctx, lease.ID)) //移除租约(此时key已经没有ttl了，key会被删除)
+
+		//移除租约(此时key已经没有ttl了，key会被删除)
+		t.Log(client.Revoke(ctx, lease.ID))
 	})
+
+	session, _ := concurrency.NewSession(client)
+	defer func() {
+		_ = session.Close() //当session close时Campaign就会取消成为leader（租约（lease）会被撤销）
+	}()
 
 	t.Run("election", func(t *testing.T) {
 		election := concurrency.NewElection(session, "/my-election")
 
+		// 	txn := client.Txn(ctx).If(v3.Compare(v3.CreateRevision(k), "=", 0))
+		//	txn = txn.Then(v3.OpPut(k, val, v3.WithLease(s.Lease())))
+		//	txn = txn.Else(v3.OpGet(k))
+		//	resp, err := txn.Commit()
+		//
+		//  封装了一层，通过txn事务。如果这个k(pfx)的Revision == 0 则修改为自己 （最先能写入的则代表获取成功）
 		if err := election.Campaign(ctx, "candidate-1"); err != nil { //竞选leader （如果竞选不到则会阻塞等待）
 			t.Log(err)
 			return
 		}
+
+		//	cmp := v3.Compare(v3.CreateRevision(e.leaderKey), "=", e.leaderRev)
+		//	txn := client.Txn(ctx).If(cmp)
+		//	txn = txn.Then(v3.OpPut(e.leaderKey, val, v3.WithLease(e.leaderSession.Lease())))
+		//	resp, terr := txn.Commit()
+
+		//  封装了一层，通过txn事务。如果如果这个k(pfx)的Revision == 自己 则修改
 		if err := election.Proclaim(ctx, "candidate-2"); err != nil { //更新leader中的val（当前节点不是领导者，调用它会导致错误）
 			t.Log(err)
 			return
@@ -73,13 +96,31 @@ func TestEtcd(t *testing.T) {
 		t.Log(election.Leader(ctx))
 		t.Log(election.Key(), election.Rev())
 
-		//放弃leader（当前节点不是领导者，调用它会导致错误）
-		if err := election.Resign(ctx); err != nil {
+		//  cmp := v3.Compare(v3.CreateRevision(e.leaderKey), "=", e.leaderRev)
+		//	resp, err := client.Txn(ctx).If(cmp).Then(v3.OpDelete(e.leaderKey)).Commit()
+		//	封装了一层，通过txn事务。如果如果这个k(pfx)的Revision == 自己 则删除
+		if err := election.Resign(ctx); err != nil { //	放弃leader（当前节点不是领导者，调用它会导致错误）
 			log.Fatal(err)
 		}
 		t.Log(election.Leader(ctx))
 	})
 
+	// 锁：
+	// redis 常用的方式是 set key value EX 10 NX
+	//  	1.通过NX确保不存在才新增
+	//      2.通过EX保证如果程序意外退出没有delete导致该key永远存在
+	//      3.value是需要设置一个自己的随机值，这边删除时需要指定value是自己生成的（lua原子性）
+	// redis的缺点
+	//		1.由于没有续约的机制，导致了可能还没有执行完，EX设定的时间已经超过，别的抢到了锁
+	//      2.redis 主备同步切换异步同步问题导致数据不一致（备还没同步），同时redis可能会出现脑裂
+	//      3.redis需要使用redlock解决
+	// etcd
+	//		1.etcd使用Raft原生支持避免脑裂，主备切换问题
+	//		2.etcd使用线性读确保数据准确性
+	//		3.支持事务满足原子性问题
+	//		4.天生支持租约可以续租
+	//      5.可以通过watch机制保证client crash时，其他client快速感知
+	//		6.社区通过concurrency包封装了锁，选举的问题
 	t.Run("lock", func(t *testing.T) {
 		t.Run("mutex", func(t *testing.T) {
 			locker := concurrency.NewMutex(session, "/mutex")

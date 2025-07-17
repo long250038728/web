@@ -25,6 +25,15 @@ type EtcdCenter struct {
 
 // NewEtcdConfigCenter   配置中心
 func NewEtcdConfigCenter(config *Config) (ConfigCenter, error) {
+	// 账号信息
+	// 		1. 通过账号密码登录 （simpleToken/JWT）
+	// 		2. 通过证书登录
+	// 权限RBAC
+	//  	User / Role / Permission
+	//		etcdctl user add alice -- user root:root  									//创建alice用户
+	//		etcdctl role add admin -- user root:root  									//创建admin角色
+	//		etcdctl role grant-permission admin readwrite hello helly --user root:root  //给admin角色权限添加[hello,helly]之前的读写操作
+	//      etcdctl user grant-role alice admin --user root:root 						//用户alice绑定admin角色
 	client, err := etcdClient.New(etcdClient.Config{
 		Endpoints:   []string{config.Address},
 		DialTimeout: 5 * time.Second,
