@@ -180,7 +180,7 @@ func (x *LogsRequest) GetContainer() string {
 
 type LogsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Log           []string               `protobuf:"bytes,1,rep,name=log,proto3" json:"log,omitempty"`
+	Log           []string               `protobuf:"bytes,1,rep,name=third_party,proto3" json:"third_party,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

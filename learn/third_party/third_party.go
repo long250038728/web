@@ -1,6 +1,7 @@
-package log
+package third_party
 
 import (
+	"context"
 	"fmt"
 	"golang.org/x/exp/slog"
 	"os"
@@ -21,16 +22,13 @@ func Plus() {
 	if err != nil {
 		panic(err)
 	}
-	funcSym, err := p.Lookup("H")
+	funcSym, err := p.Lookup("F")
 	if err != nil {
 		panic(err)
 	}
 
 	name := nameSym.(*string)
 	helloFunc := funcSym.(func(string) string)
-	if err != nil {
-		panic(err)
-	}
 	fmt.Print(name)
 	fmt.Println(helloFunc("hello"))
 }
@@ -66,7 +64,7 @@ func Log() {
 	}
 
 	//fileWriter := &lumberjack.Logger{
-	//	Filename:   "./log/a.log",
+	//	Filename:   "./third_party/a.third_party",
 	//	MaxSize:    1,    //最大大小1M
 	//	MaxBackups: 3,    //最多保留3个备份数量
 	//	MaxAge:     7,    //备份最多保留7天
@@ -75,6 +73,7 @@ func Log() {
 	//}
 	//handler := slog.NewTextHandler(os.Stdout, opts)
 	//handler := slog.NewJSONHandler(fileWriter, opts)
+	//handler := slog.NewJSONHandler(io.MultiReader(os.Stderr,fileWriter), opts)
 	handler := slog.NewJSONHandler(os.Stderr, opts)
 	logger := slog.New(handler)
 
@@ -88,4 +87,27 @@ func Log() {
 	//派生实例
 	userLogger := logger.With(slog.Group("user_info", slog.String("hello", "world"))) //属性
 	userLogger.Error("world", slog.StringValue("1"), slog.IntValue(1))
+
+	//把logger放入ctx中
+	ctx := context.WithValue(context.Background(), slog.Logger{}, userLogger)
+	loggerInterface := ctx.Value(slog.Logger{})
+	if log, ok := loggerInterface.(*slog.Logger); ok {
+		log.Info("ok", "ok")
+	}
+}
+
+func Config() {
+	//spfi13/viper
+	//v := viper.New()
+	//v.SetDefault("hello","world")
+	//v.AddConfigPath("./")
+	//v.SetConfigName("config")
+	//v.setConfigType("yaml")
+	//v.ReadInConfig()
+
+	//v.Unmarshal(&cfg)
+	//v.WatchConfig()
+	//v.OnConfigChange(function(e fsnotify.Event){
+	//
+	//})
 }

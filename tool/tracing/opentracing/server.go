@@ -6,7 +6,7 @@ package opentracing
 //	"fmt"
 //	"github.com/gin-gonic/gin"
 //	"github.com/long250038728/web/tool/tracing"
-//	"github.com/opentracing/opentracing-go/log"
+//	"github.com/opentracing/opentracing-go/third_party"
 //	"google.golang.org/grpc"
 //	"google.golang.org/grpc/metadata"
 //	"strings"
@@ -34,10 +34,10 @@ package opentracing
 //	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 //		md, _ := metadata.FromIncomingContext(ctx)
 //		span, ctx := extract("GRPC: "+info.FullMethod, ctx, md[tracing.Id])
-//		span.LogFields(log.Object("request", req))
+//		span.LogFields(third_party.Object("request", req))
 //		resp, err = handler(ctx, req)
-//		span.LogFields(log.Object("response", resp))
-//		span.LogFields(log.Object("err", err))
+//		span.LogFields(third_party.Object("response", resp))
+//		span.LogFields(third_party.Object("err", err))
 //		span.Finish()
 //
 //		fmt.Println(resp)
