@@ -41,10 +41,12 @@ docker run -d --name jaeger \
   --query.ui-config=etc/conf.d/prod.jaeger-ui.conf.json 
   
  
-// 4317 端口是 opentelemetry Collector 默认的 HTTP 端口，用于接收追踪数据。 
+// 4317 端口是 opentelemetry Collector 默认的 grpc 端口，用于接收追踪数据。 
+// 4318 端口是 opentelemetry Collector 默认的 http 端口，用于接收追踪数据。 
 docker run -d --name otel-collector \
   -v $(pwd)/otel-collector-config.yaml:/etc/otel-collector-config.yaml \
   -p 4317:4317 \
+  -p 4318:4318 \
   otel/opentelemetry-collector --config /etc/otel-collector-config.yaml
 ```
 
@@ -77,7 +79,8 @@ service:
 ### go语言处理
 ```
 exporter, err := jaeger.New(jaeger.WithCollectorEndpoint("http://jaeger:14268/api/traces"))    //jaeger collector 
-exporter, err := otlp.NewExporter(otlp.WithInsecure(),otlp.WithAddress("otel-collector:4317")) //otel collector
+exporter, err := otlptracegrpc.New(context.Background(),otlptracegrpc.WithEndpoint("otel-collector:4317"),otlptracegrpc.WithInsecure()) //otlp grpc collector
+
 
 resources, err := resource.Merge(
     resource.Default(),

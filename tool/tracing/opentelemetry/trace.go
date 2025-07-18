@@ -51,8 +51,8 @@ func NewTrace(ctx context.Context, exporter trace.SpanExporter, serviceName stri
 
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
-			propagation.TraceContext{},
-			propagation.Baggage{}),
+			propagation.TraceContext{}, // W3C Trace Context（标准跨进程传播）
+			propagation.Baggage{}),     // Baggage（上下文附加信息）
 	)
 
 	return &Trace{
