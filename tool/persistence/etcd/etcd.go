@@ -71,6 +71,14 @@ func (r *EtcdCenter) Set(ctx context.Context, key, value string) error {
 	// 写入数据时：
 	// 		1. leader发起提案（leader任期，投票信息，已提交索引，日志类型等），判断超时（默认7s）
 	// 		2. follower投票写入
+	// 超时问题：
+	//		1. 由于网络问题可能节点不通讯/丢包，投票不过半重试/leader重新选举
+	//		2. 磁盘io延迟（WAL，数据库(随机写入，页分裂)等写入）
+	// etcd内存占用：
+	// 		1.在apply之前保存在内存中写入raftlog日志中（会导致写请求过多(value值大)时该数组内存较大）
+	//		2.确认后会写入内存treeIndex(b-tree)中，还会写入到WAL与boltdb中（使用了mmap技术导致db越大内存越大）
+	// 		3.使用watch时会维护一定的内存
+	//		4.写请求如果还有Lease时会维护这个
 	_, err := r.client.Put(ctx, r.prefix+key, value)
 	return err
 }
@@ -104,21 +112,21 @@ func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, files ...strin
 	}
 
 	for _, fileName := range files {
-		f := strings.Split(fileName, ",")
+		f := strings.Split(fileName, ".")
 		if len(f) != 2 {
 			return errors.New("files is error: " + fileName)
 		}
-
-		key := r.prefix + f[0]
-
-		// 先删除
-		_ = r.Del(ctx, key)
 
 		// 获取
 		b, err := os.ReadFile(filepath.Join(rootPath, fileName))
 		if err != nil {
 			return err
 		}
+
+		key := r.prefix + f[0]
+
+		// 先删除
+		_ = r.Del(ctx, key)
 
 		// 上传
 		err = r.Set(ctx, key, string(b))

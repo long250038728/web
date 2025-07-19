@@ -121,6 +121,10 @@ func TestEtcd(t *testing.T) {
 	//		4.天生支持租约可以续租
 	//      5.可以通过watch机制保证client crash时，其他client快速感知
 	//		6.社区通过concurrency包封装了锁，选举的问题
+	//			架构问题			   |     		  使用问题
+	//		主从异步 (主从切换)	   |		lua原子性不好用(事务)
+	//		  主从切换 (脑裂)		   |		  需要自己实现续约
+	//							   |	   	    无watch功能
 	t.Run("lock", func(t *testing.T) {
 		t.Run("mutex", func(t *testing.T) {
 			locker := concurrency.NewMutex(session, "/mutex")
