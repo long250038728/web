@@ -50,7 +50,7 @@ func (t *demoType[T]) Do() {
 	_ = t.val1 > t.val2 // 4.comparable
 }
 
-func (t *demoType[T]) SayHello2(v T) {}
+func (t *demoType[T]) SayHello2(v T) { v.SayHello() }
 
 //-------------------
 
@@ -58,13 +58,6 @@ type sayHelloInt int32
 
 func (s sayHelloInt) Say()      {}
 func (s sayHelloInt) SayHello() {}
-
-func new() {
-	d := demoType[sayHelloInt]{}
-	d.Set(100, 2)
-	d.Do()
-	d.SayHello2(sayHelloInt(10))
-}
 
 //================================================================
 

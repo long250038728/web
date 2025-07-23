@@ -64,7 +64,9 @@ func (c *GrpCurl) Curl(ctx context.Context, address, method string, headers map[
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	// 创建request
 	options := grpcurl.FormatOptions{
@@ -73,7 +75,7 @@ func (c *GrpCurl) Curl(ctx context.Context, address, method string, headers map[
 		AllowUnknownFields:    false,
 	}
 
-	requestParser, formatter, err := grpcurl.RequestParserAndFormatter(grpcurl.Format("json"), c.descriptorSource, bytes.NewReader(b), options)
+	requestParser, formatter, err := grpcurl.RequestParserAndFormatter(grpcurl.FormatJSON, c.descriptorSource, bytes.NewReader(b), options)
 	if err != nil {
 		return "", err
 	}

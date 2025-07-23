@@ -13,7 +13,7 @@ func Validate(keys []string) gateway.ServerInterceptor {
 		for _, k := range keys {
 			d, ok := requestInfo[k]
 			if !ok || reflect.DeepEqual(d, reflect.Zero(reflect.TypeOf(d)).Interface()) {
-				return nil, app_error.Vaildate
+				return nil, app_error.Validate
 			}
 		}
 		return handler(ctx, request)

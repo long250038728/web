@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/long250038728/web/tool/app_error"
 )
@@ -18,7 +19,8 @@ func (s *Serialization) ParseToken(token string, c Claims, t TokenType) error {
 		return s.SecretKey, nil // 这里你需要提供用于签名的密钥
 	})
 	if err != nil {
-		if validationErr, ok := err.(*jwt.ValidationError); ok && validationErr.Errors == jwt.ValidationErrorExpired {
+		var validationErr *jwt.ValidationError
+		if errors.As(err, &validationErr) && validationErr.Errors == jwt.ValidationErrorExpired {
 			if t == AccessToken {
 				err = app_error.AccessExpire
 			}

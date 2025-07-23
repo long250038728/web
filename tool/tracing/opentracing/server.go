@@ -11,6 +11,7 @@ package opentracing
 //	"google.golang.org/grpc/metadata"
 //	"strings"
 //)
+//var Id = "tracing_id"
 //
 //// HandlerFunc 链路中间件  ———— http
 //func HandlerFunc() gin.HandlerFunc {
@@ -19,7 +20,7 @@ package opentracing
 //			c.Next()
 //			return
 //		}
-//		span, ctx := extract("HTTP: "+c.Request.URL.Path, c.Request.Context(), c.Request.Header[tracing.Id])
+//		span, ctx := extract("HTTP: "+c.Request.URL.Path, c.Request.Context(), c.Request.Header[Id])
 //		c.Request = c.Request.WithContext(ctx)
 //
 //		// 输出响应头, 方便前端调试
@@ -49,5 +50,5 @@ package opentracing
 //func Context(ctx context.Context) context.Context {
 //	//处理链路，加到md中
 //	carrier, _ := inject(ctx)
-//	return metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{tracing.Id: carrier[tracing.Id]}))
+//	return metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{tracing.Id: carrier[Id]}))
 //}

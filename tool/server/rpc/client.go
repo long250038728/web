@@ -188,14 +188,13 @@ func (r *MyResolver) ResolveNow(options resolver.ResolveNowOptions) {
 	[{"Node":{"ID":"82643ce8-44fa-7fb1-386a-63ebf77abc42","Node":"9387f059d5e2","Address":"127.0.0.1","Datacenter":"dc1","TaggedAddresses":{"lan":"127.0.0.1","lan_ipv4":"127.0.0.1","wan":"127.0.0.1","wan_ipv4":"127.0.0.1"},"Meta":{"consul-network-segment":""},"CreateIndex":13,"ModifyIndex":15},"Service":{"ID":"user-GRPC-8946","Service":"user-GRPC","Tags":[],"Address":"172.40.0.2","TaggedAddresses":{"lan_ipv4":{"Address":"172.40.0.2","Port":19001},"wan_ipv4":{"Address":"172.40.0.2","Port":19001}},"Meta":null,"Port":19001,"Weights":{"Passing":1,"Warning":1},"EnableTagOverride":false,"Proxy":{"Mode":"","MeshGateway":{},"Expose":{}},"Connect":{},"PeerName":"","CreateIndex":268,"ModifyIndex":268},"Checks":[{"Node":"9387f059d5e2","CheckID":"serfHealth","Name":"Serf Health Status","Status":"passing","Notes":"","Output":"Agent alive and reachable","ServiceID":"","ServiceName":"","ServiceTags":[],"Type":"","Interval":"","Timeout":"","ExposedPort":0,"Definition":{},"CreateIndex":13,"ModifyIndex":13},{"Node":"9387f059d5e2","CheckID":"service:user-GRPC-8946","Name":"Service 'user-GRPC' check","Status":"passing","Notes":"","Output":"gRPC check 172.40.0.2:19001: success","ServiceID":"user-GRPC-8946","ServiceName":"user-GRPC","ServiceTags":[],"Type":"grpc","Interval":"30s","Timeout":"30s","ExposedPort":0,"Definition":{},"CreateIndex":268,"ModifyIndex":271}]}]
 	*/
 	svcInstances, err := r.register.List(r.ctx, register.GetServerName(strings.Replace(r.target.URL.Path, "/", "", 1), register.InstanceTypeGRPC))
-	adders := make([]resolver.Address, 0, 0)
-
-	_ = r.cc.UpdateState(resolver.State{Addresses: adders})
+	//adders := make([]resolver.Address, 0, 0)
+	//
+	//_ = r.cc.UpdateState(resolver.State{Addresses: adders})
 	if err != nil {
 		return
 	}
-
-	//adders := make([]resolver.Address, 0, len(svcInstances))
+	adders := make([]resolver.Address, 0, len(svcInstances))
 	for _, instance := range svcInstances {
 		adders = append(adders, resolver.Address{Addr: fmt.Sprintf("%s:%d", instance.Address, instance.Port)})
 	}

@@ -169,7 +169,7 @@ func NewJson(ginContext *gin.Context, request any) (Writer, error) {
 	//w.requestInfo = requestInfo
 	//
 	//w.addRequestLogAndTags(requestInfo)
-	return w, nil
+	//return w, nil
 }
 func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}

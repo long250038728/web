@@ -14,24 +14,24 @@ import (
 	"time"
 )
 
-type middlewareInfo struct {
+type Info struct {
 	claims     bool
 	expiration time.Duration
 }
 
-func NewDefaultMiddlewareInfo() *middlewareInfo {
-	return &middlewareInfo{expiration: time.Minute}
+func NewDefaultMiddlewareInfo() *Info {
+	return &Info{expiration: time.Minute}
 }
 
-type Opt func(setting *middlewareInfo)
+type Opt func(setting *Info)
 
 func Expiration(expiration time.Duration) Opt {
-	return func(setting *middlewareInfo) {
+	return func(setting *Info) {
 		setting.expiration = expiration
 	}
 }
 func Claims(claims bool) Opt {
-	return func(setting *middlewareInfo) {
+	return func(setting *Info) {
 		setting.claims = claims
 	}
 }
@@ -75,11 +75,11 @@ func Locker(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gate
 		expiration := setting.expiration
 		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
 		if !dataIsAllMatch {
-			return nil, app_error.Vaildate
+			return nil, app_error.Validate
 		}
 		ok, err := client.SetNX(ctx, key, "1", expiration)
 		if err != nil || !ok {
-			return nil, app_error.ApiTooManyRequests
+			return nil, app_error.TooManyRequests
 		}
 		defer func() {
 			_, _ = client.Del(ctx, key)
@@ -143,14 +143,14 @@ func Limit(c *gin.Context, client cache.Cache, keys []string, limitNum int64, op
 		}
 		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
 		if !dataIsAllMatch {
-			return nil, app_error.Vaildate
+			return nil, app_error.Validate
 		}
 		num, err := client.Incr(ctx, key)
 		defer func() {
 			_, _ = client.Decr(ctx, key)
 		}()
 		if err != nil || num > limitNum {
-			return nil, app_error.ApiTooManyRequests
+			return nil, app_error.TooManyRequests
 		}
 		return handler(ctx, request)
 	}

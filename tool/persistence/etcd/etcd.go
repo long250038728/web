@@ -17,7 +17,7 @@ type Config struct {
 	Prefix  string `json:"prefix" yaml:"prefix"`
 }
 
-type EtcdCenter struct {
+type Client struct {
 	io.Closer
 	client *etcdClient.Client
 	prefix string
@@ -45,10 +45,10 @@ func NewEtcdConfigCenter(config *Config) (ConfigCenter, error) {
 	if config.Prefix == "" {
 		config.Prefix = Prefix
 	}
-	return &EtcdCenter{client: client, prefix: config.Prefix}, nil
+	return &Client{client: client, prefix: config.Prefix}, nil
 }
 
-func (r *EtcdCenter) Get(ctx context.Context, key string) (string, error) {
+func (r *Client) Get(ctx context.Context, key string) (string, error) {
 	// Linearized Read 线性读 () 把请求转发到leader节点中，此时还会通过readIndex心跳获取自己是不是依旧是leader节点 —— 默认
 	// Serializable Read 串行读 () 随机一个节点读取数据，该节点可能日志还未应用，所以会读到落后的数据
 	res, err := r.client.Get(ctx, r.prefix+key) //etcdClient.WithSerializable()
@@ -62,7 +62,7 @@ func (r *EtcdCenter) Get(ctx context.Context, key string) (string, error) {
 	return string(res.Kvs[0].Value), nil
 }
 
-func (r *EtcdCenter) Set(ctx context.Context, key, value string) error {
+func (r *Client) Set(ctx context.Context, key, value string) error {
 	// etcd会检查当前的etcd db的大小，如果超过QUOTA配额会警告并拒绝写入，变成集群只读（调大后需要发生那个额外的命令）—— 默认2G
 	// etcd的MVCC跟mysql区别在于，这个是用于集群中各个节点的日志写入信息。如现在写版本号是100的信息，需要判断本地是不是上一个就是99（单调递增），如果不是则需要先补齐并应用前面的日志（状态机）
 	// 写入前判断:
@@ -83,12 +83,12 @@ func (r *EtcdCenter) Set(ctx context.Context, key, value string) error {
 	return err
 }
 
-func (r *EtcdCenter) Del(ctx context.Context, key string) error {
+func (r *Client) Del(ctx context.Context, key string) error {
 	_, err := r.client.Delete(ctx, r.prefix+key)
 	return err
 }
 
-func (r *EtcdCenter) Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error {
+func (r *Client) Watch(ctx context.Context, key string, callback func(changeKey, changeVal []byte)) error {
 	ch := r.client.Watch(ctx, key, etcdClient.WithRange(etcdClient.GetPrefixRangeEnd(r.prefix+key)))
 	for {
 		select {
@@ -106,7 +106,7 @@ func (r *EtcdCenter) Watch(ctx context.Context, key string, callback func(change
 	}
 }
 
-func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, files ...string) error {
+func (r *Client) UpLoad(ctx context.Context, rootPath string, files ...string) error {
 	if len(files) == 0 {
 		return errors.New("file list is empty")
 	}
@@ -137,6 +137,6 @@ func (r *EtcdCenter) UpLoad(ctx context.Context, rootPath string, files ...strin
 	return nil
 }
 
-func (r *EtcdCenter) Close() error {
+func (r *Client) Close() error {
 	return r.client.Close()
 }

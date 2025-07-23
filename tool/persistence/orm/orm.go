@@ -44,7 +44,7 @@ func NewClickhouseGorm(config *Config) (*Gorm, error) {
 	//dsn := "clickhouse://admin:123456@192.168.0.41:9000/test?dial_timeout=10s"
 	db, err := gorm.Open(clickhouse.Open(dsn), cnf)
 
-	gorm, err := NewGorm(db)
+	orm, err := NewGorm(db)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func NewClickhouseGorm(config *Config) (*Gorm, error) {
 	if config.ReadOnly == true {
 		ReadOnlySetting(db)
 	}
-	return gorm, nil
+	return orm, nil
 }
 
 func NewMySQLGorm(config *Config) (*Gorm, error) {
@@ -77,7 +77,7 @@ func NewMySQLGorm(config *Config) (*Gorm, error) {
 		return nil, err
 	}
 
-	gorm, err := NewGorm(db)
+	orm, err := NewGorm(db)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func NewMySQLGorm(config *Config) (*Gorm, error) {
 	if config.ReadOnly == true {
 		ReadOnlySetting(db)
 	}
-	return gorm, nil
+	return orm, nil
 }
 
 func NewGorm(db *gorm.DB) (*Gorm, error) {

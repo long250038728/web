@@ -137,10 +137,14 @@ wg.Wait()
 
 ### 测试用例:
 * 测试时可以加上以下参数: 
-  * -race 检测是否竞态检测     
+  * -v 详细内容输出 
+  * -count n 运行n次 
+  * -race 检测是否竞态检测  
+  * -benchmem 基准测试
   * -shuffle 随机    
   * -short 指定本次为short类型    
   * -tags=test1 指定go:build test1 的用例文件
+  * -cover 测试覆盖率
   * -coverprofile=coverage.out 代码覆盖
 * 单元测试函数:		     
   * t.Skip("this is t.Skip") 跳过该用例		

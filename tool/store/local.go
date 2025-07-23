@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"github.com/coocood/freecache"
 	"time"
 )
@@ -17,7 +18,7 @@ func NewLocalStore(size int) Store {
 func (s *localStore) Get(ctx context.Context, key string) (string, error) {
 	// 获取键值对
 	gotValue, err := s.cache.Get([]byte(key))
-	if err != nil && err == freecache.ErrNotFound {
+	if err != nil && errors.Is(err, freecache.ErrNotFound) {
 		return "", nil
 	}
 	if err != nil {
@@ -44,5 +45,5 @@ func (s *localStore) Del(ctx context.Context, key ...string) (bool, error) {
 }
 
 func (s *localStore) Close() {
-	
+
 }
