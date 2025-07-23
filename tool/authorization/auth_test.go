@@ -18,7 +18,7 @@ func init() {
 }
 
 func TestSigned(t *testing.T) {
-	access, refresh, _ := NewAuth(c).Signed(context.Background(),
+	access, refresh, _ := NewAuth(c, SecretKey([]byte("123456")), AccessExpires(100*time.Minute), RefreshExpires(100*time.Minute)).Signed(context.Background(),
 		&UserInfo{Id: 123456, Name: "john"},
 	)
 	t.Log(access)
@@ -27,7 +27,7 @@ func TestSigned(t *testing.T) {
 
 func TestParse(t *testing.T) {
 	var accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzI3OTM4NTEsImlhdCI6MTczMjY4NTg1MSwiaWQiOjEyMzQ1NiwibmFtZSI6ImpvaG4ifQ.qOVreMOtfxARUGyrlOJTBI47i1YLx09kWQKL6dDZXfQ"
-	ctx, err := NewAuth(c).Parse(context.Background(), accessToken)
+	ctx, err := NewAuth(c, SecretKey([]byte("123456")), AccessExpires(100*time.Minute), RefreshExpires(100*time.Minute)).Parse(context.Background(), accessToken)
 	if err != nil {
 		t.Error(err)
 		return
