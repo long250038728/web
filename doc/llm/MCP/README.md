@@ -168,7 +168,7 @@ async def run():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(run()
+    asyncio.run(run())
 ```
 
 运行

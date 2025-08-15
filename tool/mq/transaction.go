@@ -53,7 +53,9 @@ func (mq *RocketTransaction) Send(ctx context.Context, topic string, key string,
 	if err = producer.Start(); err != nil {
 		return err
 	}
-	defer producer.GracefulStop()
+	defer func() {
+		_ = producer.GracefulStop()
+	}()
 
 	head, err := parseHeader(m.Headers)
 	if err != nil {

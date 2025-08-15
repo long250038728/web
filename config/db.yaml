@@ -1,7 +1,0 @@
-address: "gz-cdb-9tvaefsf.sql.tencentcdb.com"
-port: 63436
-database: "zhubaoe"
-table_prefix: "zby_"
-user: "root"
-password: "zby123456"
-

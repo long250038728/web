@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent
+  template:
+    metadata:
+      labels:
+        app: agent
+    spec:
+      containers:
+        - name: container
+          image: ubuntu:latest
+          ports:
+            - containerPort: 18011
+            - containerPort: 19011
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+spec:
+  selector:
+    app: agent
+  ports:
+    - protocol: TCP
+      port: 18011
+      targetPort: 18011
+      name: agent-http-port-18011
+    - protocol: TCP
+      port: 19011
+      targetPort: 19011
+      name: agent-grpc-port-19011
+  type: ClusterIP

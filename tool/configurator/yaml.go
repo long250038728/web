@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 )
 
+//go get -u gopkg.in/yaml.v3
+
 type yamlLoad struct {
 }
 
@@ -38,7 +40,7 @@ func (y *yamlLoad) MustLoad(path string, data interface{}) {
 }
 
 func (y *yamlLoad) MustLoadConfigPath(file string, data interface{}) {
-	root, err := paths.RootConfigPath("")
+	root, err := paths.RootConfigPath(paths.DefaultCfgPathsFunc("./")...)
 	if err != nil {
 		panic(err)
 	}

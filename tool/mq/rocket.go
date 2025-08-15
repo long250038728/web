@@ -57,7 +57,9 @@ func (mq *Rocket) BulkSend(ctx context.Context, topic string, key string, messag
 	if err = producer.Start(); err != nil {
 		return err
 	}
-	defer producer.GracefulStop()
+	defer func() {
+		_ = producer.GracefulStop()
+	}()
 
 	for _, m := range message {
 		head, err := parseHeader(m.Headers)
@@ -170,7 +172,8 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 
 		mvs, err := simpleConsumer.Receive(subscribeCtx, int32(maxMessageNum), invisibleDuration)
 		if err != nil {
-			if e, ok := err.(*rmq.ErrRpcStatus); ok && e.GetCode() == int32(v2.Code_MESSAGE_NOT_FOUND) {
+			var e *rmq.ErrRpcStatus
+			if errors.As(err, &e) && e.GetCode() == int32(v2.Code_MESSAGE_NOT_FOUND) {
 				continue
 			}
 			_ = callback(ctx, nil, err)

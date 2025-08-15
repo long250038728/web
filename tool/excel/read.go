@@ -40,7 +40,7 @@ func (r *Read) Read(sheet string, headers []Header, data interface{}) error {
 
 // matchHeader 根据标题匹配key
 func (r *Read) matchHeader(cols []string, headers []Header) []Header {
-	//headers 转换为 hash =》 {"name"：item}
+	//headers 转换为 hash =》 {"name":item}
 	var headHash = make(map[string]Header)
 	for _, head := range headers {
 		headHash[head.Name] = head

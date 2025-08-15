@@ -135,17 +135,16 @@ wg.Wait()
     3. fn方法返回后进行map key的删除，删除后新的相同的key进入就会当做不存在。这样可以不用主动去删除key及是否需要再去fn获取最新的值 （相同key在fn执行期间只保证只有一个请求。如果fn执行结束后又有相同的key就当做新的与之前不相关）
 
 
-
-
-
-
-
 ### 测试用例:
 * 测试时可以加上以下参数: 
-  * -race 检测是否竞态检测     
+  * -v 详细内容输出 
+  * -count n 运行n次 
+  * -race 检测是否竞态检测  
+  * -benchmem 基准测试
   * -shuffle 随机    
   * -short 指定本次为short类型    
   * -tags=test1 指定go:build test1 的用例文件
+  * -cover 测试覆盖率
   * -coverprofile=coverage.out 代码覆盖
 * 单元测试函数:		     
   * t.Skip("this is t.Skip") 跳过该用例		
@@ -156,8 +155,7 @@ wg.Wait()
 * 其他
   * 测试提供了httptest包及iotest包
 
-
-
+  
 ### 优化
 在编写可读清晰的代码是第一要素
 * CPU
@@ -182,3 +180,10 @@ wg.Wait()
   * go test -bench=. -cpuprofile profile.out  && go tool pprof -http=:8080 <file>  ||  go tool pprof -http=:8080 -diff_base <file2> <file1>
 * 跟踪器
   * go test -bench=. -v -trace=trace.out  && go tool trace trace.out
+
+
+### 编程规范
+1. 对于提供的显示接口需要履行契约精神（破坏性变更： 不可随意删除,命名修改，类型修改）—— 可提供新接口或在接口设计之初就做好扩展性
+2. 设计时应保证 **易用性** ，**最小性**，**安全性**，（避免设计大而全——可通过类多态等方式处理（接口 && 基于方法编程而非基于实现编程），保证单一职责）
+3. 考虑并发调用避免错误（避免多线程/协程修改同一份数据——加锁等）
+4. 包名简洁且通常是单数名词，方法/参数时避免出现包名

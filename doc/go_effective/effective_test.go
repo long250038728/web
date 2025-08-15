@@ -34,11 +34,12 @@ func TestNumber(t *testing.T) {
 
 func TestRange(t *testing.T) {
 	t.Run("Update_Val_Ptr", func(t *testing.T) {
-		s := []curr{{Code: 1}, {Code: 2}, {Code: 3}}
+		//s := []curr{{Code: 1}, {Code: 2}, {Code: 3}}
+		//for _, val := range s {
+		//	val.Code = val.Code + 1 //由于是[]curr 值修改不会影响源数据
+		//}
+
 		s2 := []*curr{{Code: 1}, {Code: 2}, {Code: 3}}
-		for _, val := range s {
-			val.Code = val.Code + 1 //由于是[]curr 值修改不会影响源数据
-		}
 		for _, val := range s2 {
 			val.Code = val.Code + 1 //由于是[]*curr 指针所以修改有效
 		}
@@ -204,8 +205,8 @@ func TestError(t *testing.T) {
 
 	//自定义error类型(因为error是一个接口，实现这个接口就代表可以成为error,使用errors.As进行赋值，赋值成功则代码err是该类型)
 	t.Run("curr error", func(t *testing.T) {
-		var err error = curr{Msg: "this is err", Code: 200}
-		var err2 curr
+		var err error = &curr{Msg: "this is err", Code: 200}
+		var err2 *curr
 		if errors.As(err, &err2) {
 			t.Log(err2.Code)
 		}
@@ -781,8 +782,8 @@ type curr struct {
 func (c *curr) Bar() string {
 	return "bar"
 }
-func (c curr) Error() string { return c.Msg }
-func (c curr) MarshalJSON() ([]byte, error) {
+func (c *curr) Error() string { return c.Msg }
+func (c *curr) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Msg  string
 		Code int

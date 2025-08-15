@@ -72,7 +72,7 @@ func (s *Server) Start() error {
 
 // Stop 停止服务
 func (s *Server) Stop() error {
-	s.server.Stop()
+	s.server.GracefulStop()
 	return nil
 }
 

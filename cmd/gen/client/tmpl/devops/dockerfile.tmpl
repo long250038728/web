@@ -1,0 +1,25 @@
+FROM golang:1.23.8 AS mod
+WORKDIR /app
+COPY  ./app/go.mod ./
+COPY  ./app/go.sum ./
+ENV GOPROXY=https://goproxy.io,direct
+RUN go mod download
+
+FROM mod AS builder
+WORKDIR /app
+COPY  ./app .
+ENV GOPROXY=https://goproxy.io,direct
+RUN cd  /app/application/{{.Server}}/cmd && go build -o main main.go
+
+FROM ubuntu:latest
+ENV TZ=Asia/Shanghai
+RUN apt-get update && \
+    apt-get install -y tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
+WORKDIR /opt/app
+COPY --from=builder /app/application/{{.Server}}/cmd/main /opt/app/main
+COPY --from=builder /app/config /opt/app/config
+ENV CONFIG=/app/config
+EXPOSE {{.Http}} {{.Grpc}}
+CMD ["/opt/app/main",">>","log.txt"]

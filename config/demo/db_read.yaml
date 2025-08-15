@@ -1,0 +1,7 @@
+address: 172.40.0.31
+port: 3306
+database: project
+table_prefix: "admin_"
+user: "root"
+password: "root123456"
+

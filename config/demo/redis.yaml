@@ -1,0 +1,3 @@
+address: 172.40.0.32:6379
+password: root123456
+db: 0

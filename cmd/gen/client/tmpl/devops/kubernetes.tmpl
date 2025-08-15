@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Server}}-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Server}}
+  template:
+    metadata:
+      labels:
+        app: {{.Server}}
+    spec:
+      containers:
+        - name: container
+          image: ubuntu:latest
+          ports:
+            - containerPort: {{.Http}}
+            - containerPort: {{.Grpc}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Server}}-service
+spec:
+  selector:
+    app: {{.Server}}
+  ports:
+    - protocol: TCP
+      port: {{.Http}}
+      targetPort: {{.Http}}
+      name: {{.Server}}-http-port-{{.Http}}
+    - protocol: TCP
+      port: {{.Grpc}}
+      targetPort: {{.Grpc}}
+      name: {{.Server}}-grpc-port-{{.Grpc}}
+  type: ClusterIP

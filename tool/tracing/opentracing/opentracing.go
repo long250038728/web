@@ -5,7 +5,7 @@ package opentracing
 //	"context"
 //	"github.com/long250038728/web/tool/tracing"
 //	"github.com/opentracing/opentracing-go"
-//	"github.com/opentracing/opentracing-go/log"
+//	"github.com/opentracing/opentracing-go/third_party"
 //)
 //
 //type SpanOpentracing struct {
@@ -22,7 +22,7 @@ package opentracing
 //}
 //
 //func (s *SpanOpentracing) Log(key string, obj interface{}) {
-//	s.span.LogFields(log.Object(key, obj))
+//	s.span.LogFields(third_party.Object(key, obj))
 //}
 //
 //func (s *SpanOpentracing) Tag(key string, value interface{}) {

@@ -61,7 +61,7 @@ func TestMqBulkSend(t *testing.T) {
 }
 
 func TestMqSubscribe(t *testing.T) {
-	client.Subscribe(ctx, "canal", consumerGroup, func(ctx context.Context, message *Message, err error) error {
+	_ = client.Subscribe(ctx, "canal", consumerGroup, func(ctx context.Context, message *Message, err error) error {
 		// 是否错误 （程序退出 或 reader报错）
 		if err != nil {
 			t.Log(err)

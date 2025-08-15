@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+        - name: container
+          image: ubuntu:latest
+          ports:
+            - containerPort: 18001
+            - containerPort: 19001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  selector:
+    app: user
+  ports:
+    - protocol: TCP
+      port: 18001
+      targetPort: 18001
+      name: user-http-port-18001
+    - protocol: TCP
+      port: 19001
+      targetPort: 19001
+      name: user-grpc-port-19001
+  type: ClusterIP

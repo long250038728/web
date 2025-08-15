@@ -7,31 +7,31 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/app_error"
 	"github.com/long250038728/web/tool/authorization"
-	"github.com/long250038728/web/tool/persistence/redis"
+	"github.com/long250038728/web/tool/persistence/cache"
 	"github.com/long250038728/web/tool/server/http/gateway"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"reflect"
 	"time"
 )
 
-type middlewareInfo struct {
+type Info struct {
 	claims     bool
 	expiration time.Duration
 }
 
-func NewDefaultMiddlewareInfo() *middlewareInfo {
-	return &middlewareInfo{expiration: time.Minute}
+func NewDefaultMiddlewareInfo() *Info {
+	return &Info{expiration: time.Minute}
 }
 
-type Opt func(setting *middlewareInfo)
+type Opt func(setting *Info)
 
 func Expiration(expiration time.Duration) Opt {
-	return func(setting *middlewareInfo) {
+	return func(setting *Info) {
 		setting.expiration = expiration
 	}
 }
 func Claims(claims bool) Opt {
-	return func(setting *middlewareInfo) {
+	return func(setting *Info) {
 		setting.claims = claims
 	}
 }
@@ -66,7 +66,7 @@ func getKey(c *gin.Context, isClaims bool, keys []string, requestInfo map[string
 // =======================================================================================================
 
 // Locker 解决并发锁
-func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
+func Locker(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		setting := NewDefaultMiddlewareInfo()
 		for _, opt := range opts {
@@ -75,11 +75,11 @@ func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gate
 		expiration := setting.expiration
 		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
 		if !dataIsAllMatch {
-			return nil, app_error.Vaildate
+			return nil, app_error.Validate
 		}
 		ok, err := client.SetNX(ctx, key, "1", expiration)
 		if err != nil || !ok {
-			return nil, app_error.ApiTooManyRequests
+			return nil, app_error.TooManyRequests
 		}
 		defer func() {
 			_, _ = client.Del(ctx, key)
@@ -89,7 +89,7 @@ func Locker(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gate
 }
 
 // Cache  接口缓存
-func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gateway.ServerInterceptor {
+func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gateway.ServerInterceptor {
 	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
 		setting := NewDefaultMiddlewareInfo()
 		for _, opt := range opts {
@@ -125,11 +125,33 @@ func Cache(c *gin.Context, client redis.Redis, keys []string, opts ...Opt) gatew
 		if err == nil {
 			cacheData := gateway.NewResponse(resp, err)
 			if b, err := json.Marshal(cacheData); err == nil {
-				_, _ = client.SetEX(ctx, key, string(b), expiration)
+				_, _ = client.Set(ctx, key, string(b), expiration)
 			}
 			return cacheData, err
 		}
 
 		return resp, err
+	}
+}
+
+// Limit 示例中间件：限流拦截器
+func Limit(c *gin.Context, client cache.Cache, keys []string, limitNum int64, opts ...Opt) gateway.ServerInterceptor {
+	return func(ctx context.Context, requestInfo map[string]any, request any, handler gateway.Handler) (resp any, err error) {
+		setting := NewDefaultMiddlewareInfo()
+		for _, opt := range opts {
+			opt(setting)
+		}
+		key, dataIsAllMatch := getKey(c, setting.claims, keys, requestInfo)
+		if !dataIsAllMatch {
+			return nil, app_error.Validate
+		}
+		num, err := client.Incr(ctx, key)
+		defer func() {
+			_, _ = client.Decr(ctx, key)
+		}()
+		if err != nil || num > limitNum {
+			return nil, app_error.TooManyRequests
+		}
+		return handler(ctx, request)
 	}
 }

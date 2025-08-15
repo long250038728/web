@@ -1,44 +1,23 @@
 package service
 
 import (
-	"context"
+	"github.com/google/wire"
 	"github.com/long250038728/web/application/agent/internal/domain"
 	"github.com/long250038728/web/protoc/agent"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
-var _ agent.AgentServer = &Service{}
+var _ agent.AgentServer = &Agent{}
 
-type Service struct {
+var ProviderSet = wire.NewSet(NewService)
+
+type Agent struct {
 	agent.UnimplementedAgentServer
 	tool.GrpcHealth
-	domain *domain.Domain
+	domain *domain.Agent
 }
 
-type AgentServerOpt func(s *Service)
-
-func SetDomain(domain *domain.Domain) AgentServerOpt {
-	return func(s *Service) {
-		s.domain = domain
-	}
-}
-
-func NewService(opts ...AgentServerOpt) *Service {
-	s := &Service{}
-	for _, opt := range opts {
-		opt(s)
-	}
+func NewService(domain *domain.Agent) *Agent {
+	s := &Agent{domain: domain}
 	return s
-}
-
-func (s *Service) Logs(ctx context.Context, req *agent.LogsRequest) (*agent.LogsResponse, error) {
-	return s.domain.Logs(ctx, req)
-}
-
-func (s *Service) Events(ctx context.Context, req *agent.EventsRequest) (*agent.EventsResponse, error) {
-	return s.domain.Events(ctx, req)
-}
-
-func (s *Service) Resources(ctx context.Context, req *agent.ResourcesRequest) (*agent.ResourcesResponse, error) {
-	return s.domain.Resources(ctx, req)
 }

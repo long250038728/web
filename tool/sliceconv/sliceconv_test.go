@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func TestRunDemo(t *testing.T) {
+	d := demoType[sayHelloInt]{}
+	d.Set(100, 2)
+	d.Do()
+	d.SayHello2(sayHelloInt(10))
+}
+
+//===========================
+
 type simple struct {
 	Name string
 	Age  int

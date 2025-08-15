@@ -1,0 +1,29 @@
+package service
+
+import (
+	"{{.Page}}/{{.Server}}/internal/domain"
+	"{{.Protoc}}/{{.Server}}"
+	"github.com/long250038728/web/tool/server/rpc/tool"
+)
+
+type {{serverNameFunc .Server}}Service struct {
+	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
+	tool.GrpcHealth
+	domain *domain.{{serverNameFunc .Server}}Domain
+}
+
+type {{serverNameFunc .Server}}ServerOpt func(s *{{serverNameFunc .Server}}Service)
+
+func Set{{serverNameFunc .Server}}Domain(domain *domain.{{serverNameFunc .Server}}Domain) {{serverNameFunc .Server}}ServerOpt {
+	return func(s *{{serverNameFunc .Server}}Service) {
+		s.domain = domain
+	}
+}
+
+func New{{serverNameFunc .Server}}Service(opts ...{{serverNameFunc .Server}}ServerOpt) *{{serverNameFunc .Server}}Service {
+	s := &{{serverNameFunc .Server}}Service{}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}

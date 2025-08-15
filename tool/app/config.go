@@ -3,25 +3,17 @@ package app
 import (
 	"context"
 	"errors"
+	"github.com/long250038728/web/tool/app_const"
 	"github.com/long250038728/web/tool/configurator"
-	"github.com/long250038728/web/tool/configurator/config_center"
+	"github.com/long250038728/web/tool/persistence/etcd"
 	"path/filepath"
 )
 
 var configLoad = configurator.NewYaml()
-var defaultConfigs = []string{"db", "db_read", "redis", "mq", "es", "register", "tracing"}
 var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracing"}
 
-func initConfigCenter(rootPath string) (config_center.ConfigCenter, error) {
-	var centerConfig config_center.Config
-	if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
-		return nil, err
-	}
-	return config_center.NewEtcdConfigCenter(&centerConfig)
-}
-
 // NewAppConfig 获取app配置
-func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Config, err error) {
+func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	ctx := context.Background()
 
 	//获取服务器配置列表
@@ -40,19 +32,39 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 		"tracing":  &conf.tracingConfig,
 	}
 
-	if conf.GRPC == "" {
-		conf.GRPC = GrpcLocal
-	}
-
 	if len(yaml) == 0 {
-		yaml = defaultConfigs
-		if conf.GRPC == GrpcLocal || conf.GRPC == GrpcKubernetes {
-			yaml = defaultLocalConfigs
+		yaml = defaultLocalConfigs
+		if conf.RpcType == app_const.RpcRegister {
+			yaml = append(yaml, "register")
 		}
 	}
 
+	//默认值
+	if conf.ConfigInitType == "" {
+		conf.ConfigInitType = app_const.ConfigInitFile
+	}
+	if conf.RpcType == "" {
+		conf.RpcType = app_const.RpcLocal
+	}
+	if conf.Env == "" {
+		conf.Env = app_const.EnvDev
+	}
+	if conf.IP == "" {
+		conf.IP = loadIP()
+	}
+
+	if _, ok := app_const.RPC[conf.RpcType]; !ok {
+		return nil, errors.New("config RPC TYPE value is undefined")
+	}
+	if _, ok := app_const.ENV[conf.Env]; !ok {
+		return nil, errors.New("config Env value is undefined")
+	}
+	if _, ok := app_const.ConfigInit[conf.ConfigInitType]; !ok {
+		return nil, errors.New("config Config init value is undefined")
+	}
+
 	//配置文件
-	if configType == ConfigPath {
+	if conf.ConfigInitType == app_const.ConfigInitFile {
 		for _, fileName := range yaml {
 			val, ok := configs[fileName]
 			if !ok {
@@ -66,8 +78,12 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 	}
 
 	//配置中心
-	if configType == ConfigCenter {
-		client, err := initConfigCenter(rootPath)
+	if conf.ConfigInitType == app_const.ConfigInitCenter {
+		var centerConfig etcd.Config
+		if err := configLoad.Load(filepath.Join(rootPath, "center.yaml"), &centerConfig); err != nil {
+			return nil, err
+		}
+		client, err := etcd.NewEtcdConfigCenter(&centerConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +94,7 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 				return nil, errors.New(fileName + "is not bind object")
 			}
 
-			confStr, err := client.Get(ctx, "config-"+fileName)
+			confStr, err := client.Get(ctx, fileName)
 			if err != nil {
 				return nil, err
 			}
@@ -91,8 +107,5 @@ func NewAppConfig(rootPath string, configType int32, yaml ...string) (conf *Conf
 		}
 	}
 
-	if len(conf.IP) == 0 {
-		conf.IP = loadIP()
-	}
 	return conf, nil
 }

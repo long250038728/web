@@ -34,8 +34,8 @@ func (l *redis) Lock(ctx context.Context) error {
 
 func (l *redis) UnLock(ctx context.Context) error {
 	script := `
-		if (redis.call("get",KEYS[1]) == ARGV[1]) then
-			return redis.call("del",KEYS[1]);
+		if (cache.call("get",KEYS[1]) == ARGV[1]) then
+			return cache.call("del",KEYS[1]);
 		else
 			return 0;
 		end
@@ -52,8 +52,8 @@ func (l *redis) UnLock(ctx context.Context) error {
 
 func (l *redis) Refresh(ctx context.Context) error {
 	script := `
-		if (redis.call("get",KEYS[1]) == ARGV[1]) then
-			return redis.call("expire",KEYS[1],ARGV[2]);
+		if (cache.call("get",KEYS[1]) == ARGV[1]) then
+			return cache.call("expire",KEYS[1],ARGV[2]);
 		else
 			return 0;
 		end

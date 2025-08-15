@@ -3,60 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/long250038728/web/application/order/internal/domain"
-	"github.com/long250038728/web/application/order/internal/repository"
-	"github.com/long250038728/web/application/order/internal/router"
-	"github.com/long250038728/web/application/order/internal/service"
+	"github.com/long250038728/web/application/order/cmd/server"
 	"github.com/long250038728/web/protoc"
 	"github.com/long250038728/web/tool/app"
-	"github.com/long250038728/web/tool/server/http"
-	"github.com/long250038728/web/tool/server/rpc"
-	"google.golang.org/grpc"
 )
 
+// main 1.默认读取命令行config配置信息，2.读取Config环境变量，3.获取当前路径下面的config文件
 func main() {
-	path := flag.String("path", "", "root path")
+	path := flag.String("config", "", "config path")
 	flag.Parse()
+
 	app.InitPathInfo(path)
-	fmt.Println(Run(protoc.OrderService))
-}
-
-func Run(serverName string) error {
-	util := app.NewUtil()
-	port, ok := util.Port(serverName)
-	if !ok {
-		return fmt.Errorf("server %s is not bind port", serverName)
-	}
-
-	// 定义服务
-	svc := service.NewService(
-		service.SetDomain(domain.NewDomain(repository.NewRepository(util))),
-	)
-	opts := []app.Option{
-		app.Servers( // 服务
-			http.NewHttp(serverName, util.Info.IP, port.HttpPort, func(engine *gin.Engine) {
-				router.RegisterHTTPServer(engine, svc)
-			}),
-			rpc.NewGrpc(serverName, util.Info.IP, port.GrpcPort, func(engine *grpc.Server) {
-				router.RegisterGRPCServer(engine, svc)
-			}),
-		),
-	}
-	if register, err := util.Register(); err == nil {
-		opts = append(opts, app.Register(register)) //服务注册 && 发现
-	}
-	if exporter, err := util.Exporter(); err == nil {
-		opts = append(opts, app.Tracing(exporter, serverName)) //服务注册 && 发现
-	}
-
-	//启动服务
-	application, err := app.NewApp(opts...)
-	defer application.Stop()
-	if err != nil {
-		return err
-	}
-
-	//程序运行
-	return application.Start()
+	fmt.Println(server.Run(protoc.OrderService))
 }

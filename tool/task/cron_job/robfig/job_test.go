@@ -16,8 +16,8 @@ func TestNewCronJob(t *testing.T) {
 	cronJob.Start()
 	defer cronJob.Close()
 
-	do1(cronJob)
-	do2(cronJob)
+	_, _ = do1(cronJob)
+	_, _ = do2(cronJob)
 
 	//阻塞
 	select {

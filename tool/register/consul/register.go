@@ -20,15 +20,10 @@ type Config struct {
 
 // NewConsulRegister   创建consul服务注册类
 func NewConsulRegister(conf *Config) (*Register, error) {
-	//创建consul客户端
 	config := api.DefaultConfig()
 	config.Address = conf.Address
-	config.HttpClient = http.NewCustomHttpClient()
+	config.HttpClient = http.NewCustomHttpClient(http.Name("Register"))
 	client, err := api.NewClient(config)
-
-	status := client.Status()
-	fmt.Println(status)
-
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +44,7 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		Name:    serviceInstance.Name,
 		Address: serviceInstance.Address,
 		Port:    serviceInstance.Port,
+		Tags:    []string{serviceInstance.Type},
 	}
 
 	if serviceInstance.Type == register.InstanceTypeHttp {
@@ -58,6 +54,9 @@ func (r *Register) Register(ctx context.Context, serviceInstance *register.Servi
 		check.DeregisterCriticalServiceAfter = "30s"
 		check.HTTP = fmt.Sprintf("http://%s:%d/health", serviceInstance.Address, serviceInstance.Port)
 		registration.Check = &check
+		registration.Meta = map[string]string{
+			"metrics_path": fmt.Sprintf("/%s/metrics/metrics", serviceInstance.Name),
+		}
 	}
 
 	if serviceInstance.Type == register.InstanceTypeGRPC {
@@ -119,20 +118,38 @@ func (r *Register) Subscribe(ctx context.Context, serviceName string) (<-chan *r
 		return nil, err
 	}
 
+	ch := make(chan *register.ServiceInstance, 100)
+
 	// 定义service变化后所执行的程序(函数)handler
 	wp.Handler = func(idx uint64, data interface{}) {
 		switch d := data.(type) {
 		case []*api.ServiceEntry:
 			for _, i := range d {
-				// 这里是单个service变化时需要做的逻辑，可以自己添加，或在外部写一个类似handler的函数传进来
-				fmt.Printf("service %s 已变化", i.Service.Service)
-				// 打印service的状态
-				fmt.Println("service status: ", i.Checks.AggregatedStatus())
+				instance := &register.ServiceInstance{
+					Name:    i.Service.Service,
+					ID:      i.Service.ID,
+					Address: i.Service.Address,
+					Port:    i.Service.Port,
+				}
+
+				select {
+				case ch <- instance:
+				case <-ctx.Done():
+					return
+				}
 			}
 		}
 	}
-	// 启动监控
-	go wp.Run(r.address)
 
-	return nil, nil
+	go func() {
+		<-ctx.Done()
+		wp.Stop()
+	}()
+
+	go func() {
+		defer close(ch)
+		_ = wp.RunWithClientAndHclog(r.client, nil)
+	}()
+
+	return ch, nil
 }

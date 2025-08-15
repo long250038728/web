@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/long250038728/web/tool/configurator"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
+	"net/http"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -67,7 +69,11 @@ func TestClient_Get(t *testing.T) {
 		return
 	}
 
-	httpClient := NewClient(SetTimeout(time.Second), SetContentType("application/JSON"), SetHttpClient(NewCustomHttpClient()))
+	c := NewCustomHttpClient(Logger(os.Stdout), Handle(func(req *http.Request, requestBytes, responseBytes []byte, err error) {
+		t.Log(req, requestBytes, responseBytes, err)
+	}))
+
+	httpClient := NewClient(SetTimeout(time.Second), SetContentType("application/JSON"), SetHttpClient(c))
 	data := map[string]any{
 		"merchant_id":      394,
 		"merchant_shop_id": 1150,

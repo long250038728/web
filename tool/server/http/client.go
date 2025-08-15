@@ -1,13 +1,13 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -98,7 +98,7 @@ func (c *Client) do(ctx context.Context, method string, address string, data []b
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	request, err := http.NewRequestWithContext(ctx, method, address, strings.NewReader(string(data)))
+	request, err := http.NewRequestWithContext(ctx, method, address, bytes.NewReader(data))
 	if err != nil {
 		return nil, 0, err
 	}
