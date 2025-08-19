@@ -1,3 +1,38 @@
+# Go 问题排查
+
+## 排查步骤
+1. 收集触发的告警/逻辑bug的具体事项
+2. 找到对应的链路日志、系统日志、报警指标等
+3. 分析对应的节点及功能
+4. 假设与验证，缩小范围，定位根因
+5. 修改验证
+6. 总结复盘（有助于避免再发生，发生后解决的思路）
+
+## 调试dlv
+1. dlv debug 编译并启动 ，dlv exec 调试已经编译的程序  ，dlv attach 附加到已经运行的程序
+2. 使用break命令加入断点（break main.go:25 ）
+3. continue命令让程序运行
+4. print、locals、args命令查看当前的变量和表达式结果，stack，frame命令查看调用路径 next逐行不进函数，step逐行进函数，stepout这行完返回
+5. goroutines，goroutine <id> 查看协程上下文
+6. exit、quit退出调试
+
+## 远程调试dlv
+远程服务开启dlv server
+```
+dlv --headless --listen=:1234 --api-version=2 --accept-multiclient exec ./your_program -- arg1 arg2
+```
+客户端连接dlv
+```
+dlv connect <ip:addr>:1234
+```
+goland 链接远程dlv
+```
+Run → Edit Configurations → Go Remote，配置 Host = 远程服务器IP，Port = 1234。点运行就能连接。编辑器里点 红点（断点） 就行
+```
+
+
+---
+
 # Go 资源分析总结
 
 ## 一、资源分析文件生成
@@ -56,7 +91,7 @@ go get github.com/gin-contrib/pprof
 import "github.com/gin-contrib/pprof"
 
 ginRouter := gin.Default()
-pprof.Register(ginRouter, "user/debug/pprof") // 默认路径为 "debug/pprof"
+pprof.Register(ginRouter, "user/pprof/pprof") // 默认路径为 "debug/pprof"
 ```
 
 
@@ -65,17 +100,21 @@ pprof.Register(ginRouter, "user/debug/pprof") // 默认路径为 "debug/pprof"
 
 ### 1. 通过HTTP获取并分析
 ```
-curl http://127.0.0.1:8080/debug/pprof/profile -o cpu.profile
-go tool pprof cpu.profile //等同于go tool pprof http://127.0.0.1:8080/debug/pprof/profile
+curl -o cpu.prof "localhost:18001/user/pprof/profile?seconds=100"        //生成cpu分析报告
+curl -o heap.prof localhost:18001/user/pprof/heap                        //堆信息
+curl -o goroutine.prof localhost:18001/user/pprof/goroutine?debug=1      //返回goroutine的堆栈信息，状态等
+curl -o goroutine.prof localhost:18001/user/pprof/goroutine?debug=2      //返回与debug=1相同，尝试将内存地址符号化为函数名跟行号
+curl -o mutex.prof localhost:18001/user/pprof/mutex?debug=1              //查看互斥锁竞争（需要代码添加runtime.SetMutexProfileFraction(1)  开启分析）
+curl -o block.prof localhost:18001/user/pprof/block?debug=1              //同步操作的调用点和累积阻塞时间。需要代码添加SetBlockProfileRate(1)  开启分析）
 ```
 
 ### 2. 使用go tool pprof工具
 ```
 # 查看服务器的分析数据
-go tool pprof http://192.168.1.2:8002/user/debug/pprof/heap
+go tool pprof http://192.168.1.2:8002/user/pprof/heap
 
 # 启动交互模式分析文件
-go tool pprof v1.test cpu.profile
+go tool pprof v1.test cpu.prof
 ```
 交互模式下常用指令：
 * top [N]：列出前N条耗时/内存占用最多的函数。 
@@ -84,24 +123,25 @@ go tool pprof v1.test cpu.profile
 
 ### 3. 启动Web服务展示分析结果
 ```
-go tool pprof -http :8889 v1.test cpu.profile
+go tool pprof -http=:8889 v1.test cpu.prof
 ```
 
 ### 4. 导出分析结果为图表
 ```
 sudo yum -y install graphviz.x86_64
-go tool pprof -svg cpu.profile > cpu.svg   # 导出为 SVG 格式
-go tool pprof -pdf cpu.profile > cpu.pdf   # 导出为 PDF 格式
-go tool pprof -png cpu.profile > cpu.png   # 导出为 PNG 格式
+go tool pprof -svg cpu.prof > cpu.svg   # 导出为 SVG 格式
+go tool pprof -pdf cpu.prof > cpu.pdf   # 导出为 PDF 格式
+go tool pprof -png cpu.prof > cpu.png   # 导出为 PNG 格式
 ```
 
 ### 5. trace分析
 ```
 # trace查看
-curl 'http://192.168.1.2:8002/user/debug/pprof/trace?seconds=30' >trace.out
+curl 'http://localhost:18001/user/pprof/trace?seconds=30' >trace.out
 go tool trace trace.out
 ```
 
+---
 
 ## 三、Go项目依赖生成图
 ```
@@ -114,12 +154,15 @@ go install github.com/kisielk/godepgraph@latest
 godepgraph -s ./application/user/cmd/ | dot -Tpng -o godepgraph.png
 ```
 
+---
+
 ## 四、检测数据竞争
 使用-race参数检测数据竞争：
 ```
 go run -race main.go
 ```
 
+---
 
 ## 五、查看内存逃逸情况
 通过编译参数-gcflags "-m"检测内存逃逸情况：
@@ -142,4 +185,5 @@ go build -gcflags "-m" main.go
 ./main.go:35:14: ... argument escapes to heap
 ```
 
+---
 

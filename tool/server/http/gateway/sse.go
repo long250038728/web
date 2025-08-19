@@ -45,7 +45,7 @@ func (w *sseWriter) writeSSE(ch <-chan string) {
 	f, _ := ginWriter.(http.Flusher)
 
 	for message := range ch {
-		_, _ = fmt.Fprintf(ginWriter, message)
+		_, _ = fmt.Fprintf(ginWriter, "data: %s\n\n", message)
 		f.Flush()
 	}
 	w.addLog("SSE send ok")

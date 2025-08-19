@@ -11,6 +11,7 @@ import (
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
+	"runtime/debug"
 )
 
 // middle 中间件处理规范
@@ -20,11 +21,12 @@ import (
 // BaseHandle 基本中间件（创建链路及jwt解析，生成新的ctx替换到c.Request.Context中）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
-func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
+func BaseHandle(parse authorization.Parse) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
 				c.AbortWithStatusJSON(http.StatusOK, gateway.NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
+				debug.PrintStack() //打印panic报错信息
 				return
 			}
 		}()
@@ -68,8 +70,8 @@ func BaseHandle(auth authorization.Auth) gin.HandlerFunc {
 		c.Header(server.TraceParentKey, mCarrier[server.TraceParentKey])
 
 		// 用户处理
-		if auth != nil {
-			if parseCtx, err := auth.Parse(ctx, c.GetHeader("Authorization")); err == nil {
+		if parse != nil {
+			if parseCtx, err := parse.Parse(ctx, c.GetHeader("Authorization")); err == nil {
 				ctx = parseCtx
 			}
 		}

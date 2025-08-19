@@ -69,15 +69,22 @@ type Claims interface {
 */
 
 type Auth interface {
-	// Signed 生成accessToken refreshToken
-	Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error)
-
-	// Parse 解析accessToken
-	// 生成Claims Session存放到ctx中 通过 GetClaims GetSession 获取
-	Parse(ctx context.Context, accessToken string) (context.Context, error)
-
-	Refresh(ctx context.Context, refreshToken string, claims Claims) error
+	Signed
+	Parse
 
 	SetSession(ctx context.Context, sessionId string, session *UserSession) (err error)
 	DeleteSession(ctx context.Context, sessionId string) error
+}
+
+type Parse interface {
+	// Parse 解析accessToken
+	// 生成Claims 及 Session存放到ctx中 通过 GetClaims GetSession 获取
+	Parse(ctx context.Context, accessToken string) (context.Context, error)
+}
+
+type Signed interface {
+	// Signed 生成accessToken refreshToken
+	Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error)
+
+	Refresh(ctx context.Context, refreshToken string, claims Claims) error
 }
