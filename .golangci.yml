@@ -15,7 +15,7 @@ linters:                    # 配置启用/禁用的 Linter（代码检查工具
     - staticcheck           # 检查常见错误、bug、冗余代码（功能强大，推荐）
     - unconvert             # 检查不必要的类型转换
     - unparam               # 检查未使用的函数参数
-#    - whitespace            # 检查多余或缺失的空格问题
+    - whitespace            # 检查多余或缺失的空格问题
   disable:                  # 要禁用的 linter 列表
     - funlen                # 禁用函数长度检查（不限制函数行数）
     - godot                 # 禁用检查注释是否以句号结尾
