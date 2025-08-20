@@ -1,0 +1,46 @@
+version: "2"                # 指定 golangci-lint 配置文件版本，这里是 v2
+
+linters:                    # 配置启用/禁用的 Linter（代码检查工具）
+  enable:                   # 要启用的 linter 列表
+    - bodyclose             # 检查 HTTP 响应体是否忘记关闭
+    - dogsled               # 检查多变量赋值中有多余的 "_"
+    - dupl                  # 检查代码中是否有重复片段
+    - goconst               # 检查重复的字符串/数字，建议提取成常量
+    - gocritic              # 提供代码风格与性能的改进建议
+    - gocyclo               # 检查函数的圈复杂度，防止过于复杂
+    - misspell              # 检查英文单词拼写错误
+    - nakedret              # 检查是否存在不带变量的裸 return（不推荐）
+    - predeclared           # 检查是否误用 Go 内建标识符（如重新定义 int, new 等）
+    - revive                # 可替代 golint 的更强大的 Linter
+    - staticcheck           # 检查常见错误、bug、冗余代码（功能强大，推荐）
+    - unconvert             # 检查不必要的类型转换
+    - unparam               # 检查未使用的函数参数
+#    - whitespace            # 检查多余或缺失的空格问题
+  disable:                  # 要禁用的 linter 列表
+    - funlen                # 禁用函数长度检查（不限制函数行数）
+    - godot                 # 禁用检查注释是否以句号结尾
+    - lll                   # 禁用长行检测（行宽限制）
+    - testpackage           # 禁用测试包检测（是否测试文件放在 _test 包中）
+  settings:                 # 各个 linter 的详细配置
+    errcheck:               # errcheck linter 配置
+      check-type-assertions: true  # 检查类型断言错误是否被处理
+      check-blank: true            # 检查是否错误赋值给 "_" 而未处理
+    gocyclo:                # gocyclo 圈复杂度检查配置
+      min-complexity: 15    # 超过 15 的复杂度才报错
+    gosec:                  # gosec 安全性检查配置
+      excludes:             # 忽略某些规则
+        - G101              # 忽略硬编码密钥检查
+        - G307              # 忽略 defer Close 出错检查
+    misspell:               # 拼写检查配置
+      locale: US            # 使用美式英语拼写
+    staticcheck:            # staticcheck 配置
+      checks: ["all"]       # 启用 staticcheck 提供的所有检查
+
+issues:                     # 代码问题展示相关配置
+  max-issues-per-linter: 0  # 每个 linter 的最大问题数，0 表示无限制
+  max-same-issues: 0        # 相同问题的最大数量，0 表示无限制
+
+formatters:                 # 代码格式化工具配置
+  enable:                   # 启用哪些格式化工具
+    - gofmt                 # 启用 gofmt，确保代码符合标准格式
+    - goimports             # 启用 goimports，自动补充 import 并格式化

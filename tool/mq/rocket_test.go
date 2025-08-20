@@ -33,11 +33,9 @@ func TestRocket_NORMALSend(t *testing.T) {
 		}
 		t.Log(client.BulkSend(context.Background(), "NORMAL", "first", messages))
 	})
-
 }
 
 func TestRocket_FIFOSend(t *testing.T) {
-
 	client := NewRocketMq(&RocketMqConfig{
 		Endpoint: "rmq-18xpbagp4.rocketmq.gz.public.tencenttdmq.com:8080", AccessKey: "ak18xpbagp483ece0d1cc80", SecretKey: "sk48297705d3c10873",
 	})
@@ -67,7 +65,6 @@ func TestRocket_FIFOSend(t *testing.T) {
 }
 
 func TestRocket_DELAYSend(t *testing.T) {
-
 	client := NewRocketMq(&RocketMqConfig{
 		Endpoint: "rmq-18xpbagp4.rocketmq.gz.public.tencenttdmq.com:8080", AccessKey: "ak18xpbagp483ece0d1cc80", SecretKey: "sk48297705d3c10873",
 	})

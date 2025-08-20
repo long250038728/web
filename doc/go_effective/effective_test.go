@@ -41,7 +41,7 @@ func TestRange(t *testing.T) {
 
 		s2 := []*curr{{Code: 1}, {Code: 2}, {Code: 3}}
 		for _, val := range s2 {
-			val.Code = val.Code + 1 //由于是[]*curr 指针所以修改有效
+			val.Code++ //由于是[]*curr 指针所以修改有效
 		}
 	})
 
@@ -400,7 +400,6 @@ func TestGoroutine(t *testing.T) {
 		c2.mu.Lock()                       //加锁
 		defer c2.mu.Unlock()               //解锁
 		t.Log(fmt.Sprintf("xxxx %v", str)) //此时不会有死锁
-
 	})
 
 	t.Run("context", func(t *testing.T) {
@@ -434,7 +433,6 @@ func TestContext(t *testing.T) {
 		val.Code = 300
 		t.Log(ctx.Value("key").(*curr).Code)
 	})
-
 }
 
 func TestTime(t *testing.T) {
@@ -525,7 +523,6 @@ func TestTime(t *testing.T) {
 					time.Sleep(time.Second) //每秒检查内存情况
 					menPrint()
 				}
-
 			}
 		}()
 		//不重复创建一个time.After而是只有一个，通过reset重置时间，同时也能通过stop停止进行销毁
@@ -691,7 +688,12 @@ func TestTest(t *testing.T) {
 			_, _ = w.Write([]byte("hello"))
 		}))
 		defer svc.Close()
-		t.Log(svc.Client().Post("https://localhost", "application/json", nil))
+		resp, err := svc.Client().Post("https://localhost", "application/json", nil)
+
+		t.Log(resp, err)
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		//测试iotest
 		_ = iotest.TestReader(strings.NewReader("hello"), []byte("hello"))

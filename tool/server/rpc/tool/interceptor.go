@@ -48,7 +48,6 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 func ServerAuthInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok && err == nil {
-
 			if claims, ok := md["claims"]; ok && len(claims) == 1 {
 				userClaims := &authorization.UserInfo{}
 				if err := json.Unmarshal([]byte(claims[0]), &userClaims); err == nil {

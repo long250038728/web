@@ -96,7 +96,6 @@ func (s *queueDoublyLink) dequeue() (int32, error) {
 		}
 		curr = curr.next
 	}
-
 }
 
 //====================数组队列===========================

@@ -87,7 +87,6 @@ func selectSort() {
 
 		//遍历自己右边的所有数据与我对比（左边已经是最小了）
 		for j := i + 1; j < n; j++ {
-
 			// 如果比我小，就把minIndex进行赋值
 			if arr[j] < arr[minIndex] {
 				minIndex = j
@@ -236,7 +235,6 @@ func bucketSort() {
 				break
 			}
 		}
-
 	}
 	fmt.Println(buckets)
 }

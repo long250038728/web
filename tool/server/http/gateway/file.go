@@ -24,8 +24,8 @@ func (w *fileWriter) Run(response any, err error) {
 	} else {
 		w.WriteFile(file.FileName(), file.FileData())
 	}
-
 }
+
 func (w *writer) WriteFile(fileName string, data []byte) {
 	fileName = url.QueryEscape(fileName) // 防止中文乱码
 	w.ginContext.Header("Content-Type", "application/octet-stream")

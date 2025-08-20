@@ -109,7 +109,6 @@ func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gatew
 		if err == nil && len(b) > 0 {
 			var cacheData *gateway.Response
 			if err := json.Unmarshal([]byte(b), &cacheData); err == nil {
-
 				span := opentelemetry.NewSpan(ctx, "middle_cache: "+key)
 				defer span.Close()
 				span.SetAttribute("middle_cache", true)

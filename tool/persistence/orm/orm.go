@@ -106,21 +106,21 @@ func connSetting(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
-	sqlDb.SetMaxIdleConns(10)           //用于设置连接池中空闲连接的最大数量。
-	sqlDb.SetMaxOpenConns(100)          //设置打开数据库连接的最大数量。
-	sqlDb.SetConnMaxLifetime(time.Hour) //设置了连接可复用的最大时间
+	sqlDb.SetMaxIdleConns(10)           // 用于设置连接池中空闲连接的最大数量。
+	sqlDb.SetMaxOpenConns(100)          // 设置打开数据库连接的最大数量。
+	sqlDb.SetConnMaxLifetime(time.Hour) // 设置了连接可复用的最大时间
 
 	return nil
 }
 
 func callback(db *gorm.DB) {
-	//开始
+	// 开始
 	_ = db.Callback().Create().Before("gorm:create").Register("curr:before", beforeCallBack)
 	_ = db.Callback().Query().Before("gorm:query").Register("curr:before", beforeCallBack)
 	_ = db.Callback().Delete().Before("gorm:delete").Register("curr:before", beforeCallBack)
 	_ = db.Callback().Update().Before("gorm:update").Register("curr:before", beforeCallBack)
 
-	//结束
+	// 结束
 	_ = db.Callback().Create().After("gorm:create").Register("curr:after", afterCallBack)
 	_ = db.Callback().Query().After("gorm:query").Register("curr:after", afterCallBack)
 	_ = db.Callback().Delete().After("gorm:delete").Register("curr:after", afterCallBack)

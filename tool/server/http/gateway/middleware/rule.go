@@ -63,7 +63,6 @@ func Rule(c *gin.Context) gateway.ServerInterceptor {
 			return nil, app_error.Unauthorized
 		}
 		return handler(ctx, request)
-
 	}
 }
 
