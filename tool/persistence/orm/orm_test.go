@@ -2,7 +2,6 @@ package orm
 
 import (
 	"errors"
-	"github.com/long250038728/web/tool/configurator"
 	"gorm.io/gorm"
 	"testing"
 )
@@ -20,9 +19,9 @@ var mapModels *[]map[string]interface{}
 
 var dbConfig Config
 
-func init() {
-	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
-}
+//func init() {
+//	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
+//}
 
 func TestCreateGorm(t *testing.T) {
 	db, err := NewMySQLGorm(&dbConfig)

@@ -2,7 +2,6 @@ package orm
 
 import (
 	"fmt"
-	"github.com/long250038728/web/tool/configurator"
 	"testing"
 )
 
@@ -14,13 +13,13 @@ const (
 
 var db *Gorm
 
-func init() {
-	var err error
-	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
-	if db, err = NewMySQLGorm(&dbConfig); err != nil {
-		panic(err)
-	}
-}
+//func init() {
+//	var err error
+//	configurator.NewYaml().MustLoadConfigPath("db.yaml", &dbConfig)
+//	if db, err = NewMySQLGorm(&dbConfig); err != nil {
+//		panic(err)
+//	}
+//}
 
 func partition(partitionKey int32) int32 {
 	switch {
