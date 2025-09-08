@@ -9,11 +9,11 @@ func TestQuery(t *testing.T) {
 		Gt("goods_id", 2000),
 		NewBoolQuery().Should(
 			NewBoolQuery().Must(Gte("status", 1), Lt("status", 2)),
-			NewBoolQuery().Must(Lte("status", 3)),
-			NewBoolQuery().Must(Between("status", 4, 5)),
+			Lte("status", 3),
+			Between("status", 4, 5),
 		),
 		In("order_id", []int32{1, 2, 3, 4, 5}),
-		Raw("type = ?", 7),
+		Raw("type = ?", 6),
 	)
 
 	if query.IsEmpty() {
