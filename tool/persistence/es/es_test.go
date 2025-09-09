@@ -456,6 +456,19 @@ func TestReindex(t *testing.T) {
 	t.Log(do.Updated)
 }
 
+func TestForceMerge(t *testing.T) {
+	do, err := persistence.Forcemerge(indexName).
+		MaxNumSegments(3).        // 最大的段数量
+		Flush(true).              // 合并完成后是否执行一次 flush
+		OnlyExpungeDeletes(true). // 只清理含有删除文档的段
+		Do(context.Background())
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log(do.Shards.Successful)
+}
+
 func TestAll(t *testing.T) {
 	ctx := context.Background()
 	indexName = "status"
