@@ -68,6 +68,10 @@ func (b *BoolQuery) Do() (string, []interface{}) {
 	var parts []string
 	var args []interface{}
 
+	if b.IsEmpty() {
+		b.MustQueries = append(b.MustQueries, Raw("1 = 1"))
+	}
+
 	// Must -> AND
 	if len(b.MustQueries) > 0 {
 		var mustParts []string
