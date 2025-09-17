@@ -3,6 +3,7 @@ package sliceconv
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestRunDemo(t *testing.T) {
@@ -134,4 +135,24 @@ func TestExtract(t *testing.T) {
 		return t.Name
 	})
 	t.Log(reflect.DeepEqual(want, got))
+}
+
+func TestGoroutineFunc(t *testing.T) {
+	data := []*simple{
+		{Name: "h", Age: 1},
+		{Name: "e", Age: 2},
+		{Name: "l", Age: 3},
+		{Name: "l", Age: 4},
+		{Name: "o", Age: 5},
+	}
+	want := []string{"h", "e", "l", "l", "o"}
+	got, err := Go(2, data, func(s *simple) (int, error) {
+		time.Sleep(time.Second)
+		var err error
+		//if s.Name == "e" {
+		//	err = errors.New("this is err")
+		//}
+		return s.Age, err
+	})
+	t.Log(len(want) == len(got), got, err) // total 3s
 }

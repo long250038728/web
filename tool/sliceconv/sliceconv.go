@@ -1,7 +1,9 @@
 package sliceconv
 
 import (
+	"context"
 	"golang.org/x/exp/constraints"
+	"sync"
 )
 
 //-------------------用于定义约定泛型的类型————————————
@@ -147,4 +149,85 @@ func Extract[T, X any](slice []T, condition func(T) X) []X {
 		newSlice = append(newSlice, condition(item))
 	}
 	return newSlice
+}
+
+// Go 多协程执行函数
+func Go[T, S any](goroutineNum int, data []T, f func(item T) (S, error)) ([]S, error) {
+	if goroutineNum <= 0 {
+		goroutineNum = 1 // 至少启动一个协程
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // 确保资源释放
+
+	// 生产者
+	nch := make(chan T, len(data))
+	go func() {
+		defer close(nch)
+		for _, va := range data {
+			select {
+			case nch <- va:
+			case <-ctx.Done(): // 如果上下文被取消，停止发送
+				return
+			}
+		}
+	}()
+
+	// 消费者
+	ch := make(chan S, goroutineNum)
+	errCh := make(chan error, 1) // 用于传递错误
+
+	var wg sync.WaitGroup
+	wg.Add(goroutineNum)
+
+	for i := 0; i < goroutineNum; i++ {
+		go func() {
+			defer wg.Done()
+			for val := range nch {
+				// 检查上下文是否已取消
+				if ctx.Err() != nil {
+					return
+				}
+
+				res, err := f(val)
+				if err != nil {
+					select {
+					case errCh <- err: // 尝试发送错误
+						cancel() // 取消上下文，触发其他协程退出
+					default: // 如果已经有错误，则忽略
+					}
+					return
+				}
+
+				select {
+				case ch <- res:
+				case <-ctx.Done(): // 如果上下文被取消，停止发送
+					return
+				}
+			}
+		}()
+	}
+
+	// 等待所有协程关闭
+	go func() {
+		wg.Wait()
+		close(ch)
+		close(errCh)
+	}()
+
+	// 收集结果或错误
+	list := make([]S, 0, len(data))
+	for {
+		select {
+		case err := <-errCh:
+			if err != nil {
+				return nil, err
+			}
+		case v, ok := <-ch:
+			if !ok {
+				return list, nil
+			}
+			list = append(list, v)
+		}
+	}
 }
