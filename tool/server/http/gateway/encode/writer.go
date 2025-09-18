@@ -1,4 +1,4 @@
-package gateway
+package encode
 
 import (
 	"context"
@@ -16,8 +16,6 @@ type Writer interface {
 	Request() (request any, requestInfo map[string]any)
 
 	Run(response any, err error)
-
-	Write(data interface{})
 	WriteErr(err error)
 }
 
@@ -74,47 +72,6 @@ func (w *writer) Request() (request any, requestInfo map[string]any) {
 
 // ========================================================================
 
-func (w *writer) Write(data interface{}) {
-	w.WriteJSON(data, nil)
-}
-
-func (w *writer) WriteErr(err error) {
-	w.WriteJSON(nil, err)
-}
-
-func (w *writer) WriteJSON(data interface{}, err error) {
-	var res *Response
-
-	switch data.(type) {
-	case Response:
-		val, _ := data.(Response)
-		res = &val
-	case *Response:
-		res = data.(*Response)
-	default:
-		res = NewResponse(data, err)
-	}
-
-	marshalByte, err := json.Marshal(res)
-	if err != nil {
-		res.Code = "999999"
-		res.Message = err.Error()
-		res.Details = nil
-		marshalByte, _ = json.Marshal(res)
-	}
-	w.WriteBytes(marshalByte)
-}
-
-func (w *writer) WriteBytes(b []byte) {
-	//记录请求响应
-	w.addLog(string(b))
-
-	w.ginContext.Header("Content-Type", "application/JSON")
-	_, _ = w.ginContext.Writer.Write(b)
-}
-
-// ========================================================================
-
 func (w *writer) addLog(data string) {
 	if span, err := opentelemetry.SpanFromContext(w.ctx); err == nil {
 		span.AddEvent(data)
@@ -152,24 +109,6 @@ func NewJson(ginContext *gin.Context, request any) (Writer, error) {
 		return nil, err
 	}
 	return w, nil
-
-	//w.ctx = ginContext.Request.Context()
-	//w.request = request
-	//
-	//// 绑定request参数
-	//if err := w.Bind(request); err != nil {
-	//	return w, err
-	//}
-	//
-	//// 把request转为 map[string]any 用于后续处理
-	//requestInfo, err := w.structToMap(request)
-	//if err != nil {
-	//	return w, err
-	//}
-	//w.requestInfo = requestInfo
-	//
-	//w.addRequestLogAndTags(requestInfo)
-	//return w, nil
 }
 func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}
@@ -177,47 +116,12 @@ func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 		return nil, err
 	}
 	return w, nil
-
-	//w.ctx = ginContext.Request.Context()
-	//w.request = request
-	//
-	//// 绑定request参数
-	//if err := w.Bind(request); err != nil {
-	//	return w, err
-	//}
-	//
-	//// 把request转为 map[string]any 用于后续处理
-	//requestInfo, err := w.structToMap(request)
-	//if err != nil {
-	//	return w, err
-	//}
-	//w.requestInfo = requestInfo
-	//w.addRequestLogAndTags(requestInfo)
-	//
-	//return w, nil
 }
+
 func NewSSE(ginContext *gin.Context, request any) (Writer, error) {
 	w := &sseWriter{writer: writer{ginContext: ginContext, request: request}}
 	if err := w.Init(); err != nil {
 		return nil, err
 	}
 	return w, nil
-
-	//w.ctx = ginContext.Request.Context()
-	//w.request = request
-	//
-	//// 绑定request参数
-	//if err := w.Bind(request); err != nil {
-	//	return w, err
-	//}
-	//
-	//// 把request转为 map[string]any 用于后续处理
-	//requestInfo, err := w.structToMap(request)
-	//if err != nil {
-	//	return w, err
-	//}
-	//w.requestInfo = requestInfo
-	//w.addRequestLogAndTags(requestInfo)
-	//
-	//return w, nil
 }

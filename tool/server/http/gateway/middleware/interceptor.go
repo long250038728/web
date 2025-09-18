@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/server"
-	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"google.golang.org/grpc/metadata"
 	"net/http"
@@ -25,7 +25,7 @@ func BaseHandle(parse authorization.Parse) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
-				c.AbortWithStatusJSON(http.StatusOK, gateway.NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
+				c.AbortWithStatusJSON(http.StatusOK, encode.NewResponse(nil, errors.New(fmt.Sprintf("%v", r))))
 				debug.PrintStack() //打印panic报错信息
 				return
 			}

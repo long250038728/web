@@ -1,4 +1,4 @@
-package gateway
+package encode
 
 import (
 	"errors"
@@ -28,6 +28,12 @@ func (w *sseWriter) Run(response any, err error) {
 		w.writeSSE(ch)
 	}
 }
+
+func (w *sseWriter) WriteErr(err error) {
+	w.ginContext.JSON(http.StatusOK, NewResponse(nil, err))
+}
+
+//=========================================================
 
 func (w *sseWriter) checkSupportSEE() error {
 	if _, ok := w.ginContext.Writer.(http.Flusher); !ok {

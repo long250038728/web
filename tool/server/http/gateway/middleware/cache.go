@@ -9,6 +9,7 @@ import (
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/persistence/cache"
 	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"reflect"
 	"time"
@@ -107,7 +108,7 @@ func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gatew
 		// 直接返回 Response对象
 		b, err := client.Get(ctx, key)
 		if err == nil && len(b) > 0 {
-			var cacheData *gateway.Response
+			var cacheData *encode.Response
 			if err := json.Unmarshal([]byte(b), &cacheData); err == nil {
 				span := opentelemetry.NewSpan(ctx, "middle_cache: "+key)
 				defer span.Close()
@@ -122,7 +123,7 @@ func Cache(c *gin.Context, client cache.Cache, keys []string, opts ...Opt) gatew
 		// 写入缓存
 		// 转换成 Response对象
 		if err == nil {
-			cacheData := gateway.NewResponse(resp, err)
+			cacheData := encode.NewResponse(resp, err)
 			if b, err := json.Marshal(cacheData); err == nil {
 				_, _ = client.Set(ctx, key, string(b), expiration)
 			}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/internal/repository"
 	"github.com/long250038728/web/protoc/user"
-	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 	"time"
 )
 
@@ -20,7 +20,7 @@ func (s *User) SayHello(ctx context.Context, request *user.RequestHello) (*user.
 	str, err := s.repository.GetName(ctx, request)
 	return &user.ResponseHello{Str: str}, err
 }
-func (s *User) File(ctx context.Context, request *user.RequestHello) (gateway.FileInterface, error) {
+func (s *User) File(ctx context.Context, request *user.RequestHello) (encode.File, error) {
 	return &fileDemo{}, nil
 }
 
@@ -42,7 +42,7 @@ func (s *User) SendSSE(ctx context.Context, request *user.RequestHello) (<-chan 
 //=================================================================================================
 
 type fileDemo struct {
-	gateway.FileInterface
+	encode.File
 }
 
 func (f *fileDemo) FileName() string {

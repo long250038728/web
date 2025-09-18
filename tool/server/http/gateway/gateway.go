@@ -3,30 +3,31 @@ package gateway
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 )
 
 func Json(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(NewJson(ginContext, request))
+	return NewGateway(encode.NewJson(ginContext, request))
 }
 
 func File(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(NewFile(ginContext, request))
+	return NewGateway(encode.NewFile(ginContext, request))
 }
 
 func SSE(ginContext *gin.Context, request any) *Gateway {
-	return NewGateway(NewSSE(ginContext, request))
+	return NewGateway(encode.NewSSE(ginContext, request))
 }
 
 //========================================================================
 
 // Gateway 拦截器管理器
 type Gateway struct {
-	Writer
+	encode.Writer
 	interceptors ServerInterceptor
 	err          error
 }
 
-func NewGateway(writer Writer, err error) *Gateway {
+func NewGateway(writer encode.Writer, err error) *Gateway {
 	tool := &Gateway{}
 	tool.Writer = writer
 	tool.err = err

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/long250038728/web/application/user/internal/domain"
 	"github.com/long250038728/web/protoc/user"
-	"github.com/long250038728/web/tool/server/http/gateway"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 	"github.com/long250038728/web/tool/server/rpc/tool"
 )
 
@@ -33,7 +33,7 @@ func (s *User) SayHello(ctx context.Context, request *user.RequestHello) (*user.
 	return s.domain.SayHello(ctx, request)
 }
 
-func (s *User) File(ctx context.Context, request *user.RequestHello) (gateway.FileInterface, error) {
+func (s *User) File(ctx context.Context, request *user.RequestHello) (encode.File, error) {
 	return s.domain.File(ctx, request)
 }
 
