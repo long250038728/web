@@ -110,6 +110,15 @@ func NewJson(ginContext *gin.Context, request any) (Writer, error) {
 	}
 	return w, nil
 }
+
+func NewXML(ginContext *gin.Context, request any) (Writer, error) {
+	w := &xmlWriter{writer: writer{ginContext: ginContext, request: request}}
+	if err := w.Init(); err != nil {
+		return nil, err
+	}
+	return w, nil
+}
+
 func NewFile(ginContext *gin.Context, request any) (Writer, error) {
 	w := &fileWriter{writer: writer{ginContext: ginContext, request: request}}
 	if err := w.Init(); err != nil {

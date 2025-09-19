@@ -13,11 +13,11 @@ service User{
 }
 
 message RequestHello {
-  string name = 1; // @gotags: json:"name" form:"name"
-  int32 age = 2;  // @gotags: json:"age" form:"age"
+  string name = 1; // @gotags: json:"name" form:"name" xml:"name"
+  int32 age = 2;  // @gotags: json:"age" form:"age" xml:"age"
 }
 message ResponseHello {
-  string str = 1; // @gotags: json:"str" form:"str"
+  string str = 1; // @gotags: json:"str" form:"str" xml:"age"
 }
 
 

@@ -10,6 +10,10 @@ func Json(ginContext *gin.Context, request any) *Gateway {
 	return NewGateway(encode.NewJson(ginContext, request))
 }
 
+func Xml(ginContext *gin.Context, request any) *Gateway {
+	return NewGateway(encode.NewXML(ginContext, request))
+}
+
 func File(ginContext *gin.Context, request any) *Gateway {
 	return NewGateway(encode.NewFile(ginContext, request))
 }

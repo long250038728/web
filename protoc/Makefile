@@ -1,3 +1,7 @@
+.PHONY: mac_protobuf
+mac_protobuf:
+	brew install protobuf
+
 .PHONY: init
 init:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -13,7 +17,7 @@ gen: protoc_gen tag_inject
 .PHONY: protoc_gen
 protoc_gen:
 	protoc --proto_path=./ \
-      --proto_path=/Users/linlong/go/src/ \
+      --proto_path=./src/ \
       --go_out=. \
       --go_opt=paths=source_relative \
       --go-grpc_out=. \
