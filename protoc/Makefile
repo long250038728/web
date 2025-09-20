@@ -17,7 +17,7 @@ gen: protoc_gen tag_inject
 .PHONY: protoc_gen
 protoc_gen:
 	protoc --proto_path=./ \
-      --proto_path=./src/ \
+      --proto_path=./proto/ \
       --go_out=. \
       --go_opt=paths=source_relative \
       --go-grpc_out=. \
