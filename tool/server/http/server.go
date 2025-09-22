@@ -2,11 +2,13 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
+	"github.com/long250038728/web/tool/server/http/gateway/encode"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	_ "net/http/pprof"
@@ -42,9 +44,7 @@ func NewHttp(serverName, address string, port int, handlerFunc HandlerFunc) *Ser
 	})
 
 	handler.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Page not found",
-		})
+		c.JSON(http.StatusNotFound, encode.NewResponse(nil, errors.New("page not found")))
 	})
 
 	// health 心跳检测
