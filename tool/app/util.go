@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/groupcache/singleflight"
+	"github.com/long250038728/web/tool/app_const"
 	"github.com/long250038728/web/tool/authorization"
 	"github.com/long250038728/web/tool/locker"
 	"github.com/long250038728/web/tool/mq"
@@ -14,6 +15,7 @@ import (
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/register/consul"
 	"github.com/long250038728/web/tool/server/rpc"
+	"github.com/long250038728/web/tool/server/rpc/client"
 	"github.com/long250038728/web/tool/store"
 	"github.com/long250038728/web/tool/tracing/opentelemetry"
 	"sync"
@@ -84,7 +86,7 @@ func NewInitUtil(config *Config) (*Util, error) {
 	}
 	var err error
 
-	//创建db客户端
+	// 创建db客户端
 	if config.dbConfig != nil && len(config.dbConfig.Address) > 0 {
 		if util.db, err = orm.NewMySQLGorm(config.dbConfig); err != nil {
 			return nil, err
@@ -97,44 +99,41 @@ func NewInitUtil(config *Config) (*Util, error) {
 		}
 	}
 
-	//cache && locker
+	//cache && locker && store
 	if config.cacheConfig != nil && len(config.cacheConfig.Address) > 0 {
-		util.cache[config.cacheConfig.Db] = cache.NewRedis(config.cacheConfig)
 		util.cacheDb = config.cacheConfig.Db
+		util.cache[config.cacheConfig.Db] = cache.NewRedis(config.cacheConfig)
+		util.storeClient = store.NewMultiStore(util.cache[config.cacheConfig.Db], 10000, "del_session")
 	}
 
-	//创建mq
+	// 创建mq
 	if config.mqConfig != nil && len(config.mqConfig.Address) > 0 && len(config.mqConfig.Address) > 0 {
 		config.mqConfig.Env = util.Info.Env
 		util.mq = mq.NewKafkaMq(config.mqConfig)
 	}
 
-	//创建es
+	// 创建es
 	if config.esConfig != nil && len(config.esConfig.Address) > 0 {
 		if util.es, err = es.NewEs(config.esConfig); err != nil {
 			return nil, err
 		}
 	}
 
-	//创建consul客户端
+	// 创建consul客户端
 	if config.registerConfig != nil && len(config.registerConfig.Address) > 0 {
 		if util.register, err = consul.NewConsulRegister(config.registerConfig); err != nil {
 			return nil, err
 		}
 	}
 
-	//创建链路
+	// 创建链路
 	if config.tracingConfig != nil && len(config.tracingConfig.Address) > 0 {
 		if util.exporter, err = opentelemetry.NewJaegerExporter(config.tracingConfig); err != nil {
 			return nil, err
 		}
 	}
 
-	// store
-	if c, ok := util.cache[config.cacheConfig.Db]; ok {
-		util.storeClient = store.NewMultiStore(c, 10000, "del_session")
-	}
-
+	// rpc
 	rpcPort := func() map[string]int {
 		ports := map[string]int{}
 		for svc, port := range util.Info.Servers {
@@ -142,8 +141,15 @@ func NewInitUtil(config *Config) (*Util, error) {
 		}
 		return ports
 	}()
-
-	util.rpc = rpc.NewClient(util.Info.IP, util.Info.RpcType, rpcPort, util.register)
+	target, ok := map[string]client.Target{
+		app_const.RpcLocal:      client.NewLocalTarget(util.Info.IP, rpcPort),
+		app_const.RpcKubernetes: client.NewKubernetesTarget(rpcPort),
+		app_const.RpcRegister:   client.NewRegisterTarget(util.register),
+	}[util.Info.RpcType]
+	if !ok {
+		return nil, errors.New("rpc type is err")
+	}
+	util.rpc = rpc.NewClient(target)
 	return util, nil
 }
 
@@ -262,6 +268,6 @@ func (u *Util) Mq() (mq.Mq, error) {
 
 //========================================================================================
 
-func (u *Util) Rpc(ctx context.Context, serverName string) (conn *rpc.ClientConn, err error) {
+func (u *Util) Rpc(ctx context.Context, serverName string) (conn *rpc.Conn, err error) {
 	return u.rpc.Dial(ctx, serverName)
 }

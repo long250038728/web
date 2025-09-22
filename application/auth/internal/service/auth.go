@@ -4,12 +4,12 @@ import (
 	"context"
 	"github.com/long250038728/web/application/auth/internal/domain"
 	"github.com/long250038728/web/protoc/auth"
-	"github.com/long250038728/web/tool/server/rpc/tool"
+	"github.com/long250038728/web/tool/server/rpc/server"
 )
 
 type Auth struct {
 	auth.UnimplementedAuthServer
-	tool.GrpcHealth
+	server.GrpcHealth
 	domain *domain.Auth
 }
 

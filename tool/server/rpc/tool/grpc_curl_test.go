@@ -7,10 +7,10 @@ import (
 
 func TestCurl(t *testing.T) {
 	ctx := context.Background()
-	path := []string{"/Users/linlong/Desktop/web/protoc/order/"}
+	path := []string{"/Users/linlong/Desktop/web/protoc/order/", "/Users/linlong/Desktop/web/protoc/proto"}
 	file := "order.proto"
 
-	address := "192.168.1.136:9002"
+	address := "192.168.1.101:19002"
 
 	newC := NewCurl(path, file)
 	serverMethods, err := newC.GetServerMethods()

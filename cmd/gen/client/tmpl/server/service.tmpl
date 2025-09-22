@@ -3,12 +3,12 @@ package service
 import (
 	"{{.Page}}/{{.Server}}/internal/domain"
 	"{{.Protoc}}/{{.Server}}"
-	"github.com/long250038728/web/tool/server/rpc/tool"
+	"github.com/long250038728/web/tool/server/rpc/server"
 )
 
 type {{serverNameFunc .Server}}Service struct {
 	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
-	tool.GrpcHealth
+	server.GrpcHealth
 	domain *domain.{{serverNameFunc .Server}}Domain
 }
 

@@ -58,7 +58,7 @@ func BaseHandle(parse authorization.Parse) gin.HandlerFunc {
 		// 1. c.Request.Context() 获取ctx上下文 (也可以通过context.Background()创建)
 		// 2. 通过 telemetry 提取 http请求头中的参数生成一个名称为请求URI的 span (如果请求头中有traceparent 则生成一个子span，如果无则生成一个root span)
 		// 3. 通过span 获取新的 ctx 以后续使用
-		span := opentelemetry.NewSpan(opentelemetry.ExtractHttp(c.Request.Context(), c.Request), c.Request.RequestURI) //记录请求头
+		span := opentelemetry.NewSpan(opentelemetry.ExtractHttp(c.Request.Context(), c.Request), fmt.Sprintf("HTTP %s", c.Request.RequestURI)) //记录请求头
 		defer span.Close()
 
 		ctx = span.Context()
