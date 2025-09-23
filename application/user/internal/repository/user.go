@@ -6,7 +6,6 @@ import (
 	"github.com/long250038728/web/protoc/user"
 	"github.com/long250038728/web/tool/app"
 	"github.com/long250038728/web/tool/server/http"
-	"github.com/olivere/elastic/v7"
 )
 
 type User struct {
@@ -23,10 +22,10 @@ func (r *User) GetName(ctx context.Context, request *user.RequestHello) (string,
 		return "", err
 	}
 
-	es, err := r.util.Es()
-	if err != nil {
-		return "", err
-	}
+	//es, err := r.util.Es()
+	//if err != nil {
+	//	return "", err
+	//}
 
 	c := &model.User{}
 	//orm
@@ -48,14 +47,14 @@ func (r *User) GetName(ctx context.Context, request *user.RequestHello) (string,
 	//_ = lock.UnLock(ctx)
 
 	//es
-	query := elastic.NewBoolQuery().Must(
-		elastic.NewTermQuery("merchant_id", 240),
-		elastic.NewTermQuery("merchant_shop_id", 867),
-		elastic.NewRangeQuery("gold_weight").Gte(0).Lte(10000),
-		elastic.NewMatchQuery("admin_user_name", "小刘"),
-		elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
-	)
-	_, _ = es.Search("sale_order_record_report").Query(query).From(0).Size(100).Do(ctx)
+	//query := elastic.NewBoolQuery().Must(
+	//	elastic.NewTermQuery("merchant_id", 240),
+	//	elastic.NewTermQuery("merchant_shop_id", 867),
+	//	elastic.NewRangeQuery("gold_weight").Gte(0).Lte(10000),
+	//	elastic.NewMatchQuery("admin_user_name", "小刘"),
+	//	elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
+	//)
+	//_, _ = es.Search("sale_order_record_report").Query(query).From(0).Size(100).Do(ctx)
 
 	_, _, _ = http.NewClient().Get(ctx, "http://test.zhubaoe.cn:8888/report/sale_report/inventory", map[string]any{
 		"merchant_id":      394,

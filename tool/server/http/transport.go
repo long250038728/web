@@ -108,6 +108,8 @@ func (c *CustomTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 			span = opentelemetry.NewSpan(req.Context(), fmt.Sprintf("%s %s", c.name, req.URL.Host))
 		}
 	}
+	// 链路信息写入http header
+	opentelemetry.InjectHttp(req.Context(), req)
 
 	defer func() {
 		if c.handle != nil {

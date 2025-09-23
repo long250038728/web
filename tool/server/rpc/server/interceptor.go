@@ -22,21 +22,29 @@ func ServerTelemetryInterceptor() grpc.UnaryServerInterceptor {
 		}
 
 		transparent, ok := md[server.TraceParentKey]
-		if !ok || len(transparent) != 1 {
-			return handler(ctx, req)
+
+		// 可以获取之前的链路信息写入链路
+		if ok {
+			ctx = opentelemetry.ExtractMap(ctx, map[string]string{server.TraceParentKey: transparent[0]})
 		}
 
-		//写入链路
-		ctx = opentelemetry.ExtractMap(ctx, map[string]string{server.TraceParentKey: transparent[0]})
+		// 创建链路
 		span := opentelemetry.NewSpan(ctx, "GRPC "+info.FullMethod)
 		defer span.Close()
 
-		span.AddEvent(req)
 		ctx = span.Context()
 
-		resp, err = handler(ctx, req)
+		// 无法获取之前的链路信息写入链路，此时生成新的
+		if !ok {
+			mCarrier := map[string]string{}
+			opentelemetry.InjectMap(ctx, mCarrier)
+			ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
+		}
 
+		span.AddEvent(req)
+		resp, err = handler(ctx, req)
 		span.AddEvent(resp)
+
 		if err != nil {
 			span.AddEvent(err.Error())
 		}
