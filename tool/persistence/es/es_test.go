@@ -629,7 +629,8 @@ func TestTemplate(t *testing.T) {
 		t.Log(resp, err)
 	})
 
-	// 创建别名（指定条件）
+	// 创建别名（指定Filter,该功能只是为了通过别名查询数据时，默认把filter带到查询条件带上）
+	// 如果该别名设置了多个索引，依旧还是会在多个索引上查询（并非过滤）
 	t.Run("create_alias", func(t *testing.T) {
 		resp, err := persistence.Alias().AddWithFilter("t_goods_stock_1", "t_goods_stock", elastic.NewBoolQuery().Must(elastic.NewTermQuery("merchant_id", 1))).Do(context.Background())
 		t.Log(resp, err)
