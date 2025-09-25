@@ -17,7 +17,7 @@ var persistence *ES
 func init() {
 	var err error
 	var esConfig Config
-	configurator.NewYaml().MustLoadConfigPath("es.yaml", &esConfig)
+	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/es.yaml", &esConfig)
 	if persistence, err = NewEs(&esConfig); err != nil {
 		panic(err)
 	}
@@ -568,5 +568,103 @@ func TestAll(t *testing.T) {
 			return
 		}
 		fmt.Println("Data delete successfully")
+	})
+}
+
+func TestTemplate(t *testing.T) {
+	// 创建模版（用于自动创建索引）
+	t.Run("create_template", func(t *testing.T) {
+		body := `
+		{ 
+		"index_patterns": ["t_goods_stock_*"],
+		"template": {
+    		"settings": {
+      			"number_of_shards": 3,
+      			"number_of_replicas": 1
+   			 },
+			"mappings": {
+      			"properties": {
+					"merchant_id": {
+          				"type": "integer"
+					},
+					"stock": {
+          				"type": "integer"
+        			}
+      			}
+			}
+  		},
+  		"priority": 1
+      	}  
+		`
+		resp, err := persistence.IndexPutIndexTemplate("t_goods_stock_template").BodyString(body).Do(context.Background())
+		t.Log(resp, err)
+	})
+
+	// 获取模版信息
+	t.Run("get_template", func(t *testing.T) {
+		resp, err := persistence.IndexGetIndexTemplate("t_goods_stock_template").Do(context.Background())
+		t.Log(resp, err)
+	})
+
+	// 插入数据（根据模版会自动创建索引）
+	t.Run("insert_doc", func(t *testing.T) {
+		for i := 1; i <= 2; i++ {
+			resp, err := persistence.Index().Index(fmt.Sprintf("t_goods_stock_%d", i)).BodyJson(map[string]interface{}{"merchant_id": i, "stock": i}).Do(context.Background())
+			t.Log(resp, err)
+		}
+	})
+
+	// 获取索引（检查是否创建成功）
+	t.Run("get_index", func(t *testing.T) {
+		resp, err := persistence.IndexNames()
+		t.Log(resp, err)
+	})
+
+	// 获取doc数据检查是否插入成功及对应的信息
+	t.Run("get_doc", func(t *testing.T) {
+		resp, err := persistence.Search("t_goods_stock_1").Do(context.Background())
+		t.Log(resp, err)
+
+		resp, err = persistence.Search("t_goods_stock_2").Do(context.Background())
+		t.Log(resp, err)
+	})
+
+	// 创建别名（指定条件）
+	t.Run("create_alias", func(t *testing.T) {
+		resp, err := persistence.Alias().AddWithFilter("t_goods_stock_1", "t_goods_stock", elastic.NewBoolQuery().Must(elastic.NewTermQuery("merchant_id", 1))).Do(context.Background())
+		t.Log(resp, err)
+
+		resp, err = persistence.Alias().AddWithFilter("t_goods_stock_2", "t_goods_stock", elastic.NewBoolQuery().Must(elastic.NewTermQuery("merchant_id", 2))).Do(context.Background())
+		t.Log(resp, err)
+
+		resp2, err := persistence.Aliases().Alias("t_goods_stock").Do(context.Background())
+		t.Log(resp2, err)
+	})
+
+	// 获取doc(根据别名)
+	t.Run("get_doc_for_alias", func(t *testing.T) {
+		resp, err := persistence.Search("t_goods_stock").Do(context.Background())
+		t.Log(resp, err)
+
+		query := elastic.NewBoolQuery().Filter(
+			elastic.NewTermQuery("merchant_id", 2),
+		)
+		resp, err = persistence.Search("t_goods_stock").Query(query).Do(context.Background())
+		t.Log(resp, err)
+	})
+
+	// 清理数据
+	t.Run("clear", func(t *testing.T) {
+		resp, err := persistence.DeleteIndex("t_goods_stock_1", "t_goods_stock_2").Do(context.Background())
+		t.Log(resp, err)
+
+		resp2, err := persistence.IndexDeleteIndexTemplate("t_goods_stock_template").Do(context.Background())
+		t.Log(resp2, err)
+
+		resp3, err := persistence.Alias().Remove("t_goods_stock_1", "t_goods_stock").Do(context.Background())
+		t.Log(resp3, err)
+
+		resp3, err = persistence.Alias().Remove("t_goods_stock_2", "t_goods_stock").Do(context.Background())
+		t.Log(resp3, err)
 	})
 }
