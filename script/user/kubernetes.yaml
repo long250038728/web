@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: 18001
       targetPort: 18001
-      name: user-http-port-18001
+      name: user-http
     - protocol: TCP
       port: 19001
       targetPort: 19001
-      name: user-grpc-port-19001
+      name: user-grpc
   type: ClusterIP

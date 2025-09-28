@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: 18002
       targetPort: 18002
-      name: order-http-port-18002
+      name: order-http
     - protocol: TCP
       port: 19002
       targetPort: 19002
-      name: order-grpc-port-19002
+      name: order-grpc
   type: ClusterIP

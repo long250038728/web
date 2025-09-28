@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: {{.Http}}
       targetPort: {{.Http}}
-      name: {{.Server}}-http-port-{{.Http}}
+      name: {{.Server}}-http
     - protocol: TCP
       port: {{.Grpc}}
       targetPort: {{.Grpc}}
-      name: {{.Server}}-grpc-port-{{.Grpc}}
+      name: {{.Server}}-grpc
   type: ClusterIP

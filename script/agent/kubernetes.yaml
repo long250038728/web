@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: 18011
       targetPort: 18011
-      name: agent-http-port-18011
+      name: agent-http
     - protocol: TCP
       port: 19011
       targetPort: 19011
-      name: agent-grpc-port-19011
+      name: agent-grpc
   type: ClusterIP

@@ -113,11 +113,11 @@ spec:
     - protocol: TCP
       port: 8001
       targetPort: 8001
-      name: user-port-8001
+      name: user-http
     - protocol: TCP
       port: 9001
       targetPort: 9001
-      name: user-port-9001
+      name: user-grpc
   type: ClusterIP
 
 ---
@@ -133,11 +133,11 @@ spec:
     - protocol: TCP
       port: 8002
       targetPort: 8002
-      name: order-port-8002
+      name: order-http
     - protocol: TCP
       port: 9002
       targetPort: 9002
-      name: order-port-9002
+      name: order-grpc
   type: ClusterIP
 ```
 

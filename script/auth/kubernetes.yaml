@@ -31,9 +31,9 @@ spec:
     - protocol: TCP
       port: 18003
       targetPort: 18003
-      name: auth-http-port-18003
+      name: auth-http
     - protocol: TCP
       port: 19003
       targetPort: 19003
-      name: auth-grpc-port-19003
+      name: auth-grpc
   type: ClusterIP
