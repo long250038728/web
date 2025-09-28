@@ -43,11 +43,7 @@ type kubernetesTarget struct {
 }
 
 func (t *kubernetesTarget) Target(ctx context.Context, serverName string) (address string, DialOptions []grpc.DialOption, err error) {
-	port, ok := t.ports[serverName]
-	if !ok {
-		return "", nil, fmt.Errorf("grpc client dial server port not find : %s", serverName)
-	}
-	return fmt.Sprintf("%s-grpc:%d", serverName, port), []grpc.DialOption{}, nil
+	return fmt.Sprintf("%s-grpc", serverName), []grpc.DialOption{}, nil
 }
 
 type registerTarget struct {
