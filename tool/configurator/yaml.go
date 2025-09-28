@@ -40,7 +40,7 @@ func (y *yamlLoad) MustLoad(path string, data interface{}) {
 }
 
 func (y *yamlLoad) MustLoadConfigPath(file string, data interface{}) {
-	root, err := paths.RootConfigPath(paths.DefaultCfgPathsFunc("./")...)
+	root, err := paths.RootConfigPath(paths.ENV())
 	if err != nil {
 		panic(err)
 	}

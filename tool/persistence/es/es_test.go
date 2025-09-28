@@ -17,7 +17,7 @@ var persistence *ES
 func init() {
 	var err error
 	var esConfig Config
-	configurator.NewYaml().MustLoad("/Users/linlong/Desktop/web/config/es.yaml", &esConfig)
+	configurator.NewYaml().MustLoadConfigPath("es.yaml", &esConfig)
 	if persistence, err = NewEs(&esConfig); err != nil {
 		panic(err)
 	}

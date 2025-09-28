@@ -14,8 +14,9 @@ type EnumValue struct {
 }
 
 type EnumItem struct {
-	EnumValue
-	Items []*EnumValue `json:"items" yaml:"items"`
+	Key     string       `json:"key" yaml:"key"`
+	Comment string       `json:"comment" yaml:"comment"`
+	Items   []*EnumValue `json:"items" yaml:"items"`
 }
 
 type list struct {

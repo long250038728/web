@@ -3,7 +3,7 @@ package gen
 {{if ne .TableComment "" }} //{{tableName .TableName }} {{.TableComment}} {{end}}
 type {{tableName .TableName }} struct {
     {{range $index,$item := .Fields}}
-        {{- fieldName $item.Name }}  {{fieldType $item.Type}} {{if ne $item.Tag ""}} `json:"{{ $item.Tag -}}" yaml:"{{ $item.Tag -}}" form:"{{ $item.Tag -}}"` {{else}} `json:"{{ $item.Name -}}" yaml:"{{ $item.Name -}}" form:"{{ $item.Name -}}"`  {{end}}  {{if ne .Comment "" }} // {{.Comment}} {{end}}
+        {{- fieldName $item.Name }}  {{fieldType $item.Type}} {{if ne $item.Tag ""}} `json:"{{ $item.Tag -}}" yaml:"{{ $item.Tag -}}" form:"{{ $item.Tag -}}" gorm:"{{ $item.Tag -}}"` {{else}} `json:"{{ $item.Name -}}" yaml:"{{ $item.Name -}}" form:"{{ $item.Name -}}" gorm:"{{ $item.Name -}}"`  {{end}}  {{if ne .Comment "" }} // {{.Comment}} {{end}}
     {{end}}
 }
 {{end}}
