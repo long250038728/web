@@ -143,7 +143,7 @@ func NewInitUtil(config *Config) (*Util, error) {
 	}()
 	target, ok := map[string]client.Target{
 		app_const.RpcLocal:      client.NewLocalTarget(util.Info.IP, rpcPort),
-		app_const.RpcKubernetes: client.NewKubernetesTarget(rpcPort),
+		app_const.RpcKubernetes: client.NewKubernetesTarget(),
 		app_const.RpcRegister:   client.NewRegisterTarget(util.register),
 	}[util.Info.RpcType]
 	if !ok {

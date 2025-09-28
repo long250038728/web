@@ -15,8 +15,8 @@ func NewLocalTarget(ip string, ports map[string]int) Target {
 	return &localTarget{ip: ip, ports: ports}
 }
 
-func NewKubernetesTarget(ports map[string]int) Target {
-	return &kubernetesTarget{ports: ports}
+func NewKubernetesTarget() Target {
+	return &kubernetesTarget{}
 }
 
 func NewRegisterTarget(r register.Register) Target {
@@ -39,7 +39,6 @@ func (t *localTarget) Target(ctx context.Context, serverName string) (address st
 }
 
 type kubernetesTarget struct {
-	ports map[string]int
 }
 
 func (t *kubernetesTarget) Target(ctx context.Context, serverName string) (address string, DialOptions []grpc.DialOption, err error) {
