@@ -127,19 +127,29 @@ DELETE 索引名/_delete_by_query
 
 ### 映射
 基本数据类型
-binary
-boolean
-keyword
-number
-date
-alisa   
-text    
+* binary
+* boolean
+* keyword
+* number
+* date
+* alisa   
+* text    
 复杂数据类型
-array 数组
-object json对象
-Nested  嵌套类型
-Join    父子关联
-Flattened 将复杂的object或Nested统一映射为扁平字段
+* array 数组
+* object json对象
+* Nested  嵌套类型(与object的区别是在于object会进行扁平化的合并,如会把所有的name放在一起,会把所有的age放在一起,Nested会保留关联关系) 
+  1. 增删改查语句时会相对复杂
+  2. 需要使用nested查询/聚合并指定路径。更新需要使用脚本
+  3. 更新需要把整个文档更新
+  4. 读取多，更新少
+* Join 父子关联 
+  1. 父子文档可以独立更新
+  2. 查询性能差，消耗大内存
+  3. 字段数量限制
+  4. 更新频繁，查询少
+* Flattened 将复杂的object或Nested统一映射为扁平字段（解决字段数量暴增的问题，解决字段不是很确定的场景）
+  1. 把复杂的对象嵌套为一个单一keyword字段
+  2. 不支持数值范围查询，不支持高亮
 
 ### 文档
 索引是一组相关的文档的集合体,文档存储在索引中。每个文档在索引中都有一个唯一的id,每个文档都是一组字段组合。字段是可以任意类型的。
@@ -156,7 +166,7 @@ PUT 索引/_doc/1
     "name":"hanmeimei"
 }
 //不指定文档id插入数据
-PUT 索引/_doc/
+POST 索引/_doc/
 {
     "name":"hanmeimei"
 }

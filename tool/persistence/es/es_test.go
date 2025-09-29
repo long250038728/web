@@ -342,6 +342,9 @@ func TestIndexSearch(t *testing.T) {
 		elastic.NewMatchPhraseQuery("merchant_shop_name", "大"),
 	)
 
+	// from + size  有深度限制，index.max_result_window
+	// search after分页 ， 用于基于上一个分页，无深度限制
+	// scroll 用于一次性导出所有
 	data, err := persistence.Search("sale_order_record_report").
 		Query(query).
 		Sort("update_date", true).
@@ -467,108 +470,6 @@ func TestForceMerge(t *testing.T) {
 		return
 	}
 	t.Log(do.Shards.Successful)
-}
-
-func TestAll(t *testing.T) {
-	ctx := context.Background()
-	indexName = "status"
-	docId := "1729738124"
-
-	t.Run("create_index", func(t *testing.T) {
-		// 定义索引的配置（settings）
-		indexSettings := `
-		{
-			"settings": {
-				"number_of_shards": 1,
-				"number_of_replicas": 0
-			}
-		}
-		`
-		do, err := persistence.CreateIndex(indexName).BodyJson(indexSettings).Do(ctx)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if !do.Acknowledged { //Acknowledged 公认
-			t.Log("Failed to create index")
-			return
-		}
-
-		mapping := `
-        {
-			"properties": {
-				"status": {
-					"type": "integer"
-				}
-			}
-		}`
-
-		//mappingRes, err := persistence.PutMapping().Index(indexName).BodyJson(mapping).Do(ctx)
-		mappingRes, err := persistence.PutMapping().Index(indexName).BodyString(mapping).Do(ctx)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if !mappingRes.Acknowledged {
-			t.Log("Failed to put index")
-			return
-		}
-		fmt.Println("Data put successfully")
-	})
-
-	t.Run("insert_doc", func(t *testing.T) {
-		// 插入文档
-		doc1 := map[string]interface{}{
-			"status": []int64{1, 2, 3, 4, 5, 6, 7, 8},
-		}
-		_, err := persistence.Index().Index(indexName).Id(docId).BodyJson(doc1).Do(context.Background())
-		if err != nil {
-			return
-		}
-
-		fmt.Println("Data insert successfully")
-	})
-
-	t.Run("search_doc", func(t *testing.T) {
-		////filter 不计算相关性
-		////must no_must should   计算相关性
-		query := elastic.NewBoolQuery()
-
-		//// text: Term精确查询  match模糊匹配单词  match_phrase模糊匹配短语
-		query.Must(
-		//elastic.NewTermsQuery("status", 1, 4, 9),
-		)
-
-		data, err := persistence.Search(indexName).
-			Query(query).
-			TrackTotalHits(true). //获取total数量（默认为false，如果数量超过10000则显示10000）
-			Do(context.Background())
-		t.Log(data, err)
-	})
-
-	t.Run("update_doc", func(t *testing.T) {
-		//persistence.Update().Index(indexName).Id("RljKT4sBRD4pu07fMDim").Script(elastic.NewScriptInline("")).Do(ctx)
-		do, err := persistence.Update().Index(indexName).Id(docId).Doc(map[string]interface{}{"status": []int64{100, 200, 200}}).Do(ctx)
-		if err != nil {
-			t.Log(err)
-			return
-		}
-		fmt.Println(do)
-		fmt.Println("Data update successfully")
-	})
-
-	t.Run("delete_index", func(t *testing.T) {
-		do, err := persistence.DeleteIndex(indexName).Do(ctx)
-		if err != nil {
-			t.Log(err)
-			return
-		}
-		if !do.Acknowledged {
-			t.Log("Failed to delete index")
-			return
-		}
-		fmt.Println("Data delete successfully")
-	})
 }
 
 func TestTemplate(t *testing.T) {

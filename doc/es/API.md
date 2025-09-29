@@ -15,6 +15,10 @@ GET /_cluster/state
 
 // 查看集群统计信息
 GET /_cluster/stats
+
+// 查看统计信息
+GET _stats/search?pretty
+GET _stats/indexing
 ```
 
 节点
@@ -22,7 +26,7 @@ GET /_cluster/stats
 // 节点基本信息
 GET /_cat/nodes?v
 GET /_nodes/1714387876000164332
-
+GET /_nodes/stats/jvm?pretty
 ```
 
 索引&分片
