@@ -40,12 +40,24 @@ func (s *Span) TraceID() string {
 }
 
 func (s *Span) AddEvent(event any) {
+	deepNum := 1
+	paths := make([]attribute.KeyValue, 0, deepNum)
+	//for i := 1; i <= deepNum; i++ {
+	//	pc, _, line, ok := runtime.Caller(i)
+	//	if !ok {
+	//		break
+	//	}
+	//	//通过 pc 获取函数名
+	//	funcName := runtime.FuncForPC(pc).Name()
+	//	paths = append(paths, attribute.String("path", fmt.Sprintf("%s:%d", funcName, line)))
+	//}
+
 	switch event.(type) {
 	case string:
-		s.span.AddEvent(event.(string))
+		s.span.AddEvent(event.(string), trace.WithAttributes(paths...))
 	default:
 		b, _ := json.Marshal(event)
-		s.span.AddEvent(string(b))
+		s.span.AddEvent(string(b), trace.WithAttributes(paths...))
 	}
 }
 
