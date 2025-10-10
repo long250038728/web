@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/fullstorydev/grpcurl"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -76,6 +78,7 @@ func (c *GrpCurl) Curl(ctx context.Context, address, method string, headers map[
 	}
 
 	requestParser, formatter, err := grpcurl.RequestParserAndFormatter(grpcurl.FormatJSON, c.descriptorSource, bytes.NewReader(b), options)
+
 	if err != nil {
 		return "", err
 	}
@@ -90,5 +93,10 @@ func (c *GrpCurl) Curl(ctx context.Context, address, method string, headers map[
 	if err = grpcurl.InvokeRPC(ctx, c.descriptorSource, conn, method, h, handler, requestParser.Next); err != nil {
 		return "", err
 	}
+
+	if handler.Status != nil && handler.Status.Code() != codes.OK {
+		return write.String(), errors.New(handler.Status.Message())
+	}
+
 	return write.String(), nil
 }
