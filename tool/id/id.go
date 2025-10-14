@@ -2,6 +2,7 @@ package id
 
 import (
 	"errors"
+	"fmt"
 	"github.com/bwmarrin/snowflake"
 	"reflect"
 )
@@ -22,12 +23,11 @@ func (s *snowflakeGenerate) Generate() int64 {
 	return int64(s.node.Generate())
 }
 
-func (s *snowflakeGenerate) GenerateId(model any, isReplace bool) error {
+func (s *snowflakeGenerate) GenerateId(model any, opts ...Opt) error {
 	v := reflect.Indirect(reflect.ValueOf(model))
-
 	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array {
 		for i := 0; i < v.Len(); i++ {
-			err := s.GenerateId(v.Index(i).Interface(), isReplace)
+			err := s.GenerateId(v.Index(i).Interface(), opts...)
 			if err != nil {
 				return err
 			}
@@ -35,8 +35,17 @@ func (s *snowflakeGenerate) GenerateId(model any, isReplace bool) error {
 		return nil
 	}
 
+	config := &GenerateConfig{fieldName: "Id"}
+	for _, opt := range opts {
+		opt(config)
+	}
+
 	if v.Kind() == reflect.Struct {
-		f := v.FieldByName("Id")
+		if _, has := v.Type().FieldByName(config.fieldName); !has {
+			return errors.New(fmt.Sprintf("field is not exist: %s", config.fieldName))
+		}
+
+		f := v.FieldByName(config.fieldName)
 		if f.Type().Kind() != reflect.Int64 {
 			return errors.New("model id not int64 is " + f.Type().Kind().String())
 		}
@@ -45,7 +54,7 @@ func (s *snowflakeGenerate) GenerateId(model any, isReplace bool) error {
 			return errors.New("generate not can set")
 		}
 
-		if !isReplace && !f.IsZero() {
+		if !config.isReplace && !f.IsZero() {
 			return nil
 		}
 
