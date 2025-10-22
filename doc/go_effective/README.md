@@ -148,12 +148,47 @@ wg.Wait()
   * -coverprofile=coverage.out 代码覆盖
 * 单元测试函数:		     
   * t.Skip("this is t.Skip") 跳过该用例		
-  * t.Parallel() 允许并发       
+  * t.Parallel() 允许并发 （哪个子测试需要添加在子测试中）      
   * testing.Short() 判断当前是不是short类型
 * 表格驱动测试
   * 单元测试用例建议使用表格驱动测试,可以覆盖到不同的场景
 * 其他
   * 测试提供了httptest包及iotest包
+```覆盖测试
+对TestAdd进行覆盖测试
+go test  ^TestAdd$ ./... -cover
+对TestAdd进行覆盖测试并生成coverage.out报告
+go test  ^TestAdd$ ./... -coverprofile=coverage.out
+查看覆盖报告coverage.out
+go tool cover -func=coverage.out
+生成http展现的覆盖报告coverage.out
+go tool cover -html=coverage.out -o coverage.html
+```
+
+```基准测试
+// func BenchmarkAdd(t *testing.B){} 
+go test -bench=BenchmarkAdd
+// -count循环次数  -benchmem显示内存分配信息 -cpuprofile=cpu.out输出cpu信息  -memprofile=mem.out输出内存信息
+go test -bench=BenchmarkAdd -benchmem -count=1000 -cpuprofile=cpu.out   -memprofile=mem.out
+go tool pprof cpu.out
+```
+
+```Fuzz
+// func FuzzX(f *testing.F) { f.Add(1);f.Fuzz(func(t *testing.T, s int) {})}
+go test -fuzz=FuzzX  -fuzztime=30s
+返回格式
+fuzz: elapsed: 3s, execs: 214613 (71528/sec), new interesting: 0 (total: 2)
+elapsed: 执行了3s
+execs: 调用多少次
+new interesting: 新的因子
+total: 输入时的因子
+```
+
+```测试替身
+面向接口编程，让实现类与测试替身都实现相同的接口，在测试时就可不依赖外部系统
+Stub: 返回固定的数据（固定返回数据）
+Fake: 内部有一定的逻辑（根据传参返回不同的数据）
+```
 
   
 ### 优化
