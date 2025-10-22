@@ -148,8 +148,8 @@ func (mq *Rocket) Subscribe(subscribeCtx context.Context, topic, consumerGroup s
 			AccessSecret: mq.config.SecretKey,
 		},
 	},
-		rmq.WithAwaitDuration(awaitDuration),
-		rmq.WithSubscriptionExpressions(map[string]*rmq.FilterExpression{
+		rmq.WithSimpleAwaitDuration(awaitDuration),
+		rmq.WithSimpleSubscriptionExpressions(map[string]*rmq.FilterExpression{
 			topic: filter,
 		}),
 	)
