@@ -153,25 +153,6 @@ func NewInitUtil(config *Config) (*Util, error) {
 	return util, nil
 }
 
-func (u *Util) CheckPort(svcName string) bool {
-	_, ok := u.Info.Servers[svcName]
-	return ok
-}
-
-func (u *Util) Port(svcName string) Port {
-	port, _ := u.Info.Servers[svcName]
-	return port
-}
-
-func (u *Util) Close() {
-	if u.storeClient != nil {
-		u.storeClient.Close()
-	}
-	if u.exporter != nil {
-		_ = u.exporter.Shutdown(context.Background())
-	}
-}
-
 //========================================================================================
 
 func (u *Util) Register() (register.Register, error) {
@@ -224,6 +205,9 @@ func (u *Util) DbReadOnly(ctx context.Context) (*orm.Gorm, error) {
 //========================================================================================
 
 func (u *Util) Cache() (cache.Cache, error) {
+	u.locker.Lock()
+	defer u.locker.Unlock()
+
 	if u.cache[u.cacheDb] == nil {
 		return nil, errors.New("store is not initialized")
 	}
@@ -259,6 +243,8 @@ func (u *Util) Es() (*es.ES, error) {
 	return u.es, nil
 }
 
+//========================================================================================
+
 func (u *Util) Mq() (mq.Producer, error) {
 	if u.es == nil {
 		return nil, errors.New("mq is not initialized")
@@ -270,4 +256,30 @@ func (u *Util) Mq() (mq.Producer, error) {
 
 func (u *Util) Rpc(ctx context.Context, serverName string) (conn *rpc.Conn, err error) {
 	return u.rpc.Dial(ctx, serverName)
+}
+
+//========================================================================================
+
+func (u *Util) Close() {
+	if u.storeClient != nil {
+		u.storeClient.Close()
+	}
+	if u.exporter != nil {
+		_ = u.exporter.Shutdown(context.Background())
+	}
+	if u.mq != nil {
+		_ = u.mq.Close()
+	}
+}
+
+//========================================================================================
+
+func (u *Util) CheckPort(svcName string) bool {
+	_, ok := u.Info.Servers[svcName]
+	return ok
+}
+
+func (u *Util) Port(svcName string) Port {
+	port, _ := u.Info.Servers[svcName]
+	return port
 }

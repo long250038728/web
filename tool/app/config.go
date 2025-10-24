@@ -15,31 +15,12 @@ var defaultLocalConfigs = []string{"db", "db_read", "redis", "mq", "es", "tracin
 // NewAppConfig 获取app配置
 func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	ctx := context.Background()
-
 	//获取服务器配置列表
 	if err := configLoad.Load(filepath.Join(rootPath, "server.yaml"), &conf); err != nil {
 		return nil, err
 	}
 
-	//获取第三方中间件配置
-	configs := map[string]any{
-		"db":       &conf.dbConfig,
-		"db_read":  &conf.dbReadConfig,
-		"redis":    &conf.cacheConfig,
-		"mq":       &conf.mqConfig,
-		"es":       &conf.esConfig,
-		"register": &conf.registerConfig,
-		"tracing":  &conf.tracingConfig,
-	}
-
-	if len(yaml) == 0 {
-		yaml = defaultLocalConfigs
-		if conf.RpcType == app_const.RpcRegister {
-			yaml = append(yaml, "register")
-		}
-	}
-
-	//默认值
+	//============================= 默认值处理 ==========================
 	if conf.ConfigInitType == "" {
 		conf.ConfigInitType = app_const.ConfigInitFile
 	}
@@ -52,7 +33,14 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	if conf.IP == "" {
 		conf.IP = loadIP()
 	}
+	if len(yaml) == 0 {
+		yaml = defaultLocalConfigs
+		if conf.RpcType == app_const.RpcRegister {
+			yaml = append(yaml, "register")
+		}
+	}
 
+	//============================= 参数校验 ============================
 	if _, ok := app_const.RPC[conf.RpcType]; !ok {
 		return nil, errors.New("config RPC TYPE value is undefined")
 	}
@@ -61,6 +49,17 @@ func NewAppConfig(rootPath string, yaml ...string) (conf *Config, err error) {
 	}
 	if _, ok := app_const.ConfigInit[conf.ConfigInitType]; !ok {
 		return nil, errors.New("config Config init value is undefined")
+	}
+
+	//============================= 数据加载 ============================
+	configs := map[string]any{
+		"db":       &conf.dbConfig,
+		"db_read":  &conf.dbReadConfig,
+		"redis":    &conf.cacheConfig,
+		"mq":       &conf.mqConfig,
+		"es":       &conf.esConfig,
+		"register": &conf.registerConfig,
+		"tracing":  &conf.tracingConfig,
 	}
 
 	//配置文件
