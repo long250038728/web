@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/segmentio/kafka-go"
+	"time"
 )
 
 // go get github.com/segmentio/kafka-go
@@ -11,24 +12,25 @@ import (
 const envKey = "env"
 
 type Config struct {
-	Address string `json:"address" yaml:"address"`
-	Env     string `json:"env" yaml:"env"`
-}
-
-type Kafka struct {
-	config *Config
-}
-
-func NewKafkaMq(config *Config) KafkaMq {
-	return &Kafka{
-		config: config,
-	}
+	Address      string        `json:"address" yaml:"address"`
+	Env          string        `json:"env" yaml:"env"`
+	BatchSize    int           `json:"batch_size" yaml:"batch_size"`
+	BatchBytes   int64         `json:"batch_bytes" yaml:"batchBytes"`
+	BatchTimeout time.Duration `json:"batch_timeout" yaml:"batchTimeout"`
 }
 
 //======================================================================================================================
 
+type operate struct {
+	config *Config
+}
+
+func NewKafkaOperate(config *Config) Operate {
+	return &operate{config: config}
+}
+
 // CreateTopic 创建主题
-func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error {
+func (m *operate) CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error {
 	//如果外部关闭了就不退出循环
 	select {
 	case <-ctx.Done():
@@ -59,7 +61,7 @@ func (m *Kafka) CreateTopic(ctx context.Context, topic string, numPartitions int
 }
 
 // DeleteTopic 删除主题
-func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
+func (m *operate) DeleteTopic(ctx context.Context, topic string) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -82,13 +84,32 @@ func (m *Kafka) DeleteTopic(ctx context.Context, topic string) error {
 
 //======================================================================================================================
 
+type producer struct {
+	writer *kafka.Writer
+	config *Config
+}
+
+func NewKafkaProducer(config *Config) Producer {
+	return &producer{
+		writer: &kafka.Writer{
+			Addr:                   kafka.TCP(config.Address),
+			BatchSize:              config.BatchSize,    // 批数量（默认100）
+			BatchBytes:             config.BatchBytes,   // 批大小(默认1048576)
+			BatchTimeout:           config.BatchTimeout, // 批时间(默认1s)
+			RequiredAcks:           kafka.RequireOne,    // 0:无需主节点写入成功  1:需要主节点写入成功  -1:所有的ISR节点写入成功
+			AllowAutoTopicCreation: false,               // 主题不存在不自动创建主题
+		},
+		config: config,
+	}
+}
+
 // Send 发送消息
-func (m *Kafka) Send(ctx context.Context, topic string, key string, message *Message) error {
+func (m *producer) Send(ctx context.Context, topic string, key string, message *Message) error {
 	return m.BulkSend(ctx, topic, key, []*Message{message})
 }
 
 // BulkSend 批量发送消息
-func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages []*Message) error {
+func (m *producer) BulkSend(ctx context.Context, topic string, key string, messages []*Message) error {
 	list := make([]kafka.Message, 0, len(messages))
 
 	// 通过自定义的message 转换 为 kafka内部的message
@@ -112,33 +133,33 @@ func (m *Kafka) BulkSend(ctx context.Context, topic string, key string, messages
 		}
 		list = append(list, msg)
 	}
+	return m.writer.WriteMessages(ctx, list...)
+}
 
-	w := &kafka.Writer{
-		Addr:                   kafka.TCP(m.config.Address),
-		BatchSize:              len(messages),
-		RequiredAcks:           1,     //0:无需主节点写入成功  1:需要主节点写入成功  -1:所有的ISR节点写入成功
-		AllowAutoTopicCreation: false, //主题不存在不自动创建主题
-	}
-	defer func() {
-		_ = w.Close()
-	}()
-	return w.WriteMessages(ctx, list...)
+func (m *producer) Close() error {
+	return m.writer.Close()
 }
 
 //======================================================================================================================
 
-// Subscribe 消费者
-func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) error {
-	// 创建Kafka消费者
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{m.config.Address}, // Kafka broker地址
-		Topic:   topic,                      // 消费的主题
-		GroupID: consumerGroup,              // 消费者组
-	})
-	defer func() {
-		_ = reader.Close()
-	}()
+type consumer struct {
+	reader *kafka.Reader
+	config *Config
+}
 
+func NewKafkaConsumer(config *Config, topic, consumerGroup string) Consumer {
+	return &consumer{
+		reader: kafka.NewReader(kafka.ReaderConfig{
+			Brokers: []string{config.Address}, // Kafka broker地址
+			Topic:   topic,                    // 消费的主题
+			GroupID: consumerGroup,            // 消费者组
+		}),
+		config: config,
+	}
+}
+
+// Subscribe 消费者
+func (m *consumer) Subscribe(subscribeCtx context.Context, callback func(ctx context.Context, c *Message, err error) error) error {
 	// 循环读取消息
 	for {
 		ctx := context.Background()
@@ -151,7 +172,7 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup str
 		}
 
 		// 读取消息
-		kafkaMessage, err := reader.FetchMessage(subscribeCtx)
+		kafkaMessage, err := m.reader.FetchMessage(subscribeCtx)
 		if err != nil {
 			_ = callback(ctx, nil, err)
 			continue
@@ -170,7 +191,7 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup str
 
 		//环境不同，不处理消息(直接提交)
 		if !env {
-			_ = reader.CommitMessages(subscribeCtx, kafkaMessage)
+			_ = m.reader.CommitMessages(subscribeCtx, kafkaMessage)
 			continue
 		}
 
@@ -180,9 +201,13 @@ func (m *Kafka) Subscribe(subscribeCtx context.Context, topic, consumerGroup str
 		}
 		//3次重试
 		for retry := 0; retry < 3; retry++ {
-			if commitErr := reader.CommitMessages(subscribeCtx, kafkaMessage); commitErr == nil {
+			if commitErr := m.reader.CommitMessages(subscribeCtx, kafkaMessage); commitErr == nil {
 				break
 			}
 		}
 	}
+}
+
+func (m *consumer) Close() error {
+	return m.reader.Close()
 }

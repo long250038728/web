@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"encoding/json"
+	"io"
 )
 
 type Header struct {
@@ -35,31 +36,22 @@ func NewMessage(data interface{}) (msg *Message, err error) {
 	}, nil
 }
 
-type KafkaMq interface {
-	Operate
-	Send
-	Subscribe
-}
-
-type Mq interface {
-	Send
-	Subscribe
-}
-
 type Operate interface {
 	CreateTopic(ctx context.Context, topic string, numPartitions int, replicationFactor int) error
 	DeleteTopic(ctx context.Context, topic string) error
 }
 
-type Send interface {
+type Producer interface {
 	Send(ctx context.Context, topic string, key string, message *Message) error
 	BulkSend(ctx context.Context, topic string, key string, message []*Message) error
+	io.Closer
 }
 
-type Subscribe interface {
-	Subscribe(ctx context.Context, topic, consumerGroup string, callback func(ctx context.Context, c *Message, err error) error) error
+type Consumer interface {
+	Subscribe(subscribeCtx context.Context, callback func(ctx context.Context, c *Message, err error) error) error
+	io.Closer
 }
 
-type Transaction interface {
-	Send(ctx context.Context, topic string, key string, m *Message, handle func() bool) error
-}
+//type Transaction interface {
+//	Send(ctx context.Context, topic string, key string, m *Message, handle func() bool) error
+//}

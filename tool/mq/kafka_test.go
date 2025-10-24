@@ -9,67 +9,59 @@ import (
 var topic = "bonus_message_queue_kafka"
 var ctx = context.Background()
 var consumerGroup = "hume_2"
-
-var client Mq
+var kafkaConf Config
 
 func init() {
-	var kafkaConf Config
 	configurator.NewYaml().MustLoadConfigPath("mq.yaml", &kafkaConf)
-	client = NewKafkaMq(&kafkaConf)
 }
 
-//func TestMqCreateTopic(t *testing.T) {
-//	err := client.CreateTopic(ctx, "aaa", 1, 1)
-//	if err != nil {
-//		t.Log(err)
-//		return
-//	}
-//	t.Log("success")
-//}
+func TestOperate(t *testing.T) {
+	client := NewKafkaOperate(&kafkaConf)
+	ctx = context.Background()
 
-//func TestMqDelTopic(t *testing.T) {
-//	err := client.DeleteTopic(ctx, "aaa")
-//	if err != nil {
-//		t.Log(err)
-//		return
-//	}
-//	t.Log("success")
-//}
+	t.Run("create", func(t *testing.T) {
+		err := client.CreateTopic(ctx, "hello", 2, 1)
+		t.Error(err)
+	})
+	t.Run("delete", func(t *testing.T) {
+		err := client.DeleteTopic(ctx, "hello")
+		t.Error(err)
+	})
+}
 
-func TestMqSend(t *testing.T) {
+func TestNewKafkaProducer(t *testing.T) {
+	client := NewKafkaProducer(&kafkaConf)
+	ctx = context.Background()
 	message, err := NewMessage("hello1")
 	if err != nil {
-		t.Log(err)
+		t.Error(err)
+		return
 	}
-	err = client.Send(ctx, topic, "", message)
-	if err != nil {
-		t.Log(err)
-	}
-	t.Log("success")
-}
-
-func TestMqBulkSend(t *testing.T) {
-	message, err := NewMessage([]byte("hello2"))
-	if err != nil {
-		t.Log(err)
-	}
-	err = client.BulkSend(ctx, topic, "", []*Message{message})
-	if err != nil {
-		t.Log(err)
-	}
-	t.Log("success")
+	t.Run("send", func(t *testing.T) {
+		err := client.Send(ctx, "hello", "", message)
+		t.Error(err)
+	})
+	t.Run("bulkSend", func(t *testing.T) {
+		err := client.BulkSend(ctx, "hello", "", []*Message{message})
+		t.Error(err)
+	})
+	t.Error(client.Close())
 }
 
 func TestMqSubscribe(t *testing.T) {
-	_ = client.Subscribe(ctx, "canal", consumerGroup, func(ctx context.Context, message *Message, err error) error {
+	client := NewKafkaConsumer(&kafkaConf, "hello", consumerGroup)
+	ctx = context.Background()
+
+	_ = client.Subscribe(ctx, func(ctx context.Context, message *Message, err error) error {
 		// 是否错误 （程序退出 或 reader报错）
 		if err != nil {
 			t.Log(err)
 			return nil
 		}
-
 		//处理业务
 		t.Log(string(message.Data))
 		return nil
 	})
+
+	t.Error(client.Close())
 }

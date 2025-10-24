@@ -72,7 +72,7 @@ func TestSlices(t *testing.T) {
 	c = append(c, "append")
 
 	// 使用copy 找最小的长度 (是长度而不是容量，如果长度为0时copy后为依旧为空)
-	d := make([]string, 2, 2)
+	d := make([]string, 2)
 	copy(d, a)
 
 	//由于切割是指针指向原有的数组上面操作，所以可能会内存泄露(如果数组a有1G，此时a退出作用域应该被销毁，但是切割引用了a，导致a无法被销毁)
@@ -84,8 +84,8 @@ func TestSlices(t *testing.T) {
 	//空数组及数组长度为空
 	//所以一般不使用  g == nil (true)      h == nil (false)
 	//应该使用len(g)  len(h)
-	var g []string            //空数字 null
-	h := make([]string, 0, 0) //数组长度为空
+	var g []string         //空数字 null
+	h := make([]string, 0) //数组长度为空
 
 	t.Log(a, b, c, d, e, f, g == nil, h == nil, len(g), len(h))
 }
@@ -280,7 +280,7 @@ func TestInterface(t *testing.T) {
 
 func TestGoroutine(t *testing.T) {
 	t.Run("chan", func(t *testing.T) {
-		ch := make(chan int, 0) //分为有缓冲区及无缓冲区 （当缓冲区满了后插入数据就会等待直到可以插入）
+		ch := make(chan int) //分为有缓冲区及无缓冲区 （当缓冲区满了后插入数据就会等待直到可以插入）
 
 		go func() { //这里的wait需要开启一个协程。如果不开启协程的话，wg.Wait()在主协程导致一直等待，无法写入到chan
 			var wg sync.WaitGroup
@@ -597,7 +597,7 @@ func TestReader(t *testing.T) {
 		copyWriter := strings.Builder{}  //把读到的写入io.writer
 
 		//每次读写到writeWriter 中
-		data := make([]byte, 2, 2) //每次读2byte的内容
+		data := make([]byte, 2) //每次读2byte的内容
 		for {
 			n, err := reader.Read(data)
 			if err != nil && err != io.EOF {

@@ -203,14 +203,14 @@ func partition(arr []int32, low, high int32) int32 {
 
 func bucketSort() {
 	//每10为一个桶，每个桶都是一个数组
-	buckets := make([][]int32, 10, 10)
+	buckets := make([][]int32, 10)
 	for i := 0; i < len(sortData); i++ {
 		val := sortData[i]
 		bucketNum := val/10 - 1
 
 		// 动态扩展 buckets 切片
 		if bucketNum >= int32(len(buckets)) {
-			newBuckets := make([][]int32, bucketNum+1, bucketNum+1)
+			newBuckets := make([][]int32, bucketNum+1)
 			copy(newBuckets, buckets)
 			buckets = newBuckets
 		}
@@ -241,13 +241,13 @@ func bucketSort() {
 
 func countingSort() {
 	//每一个值都是一个桶，每个桶都是一个数组
-	counting := make([][]int32, 100, 100)
+	counting := make([][]int32, 100)
 	for i := 0; i < len(sortData); i++ {
 		val := sortData[i]
 
 		// 动态扩展 buckets 切片
 		if val >= int32(len(counting)) {
-			newCounting := make([][]int32, val+1, val+1)
+			newCounting := make([][]int32, val+1)
 			copy(newCounting, counting)
 			counting = newCounting
 		}

@@ -42,7 +42,7 @@ type Util struct {
 	cache   map[int]cache.Cache
 
 	es *es.ES
-	mq mq.Mq
+	mq mq.Producer
 
 	storeClient store.Store
 
@@ -109,7 +109,7 @@ func NewInitUtil(config *Config) (*Util, error) {
 	// 创建mq
 	if config.mqConfig != nil && len(config.mqConfig.Address) > 0 && len(config.mqConfig.Address) > 0 {
 		config.mqConfig.Env = util.Info.Env
-		util.mq = mq.NewKafkaMq(config.mqConfig)
+		util.mq = mq.NewKafkaProducer(config.mqConfig)
 	}
 
 	// 创建es
@@ -259,7 +259,7 @@ func (u *Util) Es() (*es.ES, error) {
 	return u.es, nil
 }
 
-func (u *Util) Mq() (mq.Mq, error) {
+func (u *Util) Mq() (mq.Producer, error) {
 	if u.es == nil {
 		return nil, errors.New("mq is not initialized")
 	}
