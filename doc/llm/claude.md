@@ -49,9 +49,58 @@ claude -p "你好，用中文介绍go的channel,字数为50个字"
 * `/status` 状态
 * `/init` 初始化CLAUDE.md文件（用于长期记忆/项目规范）在初始化时会读取项目中的文件分析后生成
 * `/memory` 修改CLAUDE.md文件（无需退出claude工具，同时指定哪个claude.md文件）
+* `/review` 用于对PR代码升级
+* `/pr_comments` 获取并显示氮气的PR所有评论
 * `#` 添加到CLAUDE.md文件中
 * `!` 执行shell命令
 * `@` 添加文件到会话中
+#### 会话管理
+* `/clear` 清空上下文信息
+* `/compact` 上下文生成摘要后，用摘要替换上下文（减少上下文token爆炸问题）
+* `rewind` 让对话/操作回到对话历史的某一处
+#### 环境配置
+* `/config` 查看/修改配置
+* `/PERMISSION` 管理ai工具“白名单”
+* `/model[model]` 查看或切换模型
+#### 元信息
+* `/help` 查看命令
+* `/status` 查看当前的模型，版本，账户信息等
+* `/doctor` 检查claude是否健康，依赖是否完整，配置是否正确
+* `/cost和/usage` cost显示当前会话的token消耗。usage显示套餐用例和速率限制
+* `/feedback or /bug` 反馈官方的bug
+
+
+### 自定义命令
+* 命令存放位置
+  * Project ./.claude/commands/xxx.md
+  * User ~/.claude/commands/xxx.md
+* 参数
+  * $ARGUMENTS 占位符 根据指令后的参数带到md文件中生成信息提示词
+  * $1 $2 $3 ... 对应指令后的参数1，参数2，参数3...带到md文件中生成信息提示词
+* 元信息
+  * description 这个描述这个工具的作用
+  * argument-hint 参数
+  * model 模型
+  * allowed-tools 可以使用什么工具
+```markdown
+---
+description: 这个描述这个工具的作用
+argument-hint: [参数1是什么] [参数2是什么]
+model: 使用哪个模型
+allowed-tools: Bash(go test:*),Write,Bash(git add:*)
+---
+
+请根据`constitution.md`定义的规则进行xxx处理
+
+**当前分支**
+!`git branch --show_current`
+
+**当前go版本**
+!`go version`
+
+```
+
+
 
 
 ### 其他
