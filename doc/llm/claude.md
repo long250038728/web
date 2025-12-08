@@ -101,9 +101,8 @@ allowed-tools: Bash(go test:*),Write,Bash(git add:*)
 ```
 
 
-
-
 ### 其他
+#### CLAUDE.md(操作指南)
 由于CLAUDE.md只是用于claude工具，如果工具替换后就需要使用其他的XXX.md。所以行业定义出来AGENTS.md用于存放通过的长期记忆/项目规范，但是目前还没被完全替代，使用方式
 ```CLAUDE.md
 ----- 通用长期记忆/项目规范 -----
@@ -115,3 +114,54 @@ allowed-tools: Bash(go test:*),Write,Bash(git add:*)
 [基础]
 这个是一个web的html项目，使用的是vue3.0框架
 ```
+
+#### constitution.md(原则契约)
+constitution.md拥有绝对的否决权。做什么需要参考这个”宪法“。这个是高度稳定一般不轻易修改
+* 使用什么规范
+* 必须遵循什么原则
+
+### 权限体系 
+AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
+1. Permission Modes （shift+table 或 settings.json中设置defaultMode）
+   * default 所有写操作都需要批准
+   * plan 类似default，但更倾向ai制定行动计划，而不是直接执行或给出答案（只说不做）
+   * acceptEdits 自动批准编辑，无需你批准，但是类似bash这种才需要你批准
+   * bypassPermissions 跳过所有权限，自动执行所有操作
+2. /permissions 权限规则
+   * deny 最高否定权
+   * allow 允许
+   * ask 当前权限的默认行为
+3. /sandbox 沙箱 (隔离读写权限，在当前的沙箱内，可以读写的权限到最大)
+   * Sandbox BashTool,with auth-allow in accept edits mode 当你处在acceptEdits这个权限时，在边界内的bash命令不会询问，直接自动执行
+   * Sandbox BashTool,with regular permissions 遵循permissions体系，只要没有命中allow规则就需要得到批准
+```
+{
+   "permissions": {
+      "allow": [  // 允许
+         "Read(README.md)",
+         "Bash(go:version)",              // go version 
+         "Bash(go:list:*)",               // go list xxx
+         "WebFetch(domain:*.baidu.com)"   // xx.baidu.com
+      ],
+      "deny": [   // 禁止
+         "Read(./**/*.md)",        // 相对路径遍历当前路径下所有的*.md文件
+         "Read(./.env*)",          // 相对路径
+         "Read(~/.ssh/*)",         // 用户主路径
+         "Read(/*.json)",          // settings.json所在的目录下的xxx文件
+         "Read(//etc/passwd)"      // 文件系统绝对路径
+      ],  
+      "ask": [    //询问
+         "Write",
+         "Edit",
+         "MultiEdit"
+      ],
+      "defaultMode": "default"
+   },
+   "sanbox": {
+      "autoAllowBashIfSandboxed": true,   // 自动授权策略
+      "enabled": true                     // 启用整个沙箱隔离机制
+   }
+}
+```
+   
+   
