@@ -1,10 +1,33 @@
 # Kratos框架的学习
 
 ## 1.项目新建
+创建项目
 ```
 go install github.com/go-kratos/kratos/cmd/kratos/v2@latest
 kratos new helloworld
+kratos new helloworld -r https://gitee.com/go-kratos/kratos-layout.git // -r 指定源模版
+
+kratos run
 ```
+
+wire依赖注入生成
+```
+go get -u github.com/google/wire
+go install github.com/google/wire/cmd/wire
+cd .../cmd && wire     
+```
+
+工具使用
+```
+kratos proto add api/helloworld/v1/demo.proto  //根据路径创建proto文件 
+kratos proto client  api/helloworld/v1/demo.proto  //会生成 api/helloworld/v1/demo.pb.go 及 api/helloworld/v1/demo_grpc.pb.go 及 api/helloworld/v1/demo_http.pb.go 三个pb.go文件(http，grpc，pb生成文件)
+kratos proto server  api/helloworld/v1/demo.proto -t internal/service  //根据-t的路径下生成service相关的代码(创建一个go文件，定义一个结构体该结构体实现了pb.UnimplementedXXXXXXXServer,并生成了对应的方法)
+```
+
+规范
+1. proto路径 api/领域/版本/文件.proto
+2. proto内容 option go_package = "github包/<package_name>;<version>";
+
 
 ## 2.代码分析
 ### App && Option
