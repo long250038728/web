@@ -93,7 +93,7 @@ allowed-tools: Bash(go test:*),Write,Bash(git add:*)
 请根据`constitution.md`定义的规则进行xxx处理
 
 **当前分支**
-!`git branch --show_current`
+!`git branch --show-current`
 
 **当前go版本**
 !`go version`
