@@ -70,7 +70,7 @@ claude -p "你好，用中文介绍go的channel,字数为50个字"
 * `/feedback or /bug` 反馈官方的bug
 
 
-### 自定义命令
+### 自定义命令slash commands
 * 命令存放位置
   * Project ./.claude/commands/xxx.md
   * User ~/.claude/commands/xxx.md
@@ -97,8 +97,114 @@ allowed-tools: Bash(go test:*),Write,Bash(git add:*)
 
 **当前go版本**
 !`go version`
-
 ```
+
+### skill
+自定义命令slash commands是需要用户手动在对话框中输入`/xxxxx`命令触发，而skill嵌入到提示词中描述这个技能有什么能力
+* 处理方式
+    1. 启动时加载所有可用的Skills，把元数据加载到提示语中
+    2. 当用户提出一个任务时如果匹配到这个技能时，读取该技能下主体Skill文档
+    3. 如果Skill文档中引用其他文件，只有在AI执行那一步时才会去加载引用文件
+* 命令存放位置
+    * Project ./.claude/skills/技能id名称/SKILL.md
+    * User ~/.claude/skills/技能id名称/SKILL.md
+* 元信息
+    * name 描述这个技能的名称
+    * description 这个描述这个技能的作用
+```markdown
+---
+name: go语言代码专家
+description: 你可以根据前端项目中的代码，分析后生成go的http服务器代码。
+---
+
+# go语言代码专家 Skill
+
+## 核心能力
+你可以读取前端项目的代码，分析代码中需要优化为网络请求的地方，生成go语言的http服务器代码
+
+## 执行步骤
+1. 创建main.go代码
+2. 使用gin库进行http服务的搭建
+3. 使用mysql的方式进行存储。mysql使用的是gorm的库进行获取。更新。删除等（注意，删除只允许使用update status = delete的方式，而不并不是正在的删除）
+4. 检查代码后如果发现有错误就要及时修复，保证可以运行起来的go项目
+5. 第三方库使用 go get 的方式获取
+6. 代码分为handle.go ,service.go ,resposity.go.models.go这这个层级
+```
+
+
+### Subagent
+目前agent无法成为一个超级agent，当你需要操作一个复杂的指令时（提升性能，同时要保证安全）可能本身是冲突的，那就交给多个子agent去做（每个subagent都是独立的上下文不印象其他或父agent）
+* 命令
+    * 可通过`/agents`命令创建（无需手动编写md文件）   
+* 调用
+  * `使用go语言写一个http样例 `go-code`使用这个subagent` (强制指定subagent)
+* 命令存放位置
+    * Project ./.claude/agnets/subagent_id名称.md
+    * User ~/.claude/agnets/subagent_id名称.md
+* 元信息
+    * name 描述这个技能的名称
+    * description 这个描述这个技能的作用
+    * tools Read,Grep #可选项
+    * model opus #可选项 opus,sonnet(默认),haiku,inherit(当前模型)
+```markdown
+---
+name: go语言代码专家
+description: 你可以根据前端项目中的代码，分析后生成go的http服务器代码。
+tools: Read,Grep
+model: inherit
+---
+
+# go语言代码专家 
+
+## 核心能力
+你可以读取前端项目的代码，分析代码中需要优化为网络请求的地方，生成go语言的http服务器代码
+
+## 执行步骤
+1. 创建main.go代码
+2. 使用gin库进行http服务的搭建
+3. 使用mysql的方式进行存储。mysql使用的是gorm的库进行获取。更新。删除等（注意，删除只允许使用update status = delete的方式，而不并不是正在的删除）
+4. 检查代码后如果发现有错误就要及时修复，保证可以运行起来的go项目
+5. 第三方库使用 go get 的方式获取
+6. 代码分为handle.go ,service.go ,resposity.go.models.go这这个层级
+```
+
+
+
+### hook
+`/hooks` 设定当触发某个操作时进行hook
+* PreToolUse 工具使用前hook
+* PostToolUse 工具时候后hook
+* PostToolFailure 工具使用失败后hook
+* Notification 当发通知时hook
+* UserPromptSubmit 用户的提示词提交时
+* SessionStart/SessionEnd 会话开始/结束时
+* SubagentStart/SubagentStop subagent开始/结束时
+* PreCompact 合并上下文前
+* PermissionRequest 权限校验时
+* Stop claude关闭时
+
+
+
+### MCP
+```shell
+# -- 分隔符后面用于服务器启动
+claude mcp add      --transport stdio --scope project mcp名称  -- python main.py
+# transport http使用 add-json的方式添加, Authorization中添加token，${GITHUB_TOKEN}通过环境变量获取避免硬编码
+claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http","url":"https://api.xxxxxxxxxx.com/mcp/","headers":{"Authorization":"Bearer ${XXX_TOKEN}"}}' 
+```
+1. transport
+   * http 与远端http通信
+   * sse 与远端SSE通信（已废弃）
+   * stdio 与本地标准输入输出通信
+2. scope
+   * user 存放在个人目录（~/.claude.json）
+   * project 存放在项目根目录下（./mcp.json）
+   * local 本地默认 (~/.claude.json)
+
+#### 验证是否添加成功
+* `/mcp` 命令可以查看是否连接成功，提供什么方法
+* 在prompts可以使用`mcp__mcp名称__mcp工具名`调用该mcp工具
+
 
 
 ### 其他
@@ -134,7 +240,7 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
 3. /sandbox 沙箱 (隔离读写权限，在当前的沙箱内，可以读写的权限到最大)
    * Sandbox BashTool,with auth-allow in accept edits mode 当你处在acceptEdits这个权限时，在边界内的bash命令不会询问，直接自动执行
    * Sandbox BashTool,with regular permissions 遵循permissions体系，只要没有命中allow规则就需要得到批准
-```
+```配置json
 {
    "permissions": {
       "allow": [  // 允许
@@ -163,5 +269,4 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
    }
 }
 ```
-   
    
