@@ -170,7 +170,7 @@ model: inherit
 
 
 
-### hook
+### Hooks
 `/hooks` 设定当触发某个操作时进行hook
 * PreToolUse 工具使用前hook
 * PostToolUse 工具时候后hook
@@ -205,6 +205,19 @@ claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http",
 * `/mcp` 命令可以查看是否连接成功，提供什么方法
 * 在prompts可以使用`mcp__mcp名称__mcp工具名`调用该mcp工具
 
+
+### Headless
+Headless一般指软件工程中没有用户图形界面交互下运行，在claude场景中即不需要打开claude完成一问一答的方式，而是一次性的一问一答
+```bash
+# --allowedTools使用什么工具  --permission-mode使用什么权限模式  --output-format输出什么格式
+claude -p "讲解一下go部署的优势及缺点"  --allowedTools="Bash,Read" --permission-mode acceptEdits --output-format text
+# 将cat获取的内容通过管道符的方式传递给claude
+cat error.log | claude -p "帮我分析这个日志里面的内容"  
+```
+--output-format输出响应格式
+* text 文本默认（默认）
+* json json格式 （可通过jq的工具进行快速获取json中的值）
+* stream-json (如果任务很长，希望看到ai的实时进展，每一步都会输出到stdout) 注意：使用stream-json 必须带上 --verbose
 
 
 ### 其他
@@ -269,4 +282,14 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
    }
 }
 ```
-   
+
+### checkpointing
+当操作后发现需要撤回之前的操作
+* `/rewind` 后选择倒流到哪个操作
+  * Restore code and conversation  回退代码跟对话
+  * Restore conversation  只回退对话 (代码信息还保留)
+  * Restore code  只回退代码（会话之间的信息还保留）
+注意
+  * 不跟踪bash命令的副作用（如 rm -rf ./*）
+  * 不跟踪外部编辑（claude没有记录）
+  * 它不能完全替代git，他们是互补关系而不是替换关系
