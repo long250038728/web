@@ -17,6 +17,7 @@ type BonusModel struct {
 	Staff            string  `json:"staff"`
 	TimeAdd          string  `json:"time_add"`
 	BonusStr         string  `json:"bonus_str"`
+	//Image            Pics    `json:"image"`
 }
 
 var BonusHeader = []Header{
@@ -26,6 +27,7 @@ var BonusHeader = []Header{
 	{Key: "merchant_shop_name", Name: "所属门店", Type: "string"},
 	{Key: "staff", Name: "归属员工手机号", Type: "string"},
 	{Key: "time_add", Name: "注册时间", Type: "string"},
+	//{Key: "image", Name: "图片", Type: "image"},
 }
 
 func TestBonusCustomerReadExcel(t *testing.T) {

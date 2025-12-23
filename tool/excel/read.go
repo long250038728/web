@@ -3,6 +3,8 @@ package excel
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/long250038728/web/tool/sliceconv"
 	"github.com/xuri/excelize/v2"
 	"strconv"
 )
@@ -34,8 +36,15 @@ func (r *Read) Read(sheet string, headers []Header, data interface{}) error {
 		return errors.New("row num error")
 	}
 
+	// header 类型检查
+	for _, header := range headers {
+		if header.Type != HeaderTypeString && header.Type != HeaderTypeInt && header.Type != HeaderTypeFloat && header.Type != HeaderTypeImage {
+			return errors.New(fmt.Sprintf("header type error: %s, place use string, int, float, image", header.Type))
+		}
+	}
+
 	// r.matchHeader(rows[0], headers) 根据第一行的数据，判断每一列的对应的head对象
-	return r.marshal(r.matchHeader(rows[0], headers), rows[1:], data)
+	return r.marshal(sheet, r.matchHeader(rows[0], headers), rows[1:], data)
 }
 
 // matchHeader 根据标题匹配key
@@ -60,25 +69,57 @@ func (r *Read) matchHeader(cols []string, headers []Header) []Header {
 }
 
 // marshal 转换为对象
-func (r *Read) marshal(headers []Header, rows [][]string, data interface{}) error {
+func (r *Read) marshal(sheet string, headers []Header, rows [][]string, data interface{}) error {
 	var list = make([]map[string]interface{}, 0, len(rows))
 
-	for _, row := range rows {
+	for rowIndex, row := range rows {
 		item := make(map[string]interface{})
-		for colIndex, col := range row {
-			switch headers[colIndex].Type {
-			case "string":
+		for headIndex, header := range headers {
+
+			val := ""
+			if len(row)-1 <= headIndex {
+				val = row[headIndex]
+			}
+
+			switch header.Type {
+			case HeaderTypeString:
 				// str类型
-				item[headers[colIndex].Key] = col
-			case "int":
+				item[header.Key] = val
+			case HeaderTypeInt:
 				// int类型
-				item[headers[colIndex].Key], _ = strconv.ParseInt(col, 10, 0)
-			case "float":
+				item[header.Key], _ = strconv.ParseInt(val, 10, 0)
+			case HeaderTypeFloat:
 				// float类型
-				item[headers[colIndex].Key], _ = strconv.ParseFloat(col, 32)
-			default:
+				item[header.Key], _ = strconv.ParseFloat(val, 32)
+			case HeaderTypeImage:
+				// image图片
+				item[header.Key] = []map[string]any{}
+				pics, err := r.file.GetPictures(sheet, fmt.Sprintf("%s%d", cellIndexToName[headIndex], rowIndex+1+1))
+				if err == nil || len(pics) > 0 {
+					item[header.Key] = sliceconv.Change(pics, func(t excelize.Picture) Pic {
+						return Pic{
+							File:      t.File,
+							Extension: t.Extension,
+						}
+					})
+				}
 			}
 		}
+
+		//for colIndex, col := range row {
+		//	switch headers[colIndex].Type {
+		//	case "string":
+		//		// str类型
+		//		item[headers[colIndex].Key] = col
+		//	case "int":
+		//		// int类型
+		//		item[headers[colIndex].Key], _ = strconv.ParseInt(col, 10, 0)
+		//	case "float":
+		//		// float类型
+		//		item[headers[colIndex].Key], _ = strconv.ParseFloat(col, 32)
+		//	default:
+		//	}
+		//}
 		list = append(list, item)
 	}
 
