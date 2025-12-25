@@ -46,7 +46,7 @@ playwright install
 
 代码自动生成
 ```shell
-# -o 文件输出 -b 使用xxx流浪器   
+# -o 文件输出 -b 使用xxx浏览器  
 playwright codegen -o p_playwright.py -b cr "https://www.baidu.com"
 ```
 
