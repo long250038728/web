@@ -77,7 +77,7 @@ func (r *Read) marshal(sheet string, headers []Header, rows [][]string, data int
 		for headIndex, header := range headers {
 
 			val := ""
-			if len(row)-1 <= headIndex {
+			if len(row)-1 >= headIndex {
 				val = row[headIndex]
 			}
 
