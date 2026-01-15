@@ -102,7 +102,6 @@ canal.mq.flatMessage = true
 kafka.bootstrap.servers = 159.75.1.200:9093
 ```
 
-
 ### 其他注意事项
 1. 在配置kong时指定`KONG_DNS_RESOLVER`，可以通过consul的DNS使用到服务注册与发现，无需手动维护服务列表。注册到consul的服务名格式为`服务名.service.consul`。
 2. `consul + kong + 微服务`运行在同一个docker network中，以实现互相访问。
@@ -154,6 +153,7 @@ admin api: http://172.40.0.22:8001
     Paths: /                                # 指定某个路径调用那个服务(记得回车确认)
     Strip Path: false                       # 从上游请求URL中删除匹配的前缀。（是否有删除Paths前缀）
 ```
+
 ## admin api 配置
 ```bash
 创建service配置信息
@@ -175,3 +175,23 @@ curl -X POST http://192.168.0.74:8001/routes \
 # 返回的json字段，设置也使用相同的字段  
 {"created_at":1733465781,"updated_at":1733465781,"service":{"id":"9d3f5b04-d0de-46f4-8c5d-5e7238220658"},"path_handling":"v0","methods":null,"hosts":["www.xx1.com"],"request_buffering":true,"response_buffering":true,"strip_path":true,"snis":null,"regex_priority":0,"tags":null,"paths":null,"protocols":["http","https"],"name":"test_routes","headers":null,"https_redirect_status_code":426,"id":"6af6e619-fac8-4ec0-8908-751f64a75773","preserve_host":false,"sources":null,"destinations":null}
 ```
+
+# 目录介绍
+项目核心是封装日常使用的一个工具，用于可以快速使用 ***http*** + ***grpc*** +***orm*** + ***mq*** + ***cache*** + ***other*** 场景.这个项目目录分为分为三类。核心目录 ***tool***包。
+* service 用于演示tool工具的使用用于微服务的搭建及使用【项目非必要】
+* learn 日常总结及文档记录【项目非必要】
+* tool 封装使用工具【项目重点】
+
+### service
+- ***application***: 微服务应用
+- ***protoc***: IDL + protoc gen +grpc gen
+- ***script***: 脚本CI/CD工具
+- ***config***: 微服务配置
+
+### tool
+- ***cmd***: 微服务快速创建工具
+- ***tool***: 工具封装包
+
+### learn
+- ***doc***: 学习文档
+- ***learn***: 未整理的学习问你的

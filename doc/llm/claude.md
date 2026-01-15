@@ -1,10 +1,15 @@
 ## Claude
+
 为什么说`AI cli`工具比`AI IDE`更强大的在于它可以直接操作shell等命令，无需被IDE或环境等限制。
 
 ### AI cli工具对比
 * Claude code： "自治"的工作流引擎。提供最全的可定制的配置，可以在各种md文件中添加限制，目标等
 * Codex cli： OPENAI公司的，在执行任何修改前，都会最清晰的方式展示变动
 * Gemini cli： google公司的，得益于google天然搜索及大规模的上下文 
+    
+---
+
+## Claude 搭建
 
 ### 环境准备
 ```sh
@@ -43,6 +48,9 @@ export ANTHROPIC_AUTH_TOKEN="xxxxxxxxxxx"
 ```shell
 claude -p "你好，用中文介绍go的channel,字数为50个字"
 ```
+---
+
+## Claude 使用
 
 ### 常用命令
 * `/config` 设置
@@ -68,7 +76,6 @@ claude -p "你好，用中文介绍go的channel,字数为50个字"
 * `/doctor` 检查claude是否健康，依赖是否完整，配置是否正确
 * `/cost和/usage` cost显示当前会话的token消耗。usage显示套餐用例和速率限制
 * `/feedback or /bug` 反馈官方的bug
-
 
 ### 自定义命令slash commands
 * 命令存放位置
@@ -131,7 +138,6 @@ description: 你可以根据前端项目中的代码，分析后生成go的http�
 6. 代码分为handle.go ,service.go ,resposity.go.models.go这这个层级
 ```
 
-
 ### Subagent
 目前agent无法成为一个超级agent，当你需要操作一个复杂的指令时（提升性能，同时要保证安全）可能本身是冲突的，那就交给多个子agent去做（每个subagent都是独立的上下文不印象其他或父agent）
 * 命令
@@ -168,8 +174,6 @@ model: inherit
 6. 代码分为handle.go ,service.go ,resposity.go.models.go这这个层级
 ```
 
-
-
 ### Hooks
 `/hooks` 设定当触发某个操作时进行hook
 * PreToolUse 工具使用前hook
@@ -182,8 +186,6 @@ model: inherit
 * PreCompact 合并上下文前
 * PermissionRequest 权限校验时
 * Stop claude关闭时
-
-
 
 ### MCP
 ```shell
@@ -205,7 +207,6 @@ claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http",
 * `/mcp` 命令可以查看是否连接成功，提供什么方法
 * 在prompts可以使用`mcp__mcp名称__mcp工具名`调用该mcp工具
 
-
 ### Headless
 Headless一般指软件工程中没有用户图形界面交互下运行，在claude场景中即不需要打开claude完成一问一答的方式，而是一次性的一问一答
 ```bash
@@ -219,16 +220,17 @@ cat error.log | claude -p "帮我分析这个日志里面的内容"
 * json json格式 （可通过jq的工具进行快速获取json中的值）
 * stream-json (如果任务很长，希望看到ai的实时进展，每一步都会输出到stdout) 注意：使用stream-json 必须带上 --verbose
 
-
-### 其他
-#### CLAUDE.md(操作指南)
-由于CLAUDE.md只是用于claude工具，如果工具替换后就需要使用其他的XXX.md。所以行业定义出来AGENTS.md用于存放通过的长期记忆/项目规范，但是目前还没被完全替代，使用方式
-```CLAUDE.md
------ 通用长期记忆/项目规范 -----
-@../AGENTS.md
------ Claude长期记忆/项目规范 -----
-[角色]
-你是一个程序员，这是一个前端项目
+### checkpointing
+当操作后发现需要撤回之前的操作                                     
+* `/rewind` 后选择倒流到哪个操作                              ### 其他
+  * Restore code and conversation  回退代码跟对话          #### CLAUDE.md(操作指南)
+  * Restore conversation  只回退对话 (代码信息还保留)           由于CLAUDE.md只是用于claude工具，如果工具替换后就需要使用其他的XXX.md。所以行业定义出来AGENTS.md用于存放通过的长期记忆/项目规范，但是目前还没被完全替代，使用方式
+  * Restore code  只回退代码（会话之间的信息还保留）                 ```CLAUDE.md
+注意                                                  ----- 通用长期记忆/项目规范 -----
+  * 不跟踪bash命令的副作用（如 rm -rf ./*）                     @../AGENTS.md
+  * 不跟踪外部编辑（claude没有记录）                             ----- Claude长期记忆/项目规范 -----
+  * 它不能完全替代git，他们是互补关系而不是替换关系                       [角色]
+                                                    你是一个程序员，这是一个前端项目
 
 [基础]
 这个是一个web的html项目，使用的是vue3.0框架
@@ -282,23 +284,11 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
    }
 }
 ```
-
-### checkpointing
-当操作后发现需要撤回之前的操作
-* `/rewind` 后选择倒流到哪个操作
-  * Restore code and conversation  回退代码跟对话
-  * Restore conversation  只回退对话 (代码信息还保留)
-  * Restore code  只回退代码（会话之间的信息还保留）
-注意
-  * 不跟踪bash命令的副作用（如 rm -rf ./*）
-  * 不跟踪外部编辑（claude没有记录）
-  * 它不能完全替代git，他们是互补关系而不是替换关系
-
 ---
 
 ## 总结
 
-#### ./.claude目录下
+### ./.claude目录
 * `commands/` 自定义工具命令
 * `skills/` skill技能
 * `agnets/` Subagent子专家
