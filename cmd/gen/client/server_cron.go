@@ -3,12 +3,13 @@ package client
 import (
 	_ "embed"
 	"fmt"
-	"github.com/long250038728/web/tool/gen"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/long250038728/web/tool/gen"
+	"github.com/spf13/cobra"
 )
 
 type serverValue struct {
@@ -177,6 +178,7 @@ func (c *ServerCorn) Server() *cobra.Command {
 					filepath.Join(c.path, serverName, "internal", "biz", domainName),
 					filepath.Join(c.path, serverName, "internal", "biz", domainName, "domain"),
 					filepath.Join(c.path, serverName, "internal", "biz", domainName, "model"),
+					filepath.Join(c.path, serverName, "internal", "biz", domainName, "entity"),
 					filepath.Join(c.path, serverName, "internal", "biz", domainName, "repository"),
 				}
 				for _, path := range paths {
@@ -218,23 +220,35 @@ func (c *ServerCorn) Server() *cobra.Command {
 					return err
 				}
 
-				//write file
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "cmd", "main.go"), mainBytes, os.ModePerm); err != nil {
+				// 辅助函数：检查文件是否存在，不存在则写入
+				writeIfNotExist := func(filePath string, data []byte) error {
+					_, err := os.Stat(filePath)
+					if os.IsNotExist(err) {
+						// 文件不存在，写入
+						return os.WriteFile(filePath, data, os.ModePerm)
+					}
+					// 文件存在，跳过写入
+					fmt.Printf("文件已存在，跳过写入: %s\n", filePath)
+					return nil
+				}
+
+				// 写入各个文件，跳过已存在的文件
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "cmd", "main.go"), mainBytes); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "cmd", "server", "server.go"), serverBytes, os.ModePerm); err != nil {
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "cmd", "server", "server.go"), serverBytes); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "internal", "handles", "handles.go"), handlesBytes, os.ModePerm); err != nil {
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "internal", "handles", "handles.go"), handlesBytes); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "internal", "service", serverName+".go"), serviceBytes, os.ModePerm); err != nil {
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "internal", "service", serverName+".go"), serviceBytes); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "internal", "biz", domainName, "domain", domainName+".go"), domainBytes, os.ModePerm); err != nil {
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "internal", "biz", domainName, "domain", domainName+".go"), domainBytes); err != nil {
 					return err
 				}
-				if err := os.WriteFile(filepath.Join(c.path, serverName, "internal", "biz", domainName, "repository", domainName+".go"), repositoryBytes, os.ModePerm); err != nil {
+				if err := writeIfNotExist(filepath.Join(c.path, serverName, "internal", "biz", domainName, "repository", domainName+".go"), repositoryBytes); err != nil {
 					return err
 				}
 
