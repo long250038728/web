@@ -1,7 +1,7 @@
 package service
 
 import (
-	"{{.Page}}/{{.Server}}/internal/domain"
+	"{{.Page}}/{{.Server}}/internal/biz/{{.Domain}}/domain"
 	"{{.Protoc}}/{{.Server}}"
 	"github.com/long250038728/web/tool/server/rpc/server"
 )
@@ -9,12 +9,12 @@ import (
 type {{serverNameFunc .Server}}Service struct {
 	{{.Server}}.Unimplemented{{serverNameFunc .Server}}Server
 	server.GrpcHealth
-	domain *domain.{{serverNameFunc .Server}}Domain
+	domain *domain.{{serverNameFunc .Domain}}Domain
 }
 
 type {{serverNameFunc .Server}}ServerOpt func(s *{{serverNameFunc .Server}}Service)
 
-func Set{{serverNameFunc .Server}}Domain(domain *domain.{{serverNameFunc .Server}}Domain) {{serverNameFunc .Server}}ServerOpt {
+func Set{{serverNameFunc .Domain}}Domain(domain *domain.{{serverNameFunc .Domain}}Domain) {{serverNameFunc .Server}}ServerOpt {
 	return func(s *{{serverNameFunc .Server}}Service) {
 		s.domain = domain
 	}

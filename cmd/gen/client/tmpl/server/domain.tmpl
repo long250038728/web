@@ -1,13 +1,13 @@
 package domain
 
 import (
-	"{{.Page}}/{{.Server}}/internal/repository"
+	"{{.Page}}/{{.Server}}/internal/biz/{{.Domain}}/repository"
 )
 
-type {{serverNameFunc .Server}}Domain struct {
-	repository *repository.{{serverNameFunc .Server}}Repository
+type {{serverNameFunc .Domain}}Domain struct {
+	repository *repository.{{serverNameFunc .Domain}}Repository
 }
 
-func New{{serverNameFunc .Server}}Domain(repository *repository.{{serverNameFunc .Server}}Repository) *{{serverNameFunc .Server}}Domain {
-	return &{{serverNameFunc .Server}}Domain{repository: repository}
+func New{{serverNameFunc .Domain}}Domain(repository *repository.{{serverNameFunc .Domain}}Repository) *{{serverNameFunc .Domain}}Domain {
+	return &{{serverNameFunc .Domain}}Domain{repository: repository}
 }

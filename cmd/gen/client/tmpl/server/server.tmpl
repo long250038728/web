@@ -3,8 +3,8 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"{{.Page}}/{{.Server}}/internal/domain"
-	"{{.Page}}/{{.Server}}/internal/repository"
+	"{{.Page}}/{{.Server}}/internal/biz/{{.Domain}}/domain"
+	"{{.Page}}/{{.Server}}/internal/biz/{{.Domain}}/repository"
 	"{{.Page}}/{{.Server}}/internal/handles"
 	"{{.Page}}/{{.Server}}/internal/service"
 	"github.com/long250038728/web/tool/app"
@@ -21,7 +21,7 @@ func Run(serverName string) error {
 
 	// 定义服务
 	svc := service.New{{serverNameFunc .Server}}Service(
-		service.Set{{serverNameFunc .Server}}Domain(domain.New{{serverNameFunc .Server}}Domain(repository.New{{serverNameFunc .Server}}Repository(util))),
+		service.Set{{serverNameFunc .Domain}}Domain(domain.New{{serverNameFunc .Domain}}Domain(repository.New{{serverNameFunc .Domain}}Repository(util))),
 	)
 
 	handle := handles.NewHandles(util)
