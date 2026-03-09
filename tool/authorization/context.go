@@ -1,29 +1,44 @@
 package authorization
 
-import (
-	"context"
-	"github.com/long250038728/web/tool/app_error"
-)
-
-type claims struct{}
-type session struct{}
-
-func SetClaims(ctx context.Context, userClaims *UserInfo) context.Context {
-	return context.WithValue(ctx, claims{}, userClaims)
-}
-func GetClaims(ctx context.Context) (*UserInfo, error) {
-	if val, ok := ctx.Value(claims{}).(*UserInfo); ok {
-		return val, nil
-	}
-	return nil, app_error.ClaimsNull
-}
-
-func SetSession(ctx context.Context, userSession *UserSession) context.Context {
-	return context.WithValue(ctx, session{}, userSession)
-}
-func GetSession(ctx context.Context) (*UserSession, error) {
-	if val, ok := ctx.Value(session{}).(*UserSession); ok {
-		return val, nil
-	}
-	return nil, app_error.SessionNull
-}
+////================================ ctx ================================
+//
+//type ClaimsSessionContext[C Claims, S any] interface {
+//	SetClaims(ctx context.Context, claims *C) context.Context
+//	GetClaims(ctx context.Context) (*C, error)
+//	SetSession(ctx context.Context, session *S) context.Context
+//	GetSession(ctx context.Context) (*S, error)
+//}
+//
+//type claimsKey struct{}
+//type sessionKey struct{}
+//
+//func NewClaimsSessionContext[C Claims, S any]() ClaimsSessionContext[C, S] {
+//	return &claimsSessionContext[C, S]{}
+//}
+//
+//type claimsSessionContext[C Claims, S any] struct {
+//	claims  *C
+//	session *S
+//}
+//
+//func (c *claimsSessionContext[C, S]) SetClaims(ctx context.Context, claims *C) context.Context {
+//	return context.WithValue(ctx, claimsKey{}, claims)
+//}
+//
+//func (c *claimsSessionContext[C, S]) GetClaims(ctx context.Context) (*C, error) {
+//	if val, ok := ctx.Value(claimsKey{}).(*C); ok {
+//		return val, nil
+//	}
+//	return nil, app_error.ClaimsNull
+//}
+//
+//func (c *claimsSessionContext[C, S]) SetSession(ctx context.Context, session *S) context.Context {
+//	return context.WithValue(ctx, sessionKey{}, session)
+//}
+//
+//func (c *claimsSessionContext[C, S]) GetSession(ctx context.Context) (*S, error) {
+//	if val, ok := ctx.Value(sessionKey{}).(*S); ok {
+//		return val, nil
+//	}
+//	return nil, app_error.ClaimsNull
+//}

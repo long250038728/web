@@ -155,6 +155,20 @@ func NewInitUtil(config *Config) (*Util, error) {
 
 //========================================================================================
 
+func (u *Util) Session() (authorization.Session, error) {
+	if u.storeClient == nil {
+		return nil, errors.New("store is not init")
+	}
+	auth := authorization.NewSession(u.storeClient, authorization.SetAccessExpires(time.Hour*24))
+	return auth, nil
+}
+
+func (u *Util) Token() (authorization.Token, error) {
+	return authorization.NewToken(authorization.SetSecretKey([]byte("1234567890"))), nil
+}
+
+//========================================================================================
+
 func (u *Util) Register() (register.Register, error) {
 	if u.register == nil {
 		return nil, errors.New("register is not initialized")
@@ -174,14 +188,6 @@ func (u *Util) Locker(key, identification string, RefreshTime time.Duration) (lo
 		return nil, errors.New("locker is not initialized")
 	}
 	return locker.NewRedisLocker(u.cache[u.cacheDb], key, identification, RefreshTime), nil
-}
-
-func (u *Util) Auth() (authorization.Auth, error) {
-	if u.storeClient == nil {
-		return nil, errors.New("store is not init")
-	}
-	auth := authorization.NewAuth(u.storeClient)
-	return auth, nil
 }
 
 //========================================================================================

@@ -30,16 +30,17 @@ func (repository *Auth) Login(ctx context.Context, name, password string) (*auth
 func (repository *Auth) Refresh(ctx context.Context, refreshToken string) (*auth.UserResponse, error) {
 	refreshCla := &authorization.RefreshClaims{}
 
-	auth, err := repository.util.Auth()
+	token, err := repository.util.Token()
 	if err != nil {
 		return nil, err
 	}
-	if err = auth.Refresh(ctx, refreshToken, refreshCla); err != nil {
+
+	if err = token.Parse(ctx, refreshToken, refreshCla); err != nil {
 		return nil, err
 	}
 
 	refresh := refreshCla.Refresh
-	if refresh.Md5 != authorization.GetSessionId(refresh.Id) {
+	if refresh.Md5 != authorization.GetSessionKey(refresh.Id) {
 		return nil, errors.New("refresh token error")
 	}
 	userInfo, err := repository.GetUser(ctx, refresh.Id, "", "")
@@ -56,15 +57,19 @@ func (repository *Auth) Refresh(ctx context.Context, refreshToken string) (*auth
 }
 
 func (repository *Auth) Logout(ctx context.Context) error {
-	claims, err := authorization.GetClaims(ctx)
-	if err == nil {
-		return err
-	}
-	auth, err := repository.util.Auth()
+	claimsSessionContext := authorization.NewClaimsSessionContext[authorization.AccessClaims, authorization.Session]()
+
+	session, err := repository.util.Session()
 	if err != nil {
 		return err
 	}
-	return auth.DeleteSession(ctx, authorization.GetSessionId(claims.Id))
+
+	claims, err := claimsSessionContext.GetClaims(ctx)
+	if err == nil {
+		return err
+	}
+
+	return session.DeleteSession(ctx, authorization.GetSessionKey(claims.UserInfo.Id))
 }
 
 //======================================================================================================================
@@ -116,6 +121,16 @@ func (repository *Auth) GetPermissions(ctx context.Context, roleIds []int32) ([]
 
 // ======================================================================================================================
 func (repository *Auth) getUserResponse(ctx context.Context, userInfo *model.User) (*auth.UserResponse, error) {
+	session, err := repository.util.Session()
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := repository.util.Token()
+	if err != nil {
+		return nil, err
+	}
+
 	//角色
 	roles, err := repository.GetRoles(ctx, userInfo.Id)
 	if err != nil {
@@ -131,21 +146,23 @@ func (repository *Auth) getUserResponse(ctx context.Context, userInfo *model.Use
 	}
 	permissionsPath := sliceconv.Extract(permissions, func(item *model.Permission) string { return item.Path })
 
-	//基本参数
-	claims := &authorization.UserInfo{Id: userInfo.Id, Name: userInfo.Name}
+	//生成新的accessToken及refreshToken
+	accessClaims := &authorization.AccessClaims{UserInfo: &authorization.UserInfo{Id: userInfo.Id, Name: userInfo.Name}}
+	refreshClaims := &authorization.RefreshClaims{Refresh: &authorization.Refresh{Id: userInfo.Id, Md5: authorization.GetSessionKey(userInfo.Id)}}
+	accessToken, err := token.Signed(ctx, accessClaims)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := token.Signed(ctx, refreshClaims)
+	if err != nil {
+		return nil, err
+	}
+
 	sess := &authorization.UserSession{Id: userInfo.Id, Name: userInfo.Name, AuthList: permissionsPath}
-
-	authorized, err := repository.util.Auth()
-	if err != nil {
+	if err = session.SetSession(ctx, authorization.GetSessionKey(accessClaims.Id), sess); err != nil {
 		return nil, err
 	}
 
-	if err = authorized.SetSession(ctx, authorization.GetSessionId(claims.Id), sess); err != nil {
-		return nil, err
-	}
-	accessToken, refreshToken, err := authorized.Signed(ctx, claims)
-	if err != nil {
-		return nil, err
-	}
 	return &auth.UserResponse{Id: userInfo.Id, Name: userInfo.Name, Telephone: userInfo.Telephone, Roles: roleNames, Permissions: permissionsPath, AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }

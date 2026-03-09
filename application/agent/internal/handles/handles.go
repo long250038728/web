@@ -25,7 +25,7 @@ func NewHandles(srv *service.Agent, util *app.Util) *Handles {
 }
 
 func (r *Handles) RegisterHTTPServer(engine *gin.Engine) {
-	authorized, err := r.util.Auth()
+	authorized, err := r.util.Token()
 	if err != nil {
 		panic(err)
 	}

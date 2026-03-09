@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/long250038728/web/tool/register"
 	"github.com/long250038728/web/tool/server"
-	rpcServer "github.com/long250038728/web/tool/server/rpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
@@ -41,7 +40,7 @@ type Server struct {
 // NewGrpc  构造函数
 func NewGrpc(serverName, address string, port int, handlerFunc HandlerFunc) *Server {
 	opts := []grpc.ServerOption{
-		grpc.ChainUnaryInterceptor(rpcServer.ServerAuthInterceptor(), rpcServer.ServerTelemetryInterceptor()),
+		//grpc.ChainUnaryInterceptor(rpcServer.ServerAuthInterceptor(), rpcServer.ServerTelemetryInterceptor()),
 		grpc.KeepaliveEnforcementPolicy(enforcementPolicy), //保持Keepalive
 		grpc.KeepaliveParams(serverParameters),             //保持Keepalive
 	}

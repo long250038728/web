@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -21,7 +20,7 @@ import (
 // BaseHandle 基本中间件（创建链路及jwt解析，生成新的ctx替换到c.Request.Context中）
 
 // BaseHandle 基本中间件（带上链路及jwt数据）
-func BaseHandle(parse authorization.Parse) gin.HandlerFunc {
+func BaseHandle(parse authorization.Token) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
@@ -69,24 +68,29 @@ func BaseHandle(parse authorization.Parse) gin.HandlerFunc {
 		span.AddEvent(mCarrier)
 		c.Header(server.TraceParentKey, mCarrier[server.TraceParentKey])
 
-		// 用户处理
-		if parse != nil {
-			if parseCtx, err := parse.Parse(ctx, c.GetHeader("Authorization")); err == nil {
-				ctx = parseCtx
-			}
-		}
+		// 1. 解析jwt
+		// 2. 获取claims && session
+		// 3. 序列号写入到 mCarrier
 
-		//把所有信息写入metadata中并生成新的ctx
-		if c, err := authorization.GetClaims(ctx); err == nil {
-			if b, err := json.Marshal(c); err == nil {
-				mCarrier["claims"] = string(b)
-			}
-		}
-		if s, err := authorization.GetSession(ctx); err == nil {
-			if b, err := json.Marshal(s); err == nil {
-				mCarrier["session"] = string(b)
-			}
-		}
+		//auth := c.GetHeader("Authorization")
+		//// 用户处理
+		//if parse != nil && c.GetHeader("Authorization") != "" {
+		//	//if parseCtx, err := parse.Parse(ctx, c.GetHeader("Authorization")); err == nil {
+		//	//	ctx = parseCtx
+		//	//}
+		//	//把所有信息写入metadata中并生成新的ctx
+		//	//if c, err := authorization.GetClaims(ctx); err == nil {
+		//	//	if b, err := json.Marshal(c); err == nil {
+		//	//		mCarrier["claims"] = string(b)
+		//	//	}
+		//	//}
+		//	//if s, err := authorization.GetSession(ctx); err == nil {
+		//	//	if b, err := json.Marshal(s); err == nil {
+		//	//		mCarrier["session"] = string(b)
+		//	//	}
+		//	//}
+		//}
+
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(mCarrier))
 
 		c.Request = c.Request.WithContext(ctx)

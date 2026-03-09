@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/long250038728/web/tool/server/rpc/client"
-	"github.com/long250038728/web/tool/server/rpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
@@ -77,7 +76,7 @@ func (c *Client) Dial(ctx context.Context, serverName string) (conn *Conn, err e
 
 	//获取target 信息
 	opts := []grpc.DialOption{
-		grpc.WithUnaryInterceptor(server.ServerCircuitInterceptor(circuitList)),
+		//grpc.WithUnaryInterceptor(server.ServerCircuitInterceptor(circuitList)),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithKeepaliveParams(clientParameters),
 	}
