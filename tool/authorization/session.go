@@ -9,12 +9,16 @@ import (
 	"time"
 )
 
-type Session struct {
+type session struct {
 	store         store.Store
 	accessExpires time.Duration
 }
 
-func (p *Session) GetSession(ctx context.Context, sessionId string) (session *UserSession, err error) {
+func NewSession(store store.Store, accessExpires time.Duration) Session {
+	return &session{store: store, accessExpires: accessExpires}
+}
+
+func (p *session) GetSession(ctx context.Context, sessionId string) (session *UserSession, err error) {
 	if sessionId == "" {
 		return nil, errors.New("sessionId is empty")
 	}
@@ -32,7 +36,7 @@ func (p *Session) GetSession(ctx context.Context, sessionId string) (session *Us
 	return session, json.Unmarshal([]byte(sessionStr), &session)
 }
 
-func (p *Session) SetSession(ctx context.Context, sessionId string, session *UserSession) (err error) {
+func (p *session) SetSession(ctx context.Context, sessionId string, session *UserSession) (err error) {
 	var b []byte
 	var ok bool
 
@@ -53,7 +57,7 @@ func (p *Session) SetSession(ctx context.Context, sessionId string, session *Use
 	return
 }
 
-func (p *Session) DeleteSession(ctx context.Context, sessionId string) error {
+func (p *session) DeleteSession(ctx context.Context, sessionId string) error {
 	if sessionId == "" {
 		return errors.New("sessionId is empty")
 	}

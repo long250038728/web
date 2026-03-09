@@ -12,7 +12,7 @@ import (
 type Opt func(r *auth)
 
 type auth struct {
-	Serialization
+	secretKey []byte
 	Session
 	accessExpires  time.Duration
 	refreshExpires time.Duration
@@ -20,7 +20,7 @@ type auth struct {
 
 func SecretKey(secretKey []byte) Opt {
 	return func(r *auth) {
-		r.SecretKey = secretKey
+		r.secretKey = secretKey
 	}
 }
 
@@ -40,17 +40,16 @@ func NewAuth(s store.Store, opts ...Opt) Auth {
 	p := &auth{}
 
 	//默认值
-	p.SecretKey = []byte("secretKey")
+	p.secretKey = []byte("secretKey")
 	p.accessExpires = 20 * time.Minute
 	p.refreshExpires = 24 * 7 * time.Hour
-	p.store = s
 
 	for _, opt := range opts {
 		opt(p)
 	}
 
 	// 比accessExpires多5s避免获取到accessExpires时未过期，但是获取session已经过期
-	p.Session.accessExpires = p.accessExpires + time.Second*5
+	p.Session = NewSession(s, p.accessExpires+time.Second*5)
 	return p
 }
 
@@ -62,10 +61,10 @@ func (auth *auth) Signed(ctx context.Context, userClaims *UserInfo) (accessToken
 	access := &AccessClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(auth.accessExpires)), IssuedAt: jwt.NewNumericDate(now)}, UserInfo: userClaims}
 	refresh := &RefreshClaims{RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(now.Add(auth.refreshExpires)), IssuedAt: jwt.NewNumericDate(now)}, Refresh: &Refresh{Id: userClaims.Id, Md5: GetSessionId(userClaims.Id)}}
 
-	if accessToken, err = auth.SignedToken(access); err != nil {
+	if accessToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, access).SignedString(auth.secretKey); err != nil {
 		return "", "", fmt.Errorf("access token signed failed: %w", err)
 	}
-	if refreshToken, err = auth.SignedToken(refresh); err != nil {
+	if refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refresh).SignedString(auth.secretKey); err != nil {
 		return "", "", fmt.Errorf("refresh token signed failed: %w", err)
 	}
 	return accessToken, refreshToken, nil
@@ -80,9 +79,14 @@ func (auth *auth) Parse(ctx context.Context, accessToken string) (context.Contex
 	}
 	//获取Claims对象
 	claims := &AccessClaims{}
-	if err := auth.ParseToken(accessToken, claims, AccessToken); err != nil {
+
+	_, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return auth.secretKey, nil // 这里你需要提供用于签名的密钥
+	})
+	if err != nil {
 		return ctx, err
 	}
+
 	if err := claims.Valid(); err != nil {
 		return ctx, err
 	}
@@ -108,7 +112,11 @@ func (auth *auth) Refresh(ctx context.Context, refreshToken string, claims Claim
 		return ctx.Err()
 	default:
 	}
-	if err := auth.ParseToken(refreshToken, claims, RefreshToken); err != nil {
+
+	_, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return auth.secretKey, nil // 这里你需要提供用于签名的密钥
+	})
+	if err != nil {
 		return err
 	}
 	return claims.Valid()

@@ -8,13 +8,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type TokenType int32
-
-const (
-	AccessToken = iota
-	RefreshToken
-)
-
 //=====================================================================================
 
 // AccessClaims 带有jwt的UserInfo
@@ -71,13 +64,11 @@ type Claims interface {
 type Auth interface {
 	Signed
 	Parse
-
-	SetSession(ctx context.Context, sessionId string, session *UserSession) (err error)
-	DeleteSession(ctx context.Context, sessionId string) error
+	Session
 }
 
 type Parse interface {
-	// Parse 解析accessToken
+	// Parse 解析accessToken 生成claims对象，保存到ctx中
 	// 生成Claims 及 Session存放到ctx中 通过 GetClaims GetSession 获取
 	Parse(ctx context.Context, accessToken string) (context.Context, error)
 }
@@ -85,6 +76,11 @@ type Parse interface {
 type Signed interface {
 	// Signed 生成accessToken refreshToken
 	Signed(ctx context.Context, userClaims *UserInfo) (accessToken string, refreshToken string, err error)
-
 	Refresh(ctx context.Context, refreshToken string, claims Claims) error
+}
+
+type Session interface {
+	GetSession(ctx context.Context, sessionId string) (session *UserSession, err error)
+	SetSession(ctx context.Context, sessionId string, session *UserSession) (err error)
+	DeleteSession(ctx context.Context, sessionId string) error
 }
