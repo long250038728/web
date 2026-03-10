@@ -115,7 +115,7 @@ func (g *Client) Merge(ctx context.Context, repos string, num int32) error {
 
 	var res response
 	if err := json.Unmarshal(resp, &res); err != nil {
-		return nil
+		return err
 	}
 
 	if !res.Merged {
