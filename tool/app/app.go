@@ -53,7 +53,7 @@ func (app *App) Start() error {
 		select {
 		case <-app.ctx.Done():
 			return app.ctx.Err()
-		case <-quit: //此时阻塞，收到指令 ctx.Done触发
+		case <-quit: //此时阻塞，收到指令 ctx.Done 触发
 			app.Stop()
 		}
 		return nil
@@ -65,12 +65,12 @@ func (app *App) Start() error {
 
 		//启动服务
 		group.Go(func() error {
-			return svc.Start() //此时阻塞，其中有一个报错则 ctx.Done触发
+			return svc.Start() //此时阻塞，其中有一个报错则 ctx.Done 触发
 		})
 
 		//关闭服务
 		group.Go(func() error {
-			<-app.ctx.Done() //此时阻塞，等待 ctx.Done触发 ，去关闭服务
+			<-app.ctx.Done() //此时阻塞，等待 ctx.Done 触发 ，去关闭服务
 			return svc.Stop()
 		})
 
@@ -86,14 +86,17 @@ func (app *App) Start() error {
 			})
 
 			group.Go(func() error {
-				<-app.ctx.Done()        //此时阻塞，等待 ctx.Done触发 ，去取消注册
-				time.Sleep(time.Second) //这个时候就不能用app.ctx 应该这个ctx已经cancel
-				return app.register.DeRegister(context.Background(), svc.ServiceInstance())
+				<-app.ctx.Done()        //此时阻塞，等待 ctx.Done 触发，去取消注册
+				time.Sleep(time.Second) //等待其他服务关闭完成
+				// 创建带超时的 context 用于清理操作（注销注册）
+				cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), time.Second*5)
+				defer cleanupCancel()
+				return app.register.DeRegister(cleanupCtx, svc.ServiceInstance())
 			})
 		}
 	}
 
-	//监听所有err
+	//监听所有 err
 	return group.Wait()
 }
 
