@@ -102,7 +102,7 @@ func (g *Models) dbSearch(schema string, tables []string) ([]*table, error) {
 	var tableList []*table
 	var fieldList []*field
 
-	if err := g.db.Debug().Raw(`
+	if err := g.db.Raw(`
 	SELECT
 		TABLE_SCHEMA as table_schema,
 		TABLE_NAME as table_name,
@@ -128,7 +128,7 @@ func (g *Models) dbSearch(schema string, tables []string) ([]*table, error) {
 	FROM
 		information_schema.COLUMNS
 	WHERE
-		TABLE_SCHEMA = ? AND TABLE_NAME IN (?);
+		TABLE_SCHEMA = ? AND TABLE_NAME IN (?) ORDER BY TABLE_NAME,ORDINAL_POSITION;
 	`, schema, tables).Find(&fieldList).Error; err != nil {
 		return nil, err
 	}

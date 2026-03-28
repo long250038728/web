@@ -28,6 +28,7 @@ require (
 	github.com/qiniu/go-sdk/v7 v7.25.4
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/segmentio/kafka-go v0.4.49
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/cobra v1.10.1
 	github.com/xuri/excelize/v2 v2.10.0
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
@@ -129,7 +130,6 @@ require (
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/smarty/assertions v1.16.0 // indirect
 	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect

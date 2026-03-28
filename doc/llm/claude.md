@@ -1,3 +1,23 @@
+## Agent
+我们希望能够通过Agent和大模型这个不确定的东西变成我们能够管理、管控的系统。所以衍生出了 `OpenCode` / `Claude code` 或是 `trae`/ `codebuddy` 或是 `OpenClaw`这种Agent工具/应用。它是可以真正干活的。同时也能满足你的预期
+*  `OpenCode` / `Claude code` 采用的是CLI的方式,通过TUI的方式进行交互
+*  `trae`/ `codebuddy` 采用的是原生的代码编程IDE的方式
+*  `OpenClaw` 采用的是通过聊天工具的方式进行交互，控制你本地的电脑/服务器
+
+我们应该思考，借助AI工具我们如何与别人差距在哪里，解决了什么问题，创造了什么价值。他们的每一次的升级都是更加贴近人。工具其背后的设计模式才是我们需要学习的（今天A工具明天出了B工具）
+* chatGPT: 成为一个良好沟通的朋友，你问他他乐于回答你，但是还是要你自己做事
+* Claude Code: 成为一个会处理工作上的员工，你告诉它需要怎么做，它就会按照你的要求去完成，
+* OpenClaw: 成为一个会秘书，可通过聊天工具下达命令，完成你给他的工作，目前它无法想Claude Code解决专业的问题（只有skill技能，没有其他的如hook，subAgent等）。
+
+通过Agent我们需要思考
+* 创造了什么价值
+* 解决什么问题
+
+Agent 中使用的问题
+1. Agent如何把行为不可预测变成可控（通过Agent.md进行约束）
+2. Agent能力复用（听过markdown文件进行管理）
+3. 复杂任务（通过skills，subagent，agent teams进行优化，同时借助SDD实现任务的分析，架构的方案，任务的指定拆成细粒度的工作）
+
 ## Claude
 为什么说`AI cli`工具比`AI IDE`更强大的在于它可以直接操作shell等命令，无需被IDE或环境等限制。
 #### Claude详细讲解
@@ -258,7 +278,7 @@ model: inherit
 ```
 
 ### Hooks
-`/hooks` 设定当触发某个操作时进行hook
+`/hooks` 设定当触发某个操作时进行自动进行hook操作（中间件的方式）不影响claude的正常使用
 * PreToolUse 工具使用前hook
 * PostToolUse 工具时候后hook
 * PostToolFailure 工具使用失败后hook
@@ -272,10 +292,101 @@ model: inherit
 * TeammateIdle 团队同事即将空闲时
 * TaskCompleted 当任务被标记完成时
 
-可以挂钩的类型
+hook写法
+```
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/audit-log.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+
+* 分类 
+* 拦截事件: PreToolUse、UserPromptSubmit、Stop、SubagentStop
+* 替代默认行为的事件(接管了原本由用户手动处理的权限弹窗——你的脚本可以自动批准或拒绝权限请求，替代人类的决策): PermissionRequest
+* 观察记录事件: SessionStart、PostToolUse、PostToolUseFailure、Notification、SubagentStart、PreCompact、SessionEnd
+
+可以挂钩的类型 （顺序如下：能用 command 的不用 prompt，能用 prompt 的不用 agent，需要对接远程服务时用 http）
 * command
 * prompt
 * agent
+* http
+
+常见hook
+* PreToolUse: 执行工具前需要判断是否允许执行 （可以做三件事：允许（allow，放行），拒绝（deny，拦截），修改（updatedInput，改写输入参数后再执行））
+  * 脚本退出码 (这个区分很重要：脚本出错不应该阻止正常工作流): 
+    1. exit 0 表示放行，
+    2. exit 2 表示阻止，
+    3. 其他非零退出码表示脚本出错但不阻止。
+* PostToolUse: 执行后的操作（格式化/写日志等）
+* Stop: 在执行结束时的hook，通过hook检查然后是否需要重新处理
+
+PreToolUse更精细的控制通过stdout输出JSON决策（能allow的不ask，能ask的不deny）
+```
+// 允许执行与exit 0相同
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow"
+  }
+}
+// 拒绝执行与exit 2相同
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "This command is not allowed"
+  }
+}
+// 交给用户确认
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "ask",
+    "permissionDecisionReason": "This command modifies production data"
+  }
+}
+// 修改参数放行
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow",
+    "updatedInput": {
+      "command": "rm -rf /tmp/test --dry-run"
+    }
+  }
+}
+```
+
+PostToolUse 把执行后的脚本结果反馈给claude
+ ```
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PostToolUse",
+    "additionalContext": "ESLint found 3 errors in the file you just wrote."
+  }
+}
+```
+
+Stop 把执行结果的脚本反馈给claude，判断是否可以结束。当返回continue为true时，此时代表不能停止结束
+```json
+{
+  "decision": "block",
+  "reason": "Tests are failing, please fix them",
+  "continue": true
+}
+```
 
 ### MCP
 ```shell
@@ -290,7 +401,7 @@ claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http",
    * stdio 与本地标准输入输出通信
 2. scope
    * user 存放在个人目录（~/.claude.json）
-   * project 存放在项目根目录下（./mcp.json）
+   * project 存放在项目根目录下（.mcp.json）
    * local 本地默认 (~/.claude.json)
 
 #### 验证是否添加成功
@@ -322,9 +433,6 @@ cat error.log | claude -p "帮我分析这个日志里面的内容"
   * 它不能完全替代git，他们是互补关系而不是替换关系                       [角色]
                                                     你是一个程序员，这是一个前端项目
 
-[基础]
-这个是一个web的html项目，使用的是vue3.0框架
-```
 
 #### constitution.md(原则契约)
 constitution.md拥有绝对的否决权。做什么需要参考这个”宪法“。这个是高度稳定一般不轻易修改
@@ -338,6 +446,7 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
    * plan 类似default，但更倾向ai制定行动计划，而不是直接执行或给出答案（只说不做）
    * acceptEdits 自动批准编辑，无需你批准，但是类似bash这种才需要你批准
    * bypassPermissions 跳过所有权限，自动执行所有操作
+   * dontAsk 拒绝工具，除非通过/permissions或 permissions.allow 规则预先批准
 2. /permissions 权限规则
    * deny 最高否定权
    * allow 允许
@@ -350,21 +459,20 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
    "permissions": {
       "allow": [  // 允许
          "Read(README.md)",
-         "Bash(go:version)",              // go version 
-         "Bash(go:list:*)",               // go list xxx
-         "WebFetch(domain:*.baidu.com)"   // xx.baidu.com
+         "Bash(go version)",              // go version 
+         "Bash(go list *)",               // go list xxx
+         "WebFetch(domain *.baidu.com)"   // xx.baidu.com
+         "Agent(xxxx)"                    // xxxx子代理
       ],
       "deny": [   // 禁止
-         "Read(./**/*.md)",        // 相对路径遍历当前路径下所有的*.md文件
-         "Read(./.env*)",          // 相对路径
-         "Read(~/.ssh/*)",         // 用户主路径
-         "Read(/*.json)",          // settings.json所在的目录下的xxx文件
-         "Read(//etc/passwd)"      // 文件系统绝对路径
+         "Read(//Users/xxx/Documents/*.pdf)",      // 系统文件的绝对路径
+         "Read(~/Documents/*.pdf)",                // 主目录下的路径（如/Users/xxx/Documents/*.pdf）
+         "Read(/path)",                            // 当前项目下的/path
+         "Read(*.pdf)",                            // 当前路径下的文件（./xxx  xxx 相同）
       ],  
       "ask": [    //询问
          "Write",
          "Edit",
-         "MultiEdit"
       ],
       "defaultMode": "default"
    },
@@ -400,6 +508,8 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
 * Glob 文件名查找
 * WebSearch 搜索网页
 * WebFetch 抓取网页内容
+* Agent 允许哪个子代理
+* Skill 技能
 ---
 
 ### agent到sub-agent到multi-agent
@@ -443,8 +553,6 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
   * 分析及明确实现的步骤及任务（步骤1做什么，步骤2做什么）
   * 主要注意的事项
 
-
-
 ## 渐进式加载
 1. 启动时加载`skill`或`agent`只是加载对应的description及name等metadata元信息，这样就可以减少token加载至上下文（减少token的使用同时避免稀释效应）
 2. 当需要调用`skill`或`agent`时会加载对应的提示词内容，但是部分提示词（辅助内容）不一定需要马上加载，常用的方式是独立新的文件
@@ -453,3 +561,29 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
      2. 路径在哪里
      3. 加载后会得到什么
 3. 当llm认为引用（辅助内容）需要加载时才会对其加载（如果一些是python等工具指令，只需要执行不需要加载）
+
+
+```json
+
+
+# 添加 HTTP 服务器
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+
+# 添加 stdio 服务器
+claude mcp add filesystem -- npx @modelcontextprotocol/server-filesystem /path
+
+# 添加到用户级别（所有项目可用）
+claude mcp add --transport http --scope user github https://api.githubcopilot.com/mcp/
+
+# 带认证头添加
+claude mcp add --transport http --header "Authorization: Bearer ${TOKEN}" api https://api.example.com/mcp
+
+# 列出所有服务器
+claude mcp list
+
+# 查看服务器详情
+claude mcp get github
+
+# 移除服务器
+claude mcp remove github
+```
