@@ -1,3 +1,38 @@
+## 传统的Agent与Harness
+* 在早期大模型还不够强大时，需要通过Chain或RAG等框架实现Agent的功能。但是这种方式就变成了硬编码的方式（不够灵活，完成单一的任务）。在现在大模型变成一个拥有极强规划能力的CPU.它不需要规定执行的流程，只需要告诉他有什么工具，通过上下文及指令，他就可以自动进行编排及推导下一步要执行什么。
+  * Chain: langchain
+  * RAG: langgraph
+
+### Harness的问题
+ * 由于Harness是基于大模型的，所以能力边界就变得非常的重要，通过指定工具给大模型提供手脚的同时通过middleware中间件、权限等控制大模型的行为。
+
+ * Harness一般有一下的组成
+ 1. 大模型适配器（可以指定不同类型的大模型，如openAI, anthropic等）
+ 2. 工具 (read, write, mcp等)
+ 3. context工程 (上下文的拼装，各种mardown文件的拼装及更新)
+ 4. memory管理 (token的统计，上下文压缩及缓存)
+ 5. middleware中间件 (权限控制)
+ 6. ReAct Main处理
+
+#### ReAct Main处理
+LOOP处理 —— 用户输入，封装提示词上下文，调用大模型，调用工具，更新上下文，重复以上过程
+* 封装提示词上下文
+  * 角色
+  * AGENT.md/USER.md等
+  * 工具描述
+  * 用户输入
+* 循环处理
+  * 两阶段 ReAct（带有thinking的大模型时这个两阶段是内部完成）：
+    1. 阶段一（思考）：传入问题，不让模型直接执行  → 输出：任务拆解、执行步骤、工具选择计划
+    2. 阶段二（执行）：思考结果 + 可用工具 → 传给模型 → 输出：tool_call（工具名+参数） 或 最终答案
+  * 用户确认（Human-in-the-loop）
+    * 执行工具，获取结果
+    * 将工具结果回传上下文
+  * 判断是否结束循环
+    * 有新的 tool_call → 继续循环
+    * 输出最终答案 → 退出循环
+
+    
 ## Agent
 我们希望能够通过Agent和大模型这个不确定的东西变成我们能够管理、管控的系统。所以衍生出了 `OpenCode` / `Claude code` 或是 `trae`/ `codebuddy` 或是 `OpenClaw`这种Agent工具/应用。它是可以真正干活的。同时也能满足你的预期
 *  `OpenCode` / `Claude code` 采用的是CLI的方式,通过TUI的方式进行交互
@@ -17,6 +52,7 @@ Agent 中使用的问题
 1. Agent如何把行为不可预测变成可控（通过Agent.md进行约束）
 2. Agent能力复用（听过markdown文件进行管理）
 3. 复杂任务（通过skills，subagent，agent teams进行优化，同时借助SDD实现任务的分析，架构的方案，任务的指定拆成细粒度的工作）
+
 
 ## Claude
 为什么说`AI cli`工具比`AI IDE`更强大的在于它可以直接操作shell等命令，无需被IDE或环境等限制。
@@ -389,12 +425,38 @@ Stop 把执行结果的脚本反馈给claude，判断是否可以结束。当返
 ```
 
 ### MCP
-```shell
+```
 # -- 分隔符后面用于服务器启动
 claude mcp add      --transport stdio --scope project mcp名称  -- python main.py
+
 # transport http使用 add-json的方式添加, Authorization中添加token，${GITHUB_TOKEN}通过环境变量获取避免硬编码
 claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http","url":"https://api.xxxxxxxxxx.com/mcp/","headers":{"Authorization":"Bearer ${XXX_TOKEN}"}}' 
 ```
+
+```
+# 添加 HTTP 服务器
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+
+# 添加 stdio 服务器
+claude mcp add filesystem -- npx @modelcontextprotocol/server-filesystem /path
+
+# 添加到用户级别（所有项目可用）
+claude mcp add --transport http --scope user github https://api.githubcopilot.com/mcp/
+
+# 带认证头添加
+claude mcp add --transport http --header "Authorization: Bearer ${TOKEN}" api https://api.example.com/mcp
+
+# 列出所有服务器
+claude mcp list
+
+# 查看服务器详情
+claude mcp get github
+
+# 移除服务器
+claude mcp remove github
+```
+
+
 1. transport
    * http 与远端http通信
    * sse 与远端SSE通信（已废弃）
@@ -410,16 +472,49 @@ claude mcp add-json --transport http  --scope project mcp名称 '{"type":"http",
 
 ### Headless
 Headless一般指软件工程中没有用户图形界面交互下运行，在claude场景中即不需要打开claude完成一问一答的方式，而是一次性的一问一答
-```bash
-# --allowedTools使用什么工具  --permission-mode使用什么权限模式  --output-format输出什么格式
-claude -p "讲解一下go部署的优势及缺点"  --allowedTools="Bash,Read" --permission-mode acceptEdits --output-format text
-# 将cat获取的内容通过管道符的方式传递给claude
-cat error.log | claude -p "帮我分析这个日志里面的内容"  
+
+常见的参数
+* --output-format 输出响应的格式
+  * text 文本默认（默认）
+  * json json格式 （可通过jq的工具进行快速获取json中的值）
+  * stream-json (如果任务很长，希望看到ai的实时进展，每一步都会输出到stdout,采用的是JSONL的形式) 注意：使用stream-json 必须带上 --verbose
+* --max-turns 最大执行轮次 避免循环消耗大量token
+* --allowedTools 只允许的tools工具 如Grep,Read
+* --disallowedTools 禁止的tools工具 如Bash
+* --continue 继续上一个对话
+* --session-id 指定会话
+* --permission-mode使用什么权限模式
+
 ```
---output-format输出响应格式
-* text 文本默认（默认）
-* json json格式 （可通过jq的工具进行快速获取json中的值）
-* stream-json (如果任务很长，希望看到ai的实时进展，每一步都会输出到stdout) 注意：使用stream-json 必须带上 --verbose
+claude -p "讲解一下go部署的优势及缺点"  
+
+# 管道连接
+cat error.log | claude -p "帮我分析这个日志里面的内容"  
+curl https://www.baidu.com | claude -p "把我提取热点信息"
+cat main.go | claude -p "帮我把go逻辑转换为TypeScript"
+find / -name "*.py" | xargs -I {} claude -p "检查 {} 中的类型提示是否完整"
+git diff HEAD~1 | claude -p "总结本次变动"
+grep -r "ERROR" src/ | claude  -p "帮我分析一下这些错误是什么"
+
+# 注释
+# xargs 中 -I {} 表示一个占位符 {}
+# 下面例子就变成（如果当前有a.py,b.py,c.py）
+#   claude -p "检查 a.py 中的类型提示是否完整
+#   claude -p "检查 b.py 中的类型提示是否完整
+#   claude -p "检查 c.py 中的类型提示是否完整
+#
+find / -name "*.py" | xargs -I {} claude -p "检查 {} 中的类型提示是否完整"
+```
+
+常用的场景
+1. git CI/CD 的配置 (github Actions) 路径`.github/workflows/claude.yaml`
+2. git Pre-commit Hook 在本地提交前进行检查（git commit）路径`.git/hooks/pre-commit`
+3. git Commit Message 自动生成提交信息 路径`.git/hooks/prepare-commit-msg`
+
+Headless注意事项
+1. 在权限方面应该尽可能的最小权限原则
+2. 在CI/CD中不要硬编码API KEY
+3. 应该合理设置--max-turns，避免token过大浪费
 
 ### checkpointing
 当操作后发现需要撤回之前的操作                                     
@@ -539,19 +634,7 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
 
 ---
 
-## SDD
-### spec/plan/task的关系
-* spec.md 以产品经理的视角分析
-  * 这个一个什么产品，产品的定位是什么
-  * 产品的功能是什么，实现了用户的什么目标
-  * 用户群体是什么，风格是什么
-  * 有什么是功能是必须有，什么功能是一定不能有，有什么页面，每个页面具体实现什么功能
-* plan.md 以架构师的视角分析
-  * 使用什么技术栈，需要遵循开发中的什么规范及原则
-  * 架构图分层设计
-* task.md 以开发者的视角分析
-  * 分析及明确实现的步骤及任务（步骤1做什么，步骤2做什么）
-  * 主要注意的事项
+
 
 ## 渐进式加载
 1. 启动时加载`skill`或`agent`只是加载对应的description及name等metadata元信息，这样就可以减少token加载至上下文（减少token的使用同时避免稀释效应）
@@ -562,28 +645,3 @@ AI自动操作与避免AI随便修改的平衡（效率与权限的平衡）
      3. 加载后会得到什么
 3. 当llm认为引用（辅助内容）需要加载时才会对其加载（如果一些是python等工具指令，只需要执行不需要加载）
 
-
-```json
-
-
-# 添加 HTTP 服务器
-claude mcp add --transport http github https://api.githubcopilot.com/mcp/
-
-# 添加 stdio 服务器
-claude mcp add filesystem -- npx @modelcontextprotocol/server-filesystem /path
-
-# 添加到用户级别（所有项目可用）
-claude mcp add --transport http --scope user github https://api.githubcopilot.com/mcp/
-
-# 带认证头添加
-claude mcp add --transport http --header "Authorization: Bearer ${TOKEN}" api https://api.example.com/mcp
-
-# 列出所有服务器
-claude mcp list
-
-# 查看服务器详情
-claude mcp get github
-
-# 移除服务器
-claude mcp remove github
-```
