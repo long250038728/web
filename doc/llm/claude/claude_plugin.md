@@ -13,7 +13,7 @@
 * task.md 以开发者的视角分析
   * 分析及明确实现的步骤及任务（步骤1做什么，步骤2做什么）
   * 主要注意的事项
-
+---
 
 ## superpowers （解决怎么做得正确）- 场景单线程完成
 防止 agent 直接跳入写代码，强制执行开发方法论（设计 → 计划 → TDD → 代码审查 → 合并），核心目标是质量和规范。
@@ -24,6 +24,7 @@
 1. /superpowers:brainstorming 需求:  进行头脑风暴(澄清需求) （生成docs/superpowers/spec/2026-04-28-weight-edit.md）
 2. /superpowers:writing-plans: 编写实现计划（生成docs/superpowers/plans/2026-04-28-weight-edit.md）
 3. /superpowers:subagent-driven-development: 执行实现&&代码审查(子代理)
+---
 
 ## oh-my-claude-code （解决怎么做得更快）- 场景多代理并行处理
 把一个 agent 变成多个 agent，通过并行执行、角色分离、验证循环和可观测性（HUD、成本统计、状态追踪）来工作，
@@ -73,6 +74,7 @@
   └──────────────────────────┴─────────────────────────────────────────────────────────────────────┘
 
 ```
+---
 
 ## everything-claude-code （怎么保证质量和安全不出错）
 在代码生成中加载对应语言的技能获取规范,常见的是自动触发无需手动调用
@@ -80,4 +82,33 @@
 /plugin marketplace add https://github.com/affaan-m/everything-claude-code
 /plugin install everything-claude-code@everything-claude-code
 ```
+---
 
+## mermaid(架构图/时序图/依赖图等)
+
+安装本地工具
+```
+npm install -g claude-mermaid
+```
+
+安装mcp
+```
+/plugin marketplace add veelenga/claude-mermaid
+/plugin install claude-mermaid@claude-mermaid
+```
+
+提示词
+```
+帮我画一个项目的XXX图，保存到./svg/xxx.svg
+```
+
+### 类型
+* 系统图 (system.svg) — 回答"系统边界在哪里"
+  * 面向产品经理、运维、新人。展示 kobe 与外部世界的关系：有哪些客户端、经过什么网关、依赖哪些外部基础设施。不关心内部实现，只看"进出口"。
+* 架构图 (architecture.svg) — 回答"代码分几层、各层干什么"
+  * 面向开发者、Tech Lead、Code Review。展示系统内部的分层结构：传输层 → Endpoint → Handler → Domain → Repository → 数据库。帮助理解职责边界，知道一段逻辑该写在哪一层。
+* 依赖图 (dependency.svg) — 回答"代码依赖什么、服务依赖什么"
+  * 面向架构师、DevOps、升级维护的人。展示库版本、服务间依赖（所有服务依赖 common）、代码生成工具链。升级某个依赖、评估影响范围、排查循环依赖时用这张图。
+* 流程图 (flow.svg) — 回答"一次请求怎么跑完全程"
+  * 面向开发者、测试、排查 Bug 的人。展示运行时的动态过程：请求如何流动、权限在哪里校验、缓存在哪里介入、错误在哪里返回。定位问题、理解执行路径时用这张图。
+---
